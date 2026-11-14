@@ -26,6 +26,7 @@ namespace RedFrontier.Outpost
         Texture2D crewFitnessArt, crewFitnessSegments;
         static readonly int[] CrewSegmentEdges = { 10, 19, 26, 32, 40, 48 };
         GUIStyle crewFitnessLabel;
+        internal Rect CrewFitnessBounds { get; private set; }
 
         void Awake() => Instance = this;
 
@@ -54,6 +55,7 @@ namespace RedFrontier.Outpost
                 economy.stock[i] = Mathf.Min(startStock[i], economy.cap[i]);
             gameObject.AddComponent<MissionPauseMenu>();
             Ready = true;
+            gameObject.AddComponent<MissionGuide>();
         }
 
         void Update()
@@ -157,8 +159,11 @@ namespace RedFrontier.Outpost
             // Keep the gauge level with the resource bar whenever both fit on the same row.
             float x = Mathf.Round(16f * scale);
             float gap = Mathf.Round(8f * scale);
-            float y = x + panelWidth + gap <= resourceBar.xMin ? resourceBar.yMin : resourceBar.yMax + gap;
-            var panel = new Rect(x, y, panelWidth, Mathf.Round(height * scale));
+            bool sameRow = x + panelWidth + gap <= resourceBar.xMin;
+            float y = sameRow ? resourceBar.yMin : resourceBar.yMax + gap;
+            var panel = new Rect(x, y, panelWidth, sameRow ? resourceBar.height : Mathf.Round(height * scale));
+            CrewFitnessBounds = panel;
+            float verticalScale = panel.height / height;
             GUI.DrawTexture(panel, crewFitnessArt);
 
             float fitness = economy.fitness;
@@ -171,7 +176,7 @@ namespace RedFrontier.Outpost
                 if (lit <= 0f) continue;
                 float top = CrewSegmentEdges[i];
                 float segmentHeight = CrewSegmentEdges[i + 1] - top;
-                var segment = new Rect(panel.x, panel.y + top * scale, panel.width, segmentHeight * scale);
+                var segment = new Rect(panel.x, panel.y + top * verticalScale, panel.width, segmentHeight * verticalScale);
                 var uv = new Rect(0f, 1f - (top + segmentHeight) / height, 1f, segmentHeight / height);
                 GUI.color = new Color(originalColor.r, originalColor.g, originalColor.b, originalColor.a * lit);
                 GUI.DrawTextureWithTexCoords(segment, crewFitnessSegments, uv);
@@ -180,15 +185,15 @@ namespace RedFrontier.Outpost
 
             const float labelX = 68f, labelWidth = 102f;
             crewFitnessLabel.fontSize = Mathf.Max(1, Mathf.RoundToInt(12f * scale));
-            GUI.Label(new Rect(panel.x + labelX * scale, panel.y + 7f * scale, labelWidth * scale, 15f * scale),
+            GUI.Label(new Rect(panel.x + labelX * scale, panel.y + 7f * verticalScale, labelWidth * scale, 15f * scale),
                 $"<b>Fitness {fitness * 100f:0}%</b>", crewFitnessLabel);
             crewFitnessLabel.fontSize = Mathf.Max(1, Mathf.RoundToInt(11f * scale));
-            GUI.Label(new Rect(panel.x + labelX * scale, panel.y + 22f * scale, labelWidth * scale, 13f * scale),
+            GUI.Label(new Rect(panel.x + labelX * scale, panel.y + 22f * verticalScale, labelWidth * scale, 13f * scale),
                 $"<color=#cfb9b8>Work speed {economy.Efficiency * 100f:0}%</color>", crewFitnessLabel);
 
             string status = economy.lifeSupportShort ? $"<color=#ff978e>Out of {economy.shortOf.ToString().ToLowerInvariant()}</color>"
                 : economy.training != null && !economy.training.stalled ? "<color=#a0e6b7>Training</color>" : string.Empty;
-            GUI.Label(new Rect(panel.x + labelX * scale, panel.y + 35f * scale, labelWidth * scale, 13f * scale),
+            GUI.Label(new Rect(panel.x + labelX * scale, panel.y + 35f * verticalScale, labelWidth * scale, 13f * scale),
                 status, crewFitnessLabel);
         }
     }

@@ -48,7 +48,7 @@ namespace RedFrontier.Outpost
 
         static Vector2 GuiMouse => new Vector2(Input.mousePosition.x, Screen.height - Input.mousePosition.y);
         internal static bool PointerOverUI(Vector2 guiPos) => current != null && current.OverUI(guiPos);
-        bool OverUI(Vector2 guiPos) => buttonRect.Contains(guiPos) || (open && panelRect.Contains(guiPos));
+        bool OverUI(Vector2 guiPos) => buttonRect.Contains(guiPos) || (open && panelRect.Contains(guiPos)) || MissionGuide.PointerOverUI(guiPos);
 
         internal bool CancelForEscape()
         {
@@ -104,9 +104,9 @@ namespace RedFrontier.Outpost
 
             float scale = Mathf.Min(Mathf.Clamp(Screen.height / 720f, 1f, 1.5f),
                 Screen.width / 320f, Screen.height / 460f);
-            panelRect = new Rect(Screen.width - (PanelSize + 22f) * scale,
+            panelRect = new Rect(Screen.width - (PanelSize + 12f) * scale,
                 Screen.height - (PanelSize + 76f) * scale, PanelSize * scale, PanelSize * scale);
-            buttonRect = new Rect(panelRect.center.x - 54f * scale, panelRect.yMax + 10f * scale, 108f * scale, 44f * scale);
+            buttonRect = new Rect(panelRect.xMax - 108f * scale, panelRect.yMax + 10f * scale, 108f * scale, 44f * scale);
 
             if (buttonStyle == null)
             {
@@ -143,12 +143,13 @@ namespace RedFrontier.Outpost
 
             if (e.type == EventType.MouseDown && e.button == 0)
             {
-                if (open && panelRect.Contains(mouse))
+                if (MissionGuide.PointerOverUI(mouse)) e.Use();
+                else if (open && panelRect.Contains(mouse))
                 {
                     if (hovered != null) selected = selected == hovered ? null : hovered;
                     e.Use();
                 }
-                else if (selected != null && !buttonRect.Contains(mouse)) { Place(e.shift); e.Use(); }
+                else if (selected != null && !OverUI(mouse)) { Place(e.shift); e.Use(); }
             }
             GUI.depth = priorDepth;
         }

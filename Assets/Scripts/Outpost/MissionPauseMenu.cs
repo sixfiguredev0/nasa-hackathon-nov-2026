@@ -71,7 +71,7 @@ namespace RedFrontier.Outpost
             active = null;
             releasedFrame = Time.frameCount;
             Time.timeScale = previousTimeScale;
-            canvas.gameObject.SetActive(false);
+            if (canvas != null) canvas.gameObject.SetActive(false);
             if (events != null) events.SetSelectedGameObject(priorSelection);
         }
 

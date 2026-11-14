@@ -46,12 +46,14 @@ namespace RedFrontier.Outpost
 
             UpdateReadouts(economy);
             const float width = 640f, height = 44f;
-            float scale = Mathf.Min(Mathf.Clamp(Screen.height / 720f, 1f, 1.5f), (Screen.width - 16f) / width);
+            float baseScale = Mathf.Clamp(Screen.height / 720f, 1f, 1.5f);
+            float scale = Mathf.Min(1.1f * baseScale, (Screen.width - 16f) / width);
             bool compact = scale < 0.85f;
-            float verticalScale = compact ? 1.7f : scale;
+            float panelHeight = compact ? height * 1.7f : 58f * baseScale;
+            float verticalScale = Mathf.Round(panelHeight) / height;
             float panelWidth = Mathf.Round(width * scale);
             var panel = new Rect(Mathf.Round((Screen.width - panelWidth) / 2f), 12f,
-                panelWidth, Mathf.Round(height * verticalScale));
+                panelWidth, Mathf.Round(panelHeight));
 
             Bounds = panel;
             GUI.DrawTexture(panel, resourceBarArt);
@@ -117,10 +119,10 @@ namespace RedFrontier.Outpost
                 string inlineRate = readout + "  " + rateLabel;
                 text.fontSize = Mathf.RoundToInt(11f * textScale);
                 bool rateFits = rateLabel.Length == 0 || text.CalcSize(new GUIContent(inlineRate)).x <= available;
-                Label(new Rect(left, cell.y + (rateFits ? 8f : 5f) * scale, available, 18f * scale),
+                Label(new Rect(left, cell.y + (rateFits ? 8f : 5f) * verticalScale, available, 18f * scale),
                     rateFits ? inlineRate : readout, textScale, TextAnchor.MiddleLeft);
                 if (!rateFits)
-                    Label(new Rect(left, cell.y + 19f * scale, available, 10f * scale), rateLabel,
+                    Label(new Rect(left, cell.y + 19f * verticalScale, available, 10f * scale), rateLabel,
                         textScale, TextAnchor.MiddleLeft);
             }
 
