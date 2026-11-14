@@ -16,7 +16,7 @@ namespace RedFrontier.Core
                 report.resources.Add(new ResourceReport { id = res.id, start = res.amount });
 
             // Step 1: facilities in config order. Each runs at the highest level <= requested that it
-            // can pay for in full. Costs are never clamped: an unaffordable level is not run.
+            // can pay for in full, costs summed per resource. Costs are never clamped: an unaffordable level is not run.
             for (int i = 0; i < c.facilities.Count; i++)
             {
                 var def = c.facilities[i];
@@ -93,10 +93,18 @@ namespace RedFrontier.Core
             return report;
         }
 
+        /// <summary>Costs are summed per resource (same rule as choice costs), so two entries of 3 need 6.</summary>
         static bool CanPay(SimState s, List<FlowDef> uses)
         {
+            var total = new Dictionary<string, int>();
             foreach (var u in uses)
-                if (s.Resource(u.resource).amount < u.amount) return false;
+            {
+                int sum;
+                total.TryGetValue(u.resource, out sum);
+                total[u.resource] = sum + u.amount;
+            }
+            foreach (var kv in total)
+                if (s.Resource(kv.Key).amount < kv.Value) return false;
             return true;
         }
     }

@@ -16,6 +16,10 @@
     <ProjectReference Include="../Core/RedFrontier.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="../Content/example/**/*.json" LinkBase="Content/example" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Shared NUnit sources: the same files run in the Unity Test Runner (EditMode). -->
+    <Compile Include="../../../Red Frontier/Assets/RedFrontier/Tests/EditMode/Shared/*.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="../../../Red Frontier/Assets/RedFrontier/Content/Resources/**/*.json" LinkBase="Content/example" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

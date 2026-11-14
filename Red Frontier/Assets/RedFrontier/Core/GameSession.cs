@@ -18,11 +18,14 @@ namespace RedFrontier.Core
         /// <summary>Exactly once per accepted command; never on rejection.</summary>
         public event Action<SessionChange> Changed;
 
-        public GameSession(MissionConfig config, IEnumerable<EventDef> events, int seed)
+        public GameSession(MissionConfig config, IEnumerable<EventDef> events, int seed) : this(config, events, seed, true) { }
+
+        /// <summary>validate = false exists only so tests can reach the runtime no-choice guard with content validation would reject.</summary>
+        internal GameSession(MissionConfig config, IEnumerable<EventDef> events, int seed, bool validate)
         {
             var list = new List<EventDef>();
             if (events != null) foreach (var e in events) list.Add(e);
-            var result = ContentValidator.Validate(config, list);
+            var result = validate ? ContentValidator.Validate(config, list) : new ValidationResult();
             if (!result.Ok) throw new ContentValidationException(result);
             Warnings = result.warnings.AsReadOnly();
 
@@ -203,7 +206,8 @@ namespace RedFrontier.Core
             {
                 // Step 7.
                 EventDirector.RaiseFor(next, config, events);
-                if (!next.pending.IsNone)
+                if (EndIfUnanswerable(next)) kind = ChangeKind.MissionEnded;
+                else if (!next.pending.IsNone)
                 {
                     kind = ChangeKind.EventRaised;
                     report.eventRaisedId = next.pending.eventId;
@@ -250,7 +254,28 @@ namespace RedFrontier.Core
                 s.facilities.Add(new FacilityState { id = f.id, level = f.startLevel });
             // Step 7 for sol 1, so a mission can open with a milestone.
             EventDirector.RaiseFor(s, config, events);
+            EndIfUnanswerable(s);
             return s;
+        }
+
+        /// <summary>
+        /// Defensive guard (decision 0006). Validation requires a fallback choice, so this should never
+        /// fire; if it does, end the mission with an explicit content-error reason rather than trap the
+        /// player, skip the event or make a paid choice free. Stock cannot change while a decision is
+        /// pending, so checking once when the event is raised is enough. Uses no RNG.
+        /// </summary>
+        bool EndIfUnanswerable(SimState s)
+        {
+            if (s.pending.IsNone) return false;
+            var def = FindEvent(s.pending.eventId);
+            foreach (var ch in EventDirector.ResolvedChoices(def, s.pending.variantId))
+                if (EffectApplier.CheckChoice(s, ch).Length == 0) return false;
+            string eventId = s.pending.eventId, variantId = s.pending.variantId;
+            End(s, MissionOutcome.Failure, ReasonCodes.ContentErrorNoAvailableChoice);
+            var entry = s.log[s.log.Count - 1];
+            entry.eventId = eventId;
+            entry.variantId = variantId;
+            return true;
         }
 
         void Commit(SimState next, SessionChange change)

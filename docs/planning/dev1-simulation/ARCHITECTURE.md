@@ -249,11 +249,15 @@ Effect types, closed set for schema version 1:
 
 Because the parser has no nulls, 0 means "not set" for `sol`, `delaySols`, `minSol`, `maxSol`.
 
+**Fallback rule ([0006](../../decisions/0006-event-fallback-and-unity-layout.md)):** every event and every variant must have one choice with no `requires` and no negative `resource` effect (a health loss is allowed). The validator rejects content without one. If a raised event still has no available choice, the mission ends with `content_error_no_available_choice` (outcome Failure). Facility `uses` are summed per resource when checking affordability.
+
 Limits Developer 3 should know: at most 3 choices; no branching on earlier choices; no new effect types without a request to Developer 1. The validator fails a file with unknown IDs or types, and warns when a choice in a multi-choice event has no negative effect and no requirement, since the brief requires every choice to cost something.
 
 Radiation events need no special system: one choice costs power or halves output for a sol (sheltering), the other costs health (exposure).
 
-## 8. Unity layout (provisional)
+## 8. Unity layout
+
+**As built (2026-11-14, [0006](../../decisions/0006-event-fallback-and-unity-layout.md)):** the Unity project is `Red Frontier/` at the repository root (Unity 2022.3.18f1), with the folders below under `Red Frontier/Assets/RedFrontier/`; shared tests are in `Tests/EditMode/Shared/` (assembly `RedFrontier.Tests.EditMode`), Unity-only ones in `Tests/EditMode/Unity/`; the debug HUD is IMGUI in `Runtime/DebugHud.cs`, placed with `SimulationHost` in `Scenes/Dev1_Debug.unity` (no prefab yet). The sketch below is the original proposal.
 
 ```
 game/<UnityProject>/Assets/RedFrontier/

@@ -1,6 +1,10 @@
 using System.Collections.Generic;
-using System.Text.Json;
 using NUnit.Framework;
+#if !UNITY_2017_1_OR_NEWER
+using System.Text.Json;
+#endif
+
+// Shared by the Unity EditMode assembly and the plain .NET test project (included by path).
 
 namespace RedFrontier.Core.Tests
 {
@@ -155,10 +159,13 @@ namespace RedFrontier.Core.Tests
 
         // ---- Helpers ----
 
-        static readonly JsonSerializerOptions Json = new JsonSerializerOptions { IncludeFields = true };
-
         /// <summary>Complete, deterministic dump of the gameplay state including the RNG.</summary>
+#if UNITY_2017_1_OR_NEWER
+        public static string Fingerprint(GameSession s) { return UnityEngine.JsonUtility.ToJson(s.Snapshot); }
+#else
+        static readonly JsonSerializerOptions Json = new JsonSerializerOptions { IncludeFields = true };
         public static string Fingerprint(GameSession s) { return JsonSerializer.Serialize(s.Snapshot, Json); }
+#endif
 
         /// <summary>Sensible bot: keeps default levels, takes the first available choice. Returns the reports.</summary>
         public static List<SolReport> PlayToEnd(GameSession s, int maxSteps = 100)

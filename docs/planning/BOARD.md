@@ -18,6 +18,9 @@ Claim a task by writing your name or agent tag in **Owner** and committing befor
 | Fill team lead, submission owner, demo fallback in DEVLOG.md | | |
 | Team: accept or amend decisions 0002 (scope) and 0004 (contracts) | | Devs 2 and 3 to answer; silence is not agreement |
 | Dev 3: review hybrid event schema (0005) and example events in game/sim/Content/example | | Proposed schema; numbers are placeholders |
+| Devs 2 and 3: review decision 0006 (fallback choice, content-error end, Unity path) | | Contract change for content and UI |
+| Decide Git vs Unity Version Control as source of truth for `Assets/RedFrontier/` | Integrator | Both currently see the files |
+| Review ProjectSettings/EditorSettings.asset (differs from Plastic base after builds) and decide whether ProjectSettings/, Packages/ (incl. local MCP package) belong in Git | Integrator | Not committed by Dev 1 checkpoint 1 |
 
 ## In progress
 
@@ -25,6 +28,8 @@ Claim a task by writing your name or agent tag in **Owner** and committing befor
 |---|---|---|
 | Simulation architecture and staged plan (docs/planning/dev1-simulation/) | Dev 1 (simulation) | `claude/clever-einstein-rwr1ng` |
 | Simulation core: Stage 1 done, hybrid events done; next Stage 2 Unity bridge (needs combined project) | Dev 1 (simulation) | `feat/dev1-core` (local, unpushed) |
+| Stage 2 Unity slice: Core in Assets, loader, host, debug HUD, scene `Dev1_Debug`; review fixes A and B | Dev 1 (simulation) | `feat/dev1-core` (local diff, workspace-root checkout) |
+| Checkpoint 1: lifecycle fix, PlayMode tests, .NET and WebGL browser verification (awaiting Codex review) | Dev 1 (simulation) | `feat/dev1-core` (local commit, not pushed) |
 
 ## Done
 

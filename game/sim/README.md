@@ -1,27 +1,20 @@
-# game/sim: RED FRONTIER simulation core (plain C#)
+# game/sim: .NET build and tests for the RED FRONTIER simulation core
 
-Developer 1. Engine-free rules and state (`Core/`, namespace `RedFrontier.Core`) and NUnit tests (`Tests/`). Not a Unity project. When the combined Unity project exists, `Core/` moves to `Assets/RedFrontier/Core/` with `git mv` (see `docs/planning/dev1-simulation/ARCHITECTURE.md` section 8). The `.csproj` files stay outside `Assets/`.
+Developer 1. **The authoritative sources now live in the Unity project** at `Red Frontier/Assets/RedFrontier/` (decision 0006). This folder keeps only the plain .NET projects, which include those sources by path, and the .NET-only tests.
+
+| Path | What |
+|---|---|
+| `Core/RedFrontier.Core.csproj` | Compiles `Red Frontier/Assets/RedFrontier/Core/**/*.cs` as `netstandard2.1`, C# 9, warnings as errors. |
+| `Tests/RedFrontier.Core.Tests.csproj` | NUnit (NuGet). Includes the shared tests from `Assets/RedFrontier/Tests/EditMode/Shared/` and the content JSON from `Assets/RedFrontier/Content/Resources/`. |
+| `Tests/ExampleContentTests.cs` | .NET-only: parses the content with System.Text.Json. Unity checks the same files with JsonUtility in `ContentLoaderTests`. |
 
 ## Commands
 
-Needs the .NET 8 SDK (`dotnet --version` 8.x).
+Needs the .NET 8 SDK. On this workstation a workspace-local SDK (8.0.428) is in `_tools/dotnet` (not on PATH; set `DOTNET_CLI_HOME` and `NUGET_PACKAGES` under `_tools` to keep caches out of the repo). Result on 2026-11-14: build 0 warnings, tests 47/47 passed.
 
 ```bash
 dotnet build Core/RedFrontier.Core.csproj
 dotnet test Tests/RedFrontier.Core.Tests.csproj
 ```
 
-`Core` builds as `netstandard2.1`, C# 9, warnings as errors, no packages, no `UnityEngine`: the constraints Unity 6 is expected to need (unverified against the real Editor).
-
-## Layout
-
-| Path | What |
-|---|---|
-| `Core/GameSession.cs` | The only authoritative object. Commands, queries, snapshot, forecast, report, history. |
-| `Core/SolResolver.cs` | Sol steps 1 to 3 (facilities, crew needs, health). No randomness. |
-| `Core/EventDirector.cs` | Step 7: major milestone first, else seeded random pool. Resolves variants once. |
-| `Core/EffectApplier.cs` | Affordability check and immediate effects. |
-| `Core/ContentValidator.cs` | Config and event checks, cost-free-choice lint. |
-| `Core/Definitions.cs`, `State.cs`, `Reports.cs`, `Rng.cs` | Data shapes and the seeded generator. |
-| `Content/example/` | Illustrative JSON in the proposed schema. Not final content or balance. |
-| `Tests/` | Stage 1 acceptance tests, rule tests, hybrid-event tests, example-content tests. |
+In Unity: Window > General > Test Runner > EditMode > `RedFrontier.Tests.EditMode`.

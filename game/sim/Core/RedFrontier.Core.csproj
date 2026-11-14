@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <!-- Compile-check only. In Unity these sources sit under RedFrontier.Core.asmdef (noEngineReferences). -->
+  <!-- Compile-check only. The authoritative sources live in the Unity project under
+       RedFrontier.Core.asmdef (noEngineReferences) and are included here by path. -->
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <LangVersion>9.0</LangVersion>
@@ -8,8 +9,10 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <RootNamespace>RedFrontier.Core</RootNamespace>
     <AssemblyName>RedFrontier.Core</AssemblyName>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>
   <ItemGroup>
-    <InternalsVisibleTo Include="RedFrontier.Core.Tests" />
+    <!-- AssemblyInfo.cs in the Unity folder declares InternalsVisibleTo for both test assemblies. -->
+    <Compile Include="../../../Red Frontier/Assets/RedFrontier/Core/**/*.cs" />
   </ItemGroup>
 </Project>

@@ -170,9 +170,11 @@ namespace RedFrontier.Core
         {
             if (choices.Count < 1 || choices.Count > MaxChoices) r.errors.Add(where + ": needs 1 to " + MaxChoices + " choices");
             var ids = new HashSet<string>();
+            bool hasFallback = false;
             foreach (var ch in choices)
             {
                 if (ch == null) { r.errors.Add(where + ": null choice"); continue; }
+                if (EffectApplier.IsFallback(ch)) hasFallback = true;
                 string cw = where + " choice '" + ch.id + "'";
                 if (!IsId(ch.id)) r.errors.Add(cw + ": id must be lowercase snake_case");
                 else if (!ids.Add(ch.id)) r.errors.Add(cw + ": duplicate id");
@@ -212,6 +214,9 @@ namespace RedFrontier.Core
                 if (choices.Count > 1 && !hasCost)
                     r.warnings.Add(cw + ": has no cost (no negative resource or health effect)");
             }
+            // Integration policy (decision 0006): every choice list must stay answerable at any stock level.
+            if (choices.Count > 0 && !hasFallback)
+                r.errors.Add(where + ": needs a fallback choice with no requirements and no resource cost (a health loss is allowed)");
         }
 
         /// <summary>Variants must offer the same choice IDs, each touching the same effect types and targets.</summary>

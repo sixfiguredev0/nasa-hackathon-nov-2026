@@ -31,6 +31,8 @@ namespace RedFrontier.Core
         // End reasons and per-facility run reasons.
         public const string HealthZero = "health_zero";
         public const string MissionComplete = "mission_complete";
+        /// <summary>Content error: a raised event offered no available choice (decision 0006). Outcome is Failure.</summary>
+        public const string ContentErrorNoAvailableChoice = "content_error_no_available_choice";
         public const string InsufficientResource = "insufficient_resource";
     }
 

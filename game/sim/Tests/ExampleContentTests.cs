@@ -7,8 +7,7 @@ using NUnit.Framework;
 namespace RedFrontier.Core.Tests
 {
     /// <summary>
-    /// Parses the example JSON with System.Text.Json (public fields, case-sensitive names) as a stand-in
-    /// for Unity's JsonUtility, then validates and plays it. JsonUtility itself is unverified until Stage 2.
+    /// .NET-only (System.Text.Json). Unity loads the same files with JsonUtility in ContentLoaderTests.
     /// </summary>
     public class ExampleContentTests
     {
@@ -19,7 +18,7 @@ namespace RedFrontier.Core.Tests
         static (MissionConfig, List<EventDef>) Load()
         {
             var mission = JsonSerializer.Deserialize<MissionConfig>(File.ReadAllText(Path.Combine(Dir, "mission.json")), Json);
-            var events = Directory.GetFiles(Path.Combine(Dir, "events"), "*.json")
+            var events = Directory.GetFiles(Path.Combine(Dir, "Events"), "*.json")
                 .Select(f => JsonSerializer.Deserialize<EventDef>(File.ReadAllText(f), Json))
                 .ToList();
             return (mission, events);

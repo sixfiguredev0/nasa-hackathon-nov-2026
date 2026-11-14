@@ -2,111 +2,93 @@
 
 Keep this short and current. Replace sections rather than appending history; history belongs in [DEVLOG.md](../../../DEVLOG.md).
 
-Last updated: 2026-11-14, after Stage 0, Stage 1 and the hybrid-event extension.
+Last updated: 2026-11-14, Opus checkpoint 1 (verify and preserve the Unity prototype). No gameplay was added in this checkpoint.
 
-## Branch and commits
+## Workspace and branch
 
-- Branch: `feat/dev1-core`, based on Fable's planning commit `6685ec9` (`claude/clever-einstein-rwr1ng`).
-- Latest implementation commit: `f0eacb6` (core, tests, example content). Docs commit follows it on the same branch.
-- **Not pushed** (instruction: no push, merge or PR in this task). The work ran in a cloud container. Unpushed commits are lost when the container is reclaimed, so pushing this branch needs Developer 1's approval soon.
-- `main` still does not exist. Combined Unity project: not present on any remote branch (checked 2026-11-14).
+- Git checkout: the workspace root `RED FRONTIER/`, branch `feat/dev1-core`, based on `origin/feat/dev1-core` at `61f1ec3`. Checkpoint 1 is a **local commit** on top of it. Not pushed, merged or opened as a PR.
+- Unity project: `RED FRONTIER/Red Frontier/`, Unity **2022.3.18f1** (do not upgrade). It is also a Unity Version Control (Plastic) workspace. Plastic metadata and local tool folders are excluded through `.git/info/exclude`.
+- **Authoritative source:** `Red Frontier/Assets/RedFrontier/`. `game/sim/` holds the .NET projects, which include those files by path, plus .NET-only tests. See [0006](../../decisions/0006-event-fallback-and-unity-layout.md).
+- **Committed:** `Assets/RedFrontier/**` (with every `.meta`), `game/sim`, and the docs.
+- **Left untracked in Git:** `ProjectSettings/`, `Packages/` (contains the local Unity MCP package entry) and `Assets/Scenes/SampleScene.unity`. They belong to the Plastic project and the integrator, so the Git branch alone is not an openable Unity project yet.
+- `_review/dev1-core` is untouched.
 
-## Authorisation recorded
+## How to play
 
-Developer 1 authorised starting the independent C# core before the Unity install finishes, the `main` branch exists or the planning gates are formally cleared. That authorisation is not a claim that a Unity build passed or that team decisions are final. Food, the 10-sol length and the feature cuts in 0002 stay **proposed**. The slice uses Power, Air and Crew Health only; mission length is configurable.
+Open `Assets/RedFrontier/Scenes/Dev1_Debug.unity` and press Play. The debug HUD (IMGUI) has:
+- Power, Air, Crew Health and the sol
+- facility level buttons and the next-sol forecast
+- Advance
+- the pending event, with its choices and why a choice is unavailable
+- the end panel
+- Restart with the same seed or a typed seed
+- history
 
-## Done
+The browser build is `_tools/webgl-builds/dev1-checkpoint1/` (local only). Serve that folder over `http://127.0.0.1` with any static server.
 
-- **Stage 0.** No Unity project available, so the code is in `game/sim/` as planned. .NET 8 SDK 8.0.428 installed user-local in the container (with approval). Test command below.
-- **Stage 1.** `GameSession` as the only state owner; definitions, state and reports in plain `[Serializable]` C#; sol steps 1 to 4 and 6 to 8; four commands plus `Can*` queries; `Changed` once per accepted command; detached snapshot and config copies; `SolReport`; event-free `Forecast`; one scripted two-choice event; success, failure, restart. All ten acceptance tests pass (`Stage1Tests` A1 to A10).
-- **Hybrid events** ([0005](../../decisions/0005-hybrid-event-structure.md)): milestones on fixed sols, authored variants resolved once, seeded random pool with windows, once-only, weights and minimum gap; ID-sorted ordering; reproduction log.
-- Pulled forward because correctness needed them (recorded in [0003](../../decisions/0003-simulation-architecture.md) implementation notes): facility level fallback, capacity/waste, health recovery, `cannot_afford`, immediate failure when a choice zeroes health.
-- Content validator with cost-free-choice lint. Illustrative example JSON in `game/sim/Content/example/`.
+## Changed in checkpoint 1
 
-## Not done
+- **Fix: null session after a script reload in Play Mode** (reproduced; it matches Codex's report).
+  - Cause: Unity's default "recompile and continue playing" rebuilds MonoBehaviours, calls `OnEnable` but not `Awake`, and drops the non-serialisable `GameSession`. `LoadError` gets its `""` initialiser, so the host looked healthy but had no session.
+  - Fix: `SimulationHost` now initialises in `OnEnable` (idempotent). After a reload it rebuilds the session from the current seed and logs a warning that progress was lost. The `seed` field tracks restarts.
+  - `DebugHud` binds idempotently: it unsubscribes in `OnDisable` and retries the bind from `OnGUI`.
+  - Restoring progress across a reload would need save/restore, which is out of scope.
+- New PlayMode test assembly `RedFrontier.Tests.PlayMode`, with lifecycle tests: one session; one HUD refresh per accepted command and none on rejection; repeated disable/enable of the host, the HUD and the GameObject; restart keeps the subscriptions; a second host is refused; destroy and re-create.
+- No changes to Core, content or contracts in this checkpoint.
 
-- Stage 2 (Unity bridge, `ContentLoader`, `SimulationHost`, debug HUD, asmdefs). Needs the combined project.
-- Stage 3 (Web build). Stage 4 (contract freeze with Developers 2 and 3).
-- Stage 5 items still missing: `modifier` effects, `delaySols` and scheduled effects (step 5). The validator rejects both for now.
-- Bot balance runs (Stage 7). Final content and balance are Developer 3's and the team's.
+## Checks run (2026-11-14)
 
-## Build and test
+- **Unity EditMode:** 52/52 passed, job `ccf5a73c…`.
+- **Unity PlayMode:** 4/4 passed, job `830add8f…`.
+- **Script reload in Play Mode** (`EditorUtility.RequestScriptReload`, no source edit):
+  - Before the fix: `Session == null`, `LoadError == ""`.
+  - After the fix: session rebuilt, 2 subscribers, warning logged.
+  - Repeated Play/Stop worked.
+- **.NET:** SDK 8.0.428 installed workspace-locally (`_tools/dotnet`, official `dotnet-install.ps1`, Microsoft-signed; nothing machine-wide). Caches are in `_tools`.
+  - `dotnet build Core/RedFrontier.Core.csproj`: 0 warnings, 0 errors.
+  - `dotnet test Tests/RedFrontier.Core.Tests.csproj`: **47/47 passed**. These are the 45 shared tests plus 2 .NET-only content tests, which proves the by-path source and content includes work.
+  - The seed→variant output is identical to Unity's.
+- **Editor HUD with real Windows mouse input** (`SetCursorPos`/`mouse_event` into the Game View, only while Unity was the foreground window):
+  - Life support `full` / `off` / `full`: the forecast changed each time; with `off` it showed Air 12→8.
+  - Advance; answered a random event with the fallback and a milestone (sol 3, variant `long`) with the paid choice.
+  - Clicked through to **MISSION SUCCESS** (seed 1).
+  - **Restart with new seed** (2).
+  - The session stopped when focus left Unity. **Failure and same-seed restart were not clicked in the Editor**; both were clicked in the browser.
+- **Browser:** WebGL Build Support installed for 2022.3.18f1 (official Unity installer, UAC approved).
+  - Build: Development, uncompressed, `Dev1_Debug` only, 89 s, 23.3 MB.
+  - Run in Edge 157 over `http://127.0.0.1:8765`. Cold load to player-ready took 0.26 s (localhost, warm browser process).
+  - With CDP-injected trusted mouse events (not physical clicks) and screenshots at each step: facility level → forecast; Advance; random and milestone events; success; restart with new seed; failure through fallback choices; same-seed restart with an identical replay.
+  - Browser console: 0 errors, 0 exceptions.
+  - Details: `_tools/evidence/checkpoint-1/browser-webgl-2026-11-14.md`.
+- Evidence (local, untracked): `_tools/evidence/checkpoint-1/` holds the test summaries, `dotnet-tests.trx`, browser screenshots and console logs.
 
-From `game/sim/`, with the .NET 8 SDK (in this container it is at `~/.dotnet/dotnet`):
+## Known issues and limitations
 
-```bash
-dotnet build Core/RedFrontier.Core.csproj
-dotnet test Tests/RedFrontier.Core.Tests.csproj
-```
+- **Environment noise, not ours:** after a script reload in Play Mode, Unity logs 8 to 10 "The referenced script (Unknown) on this Behaviour is missing!" errors without a stack trace. They also appear in `SampleScene`, which has no RedFrontier objects, and not after an Edit Mode reload. The MCP bridge logs WebSocket reconnect warnings after each reload.
+- After the Editor restart, the MCP bridge needed a manual Connect (Window > MCP for Unity).
+- A WebGL build attempted in the same Editor session that installed the module fails ("Build target 'WebGL' not supported"), but its build report still says Succeeded. The following incremental build then reused stale player data and produced a broken `.data`. **Use a clean build after first enabling WebGL.**
+- `ProjectSettings/EditorSettings.asset` differs from the Plastic base (re-saved when a build started; not edited by hand). The integrator should review it in Unity Version Control's pending changes.
+- `ProjectSettings.asset` was restored byte-identical to the Plastic base after each build. The Burst settings files the build created were removed.
+- Unity Hub is installed as a Microsoft Store app. A first search missed it; the official module installer was used instead.
+- Not verified: physical mouse clicks for Editor failure and same-seed restart; physical (non-CDP) clicks in a browser; other browsers, devices and network hosting.
 
-Result on `f0eacb6`: Core builds with 0 warnings, 0 errors (`netstandard2.1`, `LangVersion 9.0`, warnings as errors). Tests: `Passed! - Failed: 0, Passed: 37, Skipped: 0, Total: 37`.
+## Public API
 
-Mutation check: removing the affordability check, running the forecast on live state, or letting random events displace milestones each made tests fail (2, 3 and 16 respectively). Reverted.
+Unchanged in this checkpoint. Changes from the previous pass are in [0006](../../decisions/0006-event-fallback-and-unity-layout.md):
+- the fallback-choice validator rule
+- the end reason `content_error_no_available_choice` (outcome Failure)
+- facility `uses` summed per resource
+- `SimulationHost.Session`/`LoadError` and `ContentLoader`
 
-## Not verified
+[ARCHITECTURE](ARCHITECTURE.md) section 6 describes the rest.
 
-- **Unity:** nothing. Developer 1 reports a local install of Unity **6000.6.9f1** in progress; Editor launch and Web Build Support are not yet verified. C# 9 / netstandard2.1 compatibility is assumed from Fable's plan, not tested in an Editor. NUnit tests use only classic `Assert.*` calls, expected to run in the Unity Test Runner, unverified.
-- **JsonUtility:** the example JSON was parsed with System.Text.Json (public fields, case-sensitive) as a stand-in. A real `JsonUtility` load must be checked in Stage 2, and in a Web build in Stage 3. `uint rngState` in `SimState` is expected to serialise; unverified.
-- **Browser:** nothing.
+## Next
 
-## Public API (proposed until Developers 2 and 3 agree, see [0004](../../decisions/0004-simulation-contracts.md))
-
-```csharp
-var session = new GameSession(MissionConfig config, IEnumerable<EventDef> events, int seed); // throws ContentValidationException
-session.Changed += change => Redraw();   // once per accepted command; change.kind: CommandApplied|SolResolved|EventRaised|MissionEnded|Restarted
-
-// Read (fresh copies every time)
-SimState snapshot      = session.Snapshot;      // sol, phase, outcome, endReason, crewHealth, resources[], facilities[], pending, log[]
-SolReport forecast     = session.Forecast;      // next sol at current settings, no events; null once Ended
-SolReport last         = session.LastReport;    // null before the first sol
-PendingEventView ev    = session.PendingEvent;  // null if none; choices[] with effects, requires, available, unavailableReason
-IReadOnlyList<LogEntry> history = session.History;
-
-// Commands -> CommandResult { ok, reason }
-session.SetFacilityLevel("life_support", 1);
-session.ChooseEventOption(ev.instanceId, "clean_panels");
-session.AdvanceSol(snapshot.sol);
-session.Restart();       // same seed
-session.Restart(1234);   // explicit new seed
-// Queries, no side effects: CanSetFacilityLevel, CanAdvanceSol, CanChooseEventOption
-```
-
-Reason codes: `mission_ended`, `decision_pending`, `unknown_facility`, `invalid_level`, `no_pending_event`, `stale_event`, `unknown_choice`, `requirement_not_met`, `cannot_afford`, `stale_sol`. End reasons: `health_zero`, `mission_complete`. Facility run reason: `insufficient_resource`.
-
-`SolReport`: `sol`; `resources[]` {id, start, made, usedByFacilities, usedByCrew, wasted, end, shortage}; `facilities[]` {id, requestedLevel, levelRun, reason}; `healthBefore`, `healthAfter`, `healthCauses[]` {code `shortage`|`recovery`, resource, amount}; `eventRaisedId`, `eventRaisedVariantId`; `outcome`, `endReason`.
-
-`LogEntry` (`history`): `sol`, `kind` (`event_raised`, `choice_made`, `shortage`, `mission_ended`), `eventId`, `eventClass` (`major`|`random`), `variantId`, `instanceId`, `choiceId`, `resource`, `amount`, `code`. `ToString()` gives one line for bug reports; include the seed.
-
-## Event schema (for Developer 3)
-
-ARCHITECTURE section 7 plus [0005](../../decisions/0005-hybrid-event-structure.md). In short: one JSON file per event; `trigger.sol` > 0 is a milestone on that sol (optionally with `variants`), `trigger.sol` 0 is the random pool (`minSol`, `maxSol`, `weight`, `once`). Effects: `resource` (negative = cost paid in full) and `health`. 1 to 3 choices. Keep one choice per event always affordable. Examples: `game/sim/Content/example/`.
-
-## Minimal usage for UI (Developer 2)
-
-```csharp
-void Redraw() {
-    var s = session.Snapshot;
-    // draw meters from s.resources and s.crewHealth; disable Advance unless session.CanAdvanceSol().ok
-    var ev = session.PendingEvent;
-    if (ev != null) foreach (var c in ev.choices) { /* button c.label, c.preview, enabled = c.available */ }
-    if (s.phase == MissionPhase.Ended) { /* debrief from s.outcome, s.endReason, session.History */ }
-}
-```
-
-No resource arithmetic in UI code. Display text for codes belongs to Developer 2.
-
-## Unresolved issue: every choice unaffordable
-
-If all choices of a pending event are unavailable (`requirement_not_met` or `cannot_afford`), the player cannot answer it, `AdvanceSol` is blocked by `decision_pending`, and the mission is stuck. This is an **open gameplay and integration issue**, not only a content-authoring rule: the core does not prevent it, the validator cannot detect it (it depends on runtime stock), and the UI has no defined behaviour for it. Options to decide with Developers 2 and 3: a guaranteed fallback choice per event, a core rule that unaffordable costs convert to a defined alternative, or skipping/auto-resolving with a logged reason. Not decided; no code change yet.
-
-## Exact next task
-
-1. Developer 1: approve pushing `feat/dev1-core` (risk of loss otherwise) and tell Developers 2 and 3 the slice exists (point them at this file and 0005).
-2. Review the code, and inspect the colleague's combined Unity project (not yet seen). Stage 2 does not start until both are done and Developer 1 says so. Then Stage 2: Check ARCHITECTURE section 9 first (Unity version, packages, existing code), `git mv` `game/sim/Core` into `Assets/RedFrontier/Core/` with `RedFrontier.Core.asmdef` (`noEngineReferences: true`), then `ContentLoader`, `SimulationHost`, debug HUD. Run the tests in the Unity Test Runner.
-
-Blocker for Stage 2: the combined Unity project and the Editor. Nothing else in Developer 1's scope is blocked.
-
-## Shared updates needed from their owners
-
-- Integrator: create `main`; record 0001; decide whether to keep the nested `game/sim/.gitignore` csproj negation or move it to the root file; README layout entry for `game/sim/`.
-- Developers 2 and 3: accept or amend 0002, 0004 and the 0005 schema.
+1. Codex review of the checkpoint commit. Yasen authorises any push.
+2. Fable's architecture review before the simulation expansion.
+3. Integrator decisions:
+   - Git vs Unity Version Control as the source of truth for `Assets/RedFrontier/`
+   - whether `ProjectSettings/` and `Packages/` (and the MCP package) go into Git
+   - the `Red Frontier/` path versus `game/`
+   - review of `EditorSettings.asset`
+4. Developers 2 and 3: accept or amend 0002, 0004, 0005 and 0006.

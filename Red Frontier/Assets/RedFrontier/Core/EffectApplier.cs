@@ -27,6 +27,18 @@ namespace RedFrontier.Core
             return "";
         }
 
+        /// <summary>
+        /// Fallback choice: no requirements and no resource cost, so CheckChoice accepts it in every state.
+        /// It may still carry a negative consequence (for example a health loss).
+        /// </summary>
+        public static bool IsFallback(ChoiceDef choice)
+        {
+            if (choice.requires != null && choice.requires.Count > 0) return false;
+            foreach (var ef in choice.effects ?? new List<EffectDef>())
+                if (ef != null && ef.type == "resource" && ef.amount < 0) return false;
+            return true;
+        }
+
         /// <summary>Applies immediate effects. Caller has already checked CheckChoice.</summary>
         public static void ApplyImmediate(SimState s, List<EffectDef> effects)
         {
