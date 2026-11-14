@@ -44,5 +44,5 @@ Fixed milestones keep the demo path and tutorial predictable and testable. Autho
 
 - Developer 3 authors major events with variants and a random pool; numbers are placeholders until balanced together.
 - Variants cannot change which choices exist or what they affect. Wider variation needs a new decision.
-- A choice whose cost is unaffordable is shown as unavailable (`cannot_afford`). Content should keep at least one choice per event always available (for example a Crew Health cost), or the player can be stuck. The validator cannot check this; it is a content rule.
+- A choice whose cost is unaffordable is shown as unavailable (`cannot_afford`). If every choice is unavailable the mission is stuck. **Unresolved gameplay/integration issue** (see HANDOFF): the validator cannot detect it and neither core nor UI handles it yet. Keeping one always-available choice per event is a mitigation, not a fix.
 - Revisit if playtests show the random rate or gap is wrong (tuning only), or if milestones need conditions beyond a fixed sol.

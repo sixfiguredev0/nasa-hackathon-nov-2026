@@ -45,7 +45,7 @@ Mutation check: removing the affordability check, running the forecast on live s
 
 ## Not verified
 
-- **Unity:** nothing. Unknown Unity version. C# 9 / netstandard2.1 compatibility is assumed from Fable's plan, not tested in an Editor. NUnit tests use only classic `Assert.*` calls, expected to run in the Unity Test Runner, unverified.
+- **Unity:** nothing. Developer 1 reports a local install of Unity **6000.6.9f1** in progress; Editor launch and Web Build Support are not yet verified. C# 9 / netstandard2.1 compatibility is assumed from Fable's plan, not tested in an Editor. NUnit tests use only classic `Assert.*` calls, expected to run in the Unity Test Runner, unverified.
 - **JsonUtility:** the example JSON was parsed with System.Text.Json (public fields, case-sensitive) as a stand-in. A real `JsonUtility` load must be checked in Stage 2, and in a Web build in Stage 3. `uint rngState` in `SimState` is expected to serialise; unverified.
 - **Browser:** nothing.
 
@@ -95,10 +95,14 @@ void Redraw() {
 
 No resource arithmetic in UI code. Display text for codes belongs to Developer 2.
 
+## Unresolved issue: every choice unaffordable
+
+If all choices of a pending event are unavailable (`requirement_not_met` or `cannot_afford`), the player cannot answer it, `AdvanceSol` is blocked by `decision_pending`, and the mission is stuck. This is an **open gameplay and integration issue**, not only a content-authoring rule: the core does not prevent it, the validator cannot detect it (it depends on runtime stock), and the UI has no defined behaviour for it. Options to decide with Developers 2 and 3: a guaranteed fallback choice per event, a core rule that unaffordable costs convert to a defined alternative, or skipping/auto-resolving with a logged reason. Not decided; no code change yet.
+
 ## Exact next task
 
 1. Developer 1: approve pushing `feat/dev1-core` (risk of loss otherwise) and tell Developers 2 and 3 the slice exists (point them at this file and 0005).
-2. When the combined Unity project exists: Stage 2. Check ARCHITECTURE section 9 first (Unity version, packages, existing code), `git mv` `game/sim/Core` into `Assets/RedFrontier/Core/` with `RedFrontier.Core.asmdef` (`noEngineReferences: true`), then `ContentLoader`, `SimulationHost`, debug HUD. Run the tests in the Unity Test Runner.
+2. Review the code, and inspect the colleague's combined Unity project (not yet seen). Stage 2 does not start until both are done and Developer 1 says so. Then Stage 2: Check ARCHITECTURE section 9 first (Unity version, packages, existing code), `git mv` `game/sim/Core` into `Assets/RedFrontier/Core/` with `RedFrontier.Core.asmdef` (`noEngineReferences: true`), then `ContentLoader`, `SimulationHost`, debug HUD. Run the tests in the Unity Test Runner.
 
 Blocker for Stage 2: the combined Unity project and the Editor. Nothing else in Developer 1's scope is blocked.
 
