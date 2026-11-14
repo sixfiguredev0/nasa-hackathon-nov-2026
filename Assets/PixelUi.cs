@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using RedFrontier.Audio;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -344,6 +345,22 @@ internal sealed class PixelButton : Button
         if (IsInteractable() && EventSystem.current != null)
             Select();
     }
+
+    // Generic press sound; GameAudio skips it when the button's action already played its own cue this frame.
+    // Hover and focus moves stay silent on purpose.
+    public override void OnPointerClick(PointerEventData eventData)
+    {
+        bool press = eventData.button == PointerEventData.InputButton.Left && IsActive() && IsInteractable();
+        base.OnPointerClick(eventData);
+        if (press) GameAudio.UiPress();
+    }
+
+    public override void OnSubmit(BaseEventData eventData)
+    {
+        bool press = IsActive() && IsInteractable();
+        base.OnSubmit(eventData);
+        if (press) GameAudio.UiPress();
+    }
 }
 
 // Volume slider with the same focus ring and disabled look as the buttons.
@@ -369,5 +386,13 @@ internal sealed class PixelSlider : Slider
         base.OnPointerEnter(eventData);
         if (IsInteractable() && EventSystem.current != null)
             Select();
+    }
+
+    // A soft tick on each user step previews the new level (cooldown in the catalogue stops drag spam).
+    protected override void Set(float input, bool sendCallback = true)
+    {
+        float before = value;
+        base.Set(input, sendCallback);
+        if (sendCallback && value != before && Application.isPlaying) GameAudio.Play(Sfx.UiSelect);
     }
 }

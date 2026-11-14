@@ -32,6 +32,7 @@ namespace RedFrontier.Outpost
 
         IEnumerator Start()
         {
+            gameObject.AddComponent<OutpostAudio>();
             if (map == null) map = FindObjectOfType<MarsMapGenerator>();
             if (map == null) { Debug.LogError("Colony: no MarsMapGenerator in scene"); yield break; }
             while (map.Terrain == null) yield return null; // the map generates itself in its own Start
