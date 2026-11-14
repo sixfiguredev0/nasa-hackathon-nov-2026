@@ -7,6 +7,8 @@ namespace RedFrontier.Outpost
     {
         private static readonly Color32 Shell = new Color32(32, 23, 43, 248);
         private static readonly Color32 Outline = new Color32(105, 76, 108, 255);
+        private static readonly Color32 SlotBackground = new Color32(44, 32, 54, 255);
+        private static readonly Color32 SlotOutline = new Color32(83, 60, 87, 255);
         private static readonly Color32 Track = new Color32(65, 44, 69, 255);
         private static readonly Color32 Cream = new Color32(248, 232, 215, 255);
         private static readonly Color32 Gain = new Color32(160, 230, 183, 255);
@@ -65,8 +67,16 @@ namespace RedFrontier.Outpost
 
         public void DrawBuildPreview()
         {
-            float scale = Mathf.Clamp(Screen.height / 720f, 1f, 1.5f);
-            var rect = new Rect(Screen.width - 130f * scale, Screen.height - 66f * scale, 108f * scale, 44f * scale);
+            const int columns = 3;
+            const float slotSize = 68f;
+            const float spacing = 8f;
+            const float padding = 12f;
+            const float panelSize = columns * slotSize + (columns - 1) * spacing + 2 * padding;
+            float scale = Mathf.Min(Mathf.Clamp(Screen.height / 720f, 1f, 1.5f),
+                Screen.width / 320f, Screen.height / 460f);
+            var panel = new Rect(Screen.width - (panelSize + 22f) * scale,
+                Screen.height - (panelSize + 76f) * scale, panelSize * scale, panelSize * scale);
+            var rect = new Rect(panel.center.x - 54f * scale, panel.yMax + 10f * scale, 108f * scale, 44f * scale);
             if (buildButton == null)
             {
                 buildButton = new GUIStyle(GUIStyle.none) { alignment = TextAnchor.MiddleCenter, fontStyle = FontStyle.Bold };
@@ -78,6 +88,18 @@ namespace RedFrontier.Outpost
 
             if (Event.current.type == EventType.Repaint)
             {
+                DrawPill(panel, 16f * scale, Shell, Outline);
+                for (int row = 0; row < columns; row++)
+                {
+                    for (int column = 0; column < columns; column++)
+                    {
+                        float x = panel.x + (padding + column * (slotSize + spacing)) * scale;
+                        float y = panel.y + (padding + row * (slotSize + spacing)) * scale;
+                        var slot = new Rect(x, y, slotSize * scale, slotSize * scale);
+                        DrawPill(slot, 9f * scale, SlotBackground, SlotOutline);
+                    }
+                }
+
                 bool hovered = rect.Contains(Event.current.mousePosition);
                 DrawPill(rect, 11f * scale, hovered ? new Color32(57, 38, 65, 255) : Shell,
                     hovered ? new Color32(173, 125, 159, 255) : Outline);
