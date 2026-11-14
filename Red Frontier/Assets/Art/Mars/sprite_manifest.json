@@ -1,0 +1,233 @@
+{
+ "MarsTile_ground7": {
+  "pivot": [
+   0.475,
+   0.46875
+  ],
+  "ppu": 16
+ },
+ "MarsTile_ground1": {
+  "pivot": [
+   0.475,
+   0.46875
+  ],
+  "ppu": 16
+ },
+ "MarsTile_ground2": {
+  "pivot": [
+   0.475,
+   0.46875
+  ],
+  "ppu": 16
+ },
+ "MarsTile_ground3": {
+  "pivot": [
+   0.475,
+   0.46875
+  ],
+  "ppu": 16
+ },
+ "MarsTile_ground4": {
+  "pivot": [
+   0.475,
+   0.46875
+  ],
+  "ppu": 16
+ },
+ "MarsTile_ground5": {
+  "pivot": [
+   0.475,
+   0.46875
+  ],
+  "ppu": 16
+ },
+ "MarsTile_ground6": {
+  "pivot": [
+   0.475,
+   0.46875
+  ],
+  "ppu": 16
+ },
+ "MarsTile_ground8": {
+  "pivot": [
+   0.475,
+   0.46875
+  ],
+  "ppu": 16
+ },
+ "MarsTile_ground9": {
+  "pivot": [
+   0.475,
+   0.46875
+  ],
+  "ppu": 16
+ },
+ "PLACEHOLDER_rock_s_0": {
+  "pivot": [
+   0.35,
+   0.25
+  ],
+  "ppu": 16
+ },
+ "PLACEHOLDER_rock_s_1": {
+  "pivot": [
+   0.36363636363636365,
+   0.25
+  ],
+  "ppu": 16
+ },
+ "PLACEHOLDER_rock_s_2": {
+  "pivot": [
+   0.375,
+   0.2222222222222222
+  ],
+  "ppu": 16
+ },
+ "PLACEHOLDER_rock_m_0": {
+  "pivot": [
+   0.375,
+   0.18181818181818182
+  ],
+  "ppu": 16
+ },
+ "PLACEHOLDER_rock_m_1": {
+  "pivot": [
+   0.38235294117647056,
+   0.18181818181818182
+  ],
+  "ppu": 16
+ },
+ "PLACEHOLDER_rock_m_2": {
+  "pivot": [
+   0.3888888888888889,
+   0.16666666666666666
+  ],
+  "ppu": 16
+ },
+ "PLACEHOLDER_rock_l_0": {
+  "pivot": [
+   0.38,
+   0.125
+  ],
+  "ppu": 16
+ },
+ "PLACEHOLDER_rock_l_1": {
+  "pivot": [
+   0.375,
+   0.125
+  ],
+  "ppu": 16
+ },
+ "PLACEHOLDER_rock_xl_0": {
+  "pivot": [
+   0.3783783783783784,
+   0.16666666666666666
+  ],
+  "ppu": 16
+ },
+ "PLACEHOLDER_pebbles_0": {
+  "pivot": [
+   0.5,
+   0.25
+  ],
+  "ppu": 16
+ },
+ "PLACEHOLDER_pebbles_1": {
+  "pivot": [
+   0.5,
+   0.25
+  ],
+  "ppu": 16
+ },
+ "PLACEHOLDER_pebbles_2": {
+  "pivot": [
+   0.5,
+   0.25
+  ],
+  "ppu": 16
+ },
+ "PLACEHOLDER_crater_s_0": {
+  "pivot": [
+   0.5,
+   0.5
+  ],
+  "ppu": 16
+ },
+ "PLACEHOLDER_crater_s_1": {
+  "pivot": [
+   0.5,
+   0.5
+  ],
+  "ppu": 16
+ },
+ "PLACEHOLDER_crater_m_0": {
+  "pivot": [
+   0.5,
+   0.5
+  ],
+  "ppu": 16
+ },
+ "PLACEHOLDER_crater_m_1": {
+  "pivot": [
+   0.5,
+   0.5
+  ],
+  "ppu": 16
+ },
+ "PLACEHOLDER_crater_l_0": {
+  "pivot": [
+   0.5,
+   0.5
+  ],
+  "ppu": 16
+ },
+ "PLACEHOLDER_formation_mesa_0": {
+  "pivot": [
+   0.2826086956521739,
+   0.06666666666666667
+  ],
+  "ppu": 16
+ },
+ "PLACEHOLDER_formation_mesa_1": {
+  "pivot": [
+   0.35714285714285715,
+   0.07407407407407407
+  ],
+  "ppu": 16
+ },
+ "PLACEHOLDER_formation_mesa_2": {
+  "pivot": [
+   0.296875,
+   0.05
+  ],
+  "ppu": 16
+ },
+ "PLACEHOLDER_formation_cluster_0": {
+  "pivot": [
+   0.5,
+   0.045454545454545456
+  ],
+  "ppu": 16
+ },
+ "PLACEHOLDER_formation_cluster_1": {
+  "pivot": [
+   0.5,
+   0.045454545454545456
+  ],
+  "ppu": 16
+ },
+ "PLACEHOLDER_dust_streak_0": {
+  "pivot": [
+   0.5,
+   0.5
+  ],
+  "ppu": 16
+ },
+ "PLACEHOLDER_dust_streak_1": {
+  "pivot": [
+   0.5,
+   0.5
+  ],
+  "ppu": 16
+ }
+}
