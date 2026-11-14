@@ -16,16 +16,26 @@ namespace RedFrontier.Outpost
 
         Building open;
         Vector2 downPos;
+        bool rightClickStartedOnUi;
         readonly Dictionary<string, Vector2> cell = new Dictionary<string, Vector2>(); // x = depth, y = row
         readonly Dictionary<string, Vector2> pos = new Dictionary<string, Vector2>();
+
+        internal void ShowBuilding(Building building) => open = building;
 
         void Update()
         {
             if (colony == null) colony = Colony.Instance;
             if (cam == null) cam = Camera.main;
             if (colony == null || cam == null) return;
-            if (Input.GetMouseButtonDown(1)) downPos = Input.mousePosition;
-            if (Input.GetMouseButtonUp(1) && ((Vector2)Input.mousePosition - downPos).magnitude <= clickSlop)
+            var mouse = (Vector2)Input.mousePosition;
+            bool overBuildUi = colony.IsOverBuildUi(new Vector2(mouse.x, Screen.height - mouse.y));
+            if (Input.GetMouseButtonDown(1))
+            {
+                downPos = mouse;
+                rightClickStartedOnUi = overBuildUi;
+            }
+            if (Input.GetMouseButtonUp(1) && !rightClickStartedOnUi && !overBuildUi
+                && (mouse - downPos).magnitude <= clickSlop)
             {
                 var b = colony.BuildingAt(cam.ScreenToWorldPoint(Input.mousePosition));
                 open = b == open ? null : b;
@@ -36,7 +46,12 @@ namespace RedFrontier.Outpost
         void OnGUI()
         {
             if (colony == null || cam == null) return;
-            if (open == null) { HoverHint(); return; }
+            bool overBuildUi = colony.IsOverBuildUi(Event.current.mousePosition);
+            if (open == null)
+            {
+                if (!overBuildUi) HoverHint();
+                return;
+            }
 
             float s = OutpostGUI.Scale, r = 26 * s, colGap = 74 * s, rowGap = 62 * s;
             var st = open.state;
@@ -77,7 +92,7 @@ namespace RedFrontier.Outpost
             {
                 var p = pos[n.id];
                 var status = eco.Status(st, n.id);
-                bool hot = (mouse - p).magnitude <= r;
+                bool hot = !overBuildUi && (mouse - p).magnitude <= r;
                 if (hot) hovered = n.id;
                 float rr = r * (status == NodeStatus.Available ? 1f + 0.06f * Mathf.Sin(Time.unscaledTime * 5f) : 1f) * (hot ? 1.08f : 1f);
                 if (status == NodeStatus.Current) OutpostGUI.Disc(p, rr + 5 * s, Color.white);
@@ -93,7 +108,7 @@ namespace RedFrontier.Outpost
             if (hovered != null) Tooltip(def.nodes[hovered], eco.Status(st, hovered), mouse, s);
 
             var e = Event.current;
-            if (e.type == EventType.MouseDown && e.button == 0)
+            if (!overBuildUi && e.type == EventType.MouseDown && e.button == 0)
             {
                 if (hovered != null) eco.TryUpgrade(st, hovered);
                 else open = null;

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Globalization;
 using UnityEngine;
 
@@ -7,8 +8,10 @@ namespace RedFrontier.Outpost
     {
         private static readonly Color32 Shell = new Color32(32, 23, 43, 248);
         private static readonly Color32 Outline = new Color32(105, 76, 108, 255);
-        private static readonly Color32 SlotBackground = new Color32(44, 32, 54, 255);
+        private static readonly Color32 BuildPanel = new Color32(32, 23, 43, 166);
+        private static readonly Color32 SlotBackground = new Color32(44, 32, 54, 135);
         private static readonly Color32 SlotOutline = new Color32(83, 60, 87, 255);
+        private static readonly Color32 HoverOutline = new Color32(173, 125, 159, 255);
         private static readonly Color32 Track = new Color32(65, 44, 69, 255);
         private static readonly Color32 Cream = new Color32(248, 232, 215, 255);
         private static readonly Color32 Gain = new Color32(160, 230, 183, 255);
@@ -28,7 +31,15 @@ namespace RedFrontier.Outpost
         private readonly float[] displayedFill = new float[Names.Length];
         private GUIStyle text;
         private GUIStyle buildButton;
+        private GUIStyle slotLabel;
+        private bool buildOpen;
         private int lastFrame = -1;
+
+        private const int Columns = 3;
+        private const float SlotSize = 68f, SlotSpacing = 8f, PanelPadding = 12f;
+        private const float PanelSize = Columns * SlotSize + (Columns - 1) * SlotSpacing + 2 * PanelPadding;
+        private static float BuildScale => Mathf.Min(Mathf.Clamp(Screen.height / 720f, 1f, 1.5f),
+            Screen.width / 320f, Screen.height / 460f);
 
         public void Draw(ColonyEconomy economy)
         {
@@ -65,47 +76,107 @@ namespace RedFrontier.Outpost
             }
         }
 
-        public void DrawBuildPreview()
+        public bool IsOverBuildUi(Vector2 point)
         {
-            const int columns = 3;
-            const float slotSize = 68f;
-            const float spacing = 8f;
-            const float padding = 12f;
-            const float panelSize = columns * slotSize + (columns - 1) * spacing + 2 * padding;
-            float scale = Mathf.Min(Mathf.Clamp(Screen.height / 720f, 1f, 1.5f),
-                Screen.width / 320f, Screen.height / 460f);
-            var panel = new Rect(Screen.width - (panelSize + 22f) * scale,
-                Screen.height - (panelSize + 76f) * scale, panelSize * scale, panelSize * scale);
-            var rect = new Rect(panel.center.x - 54f * scale, panel.yMax + 10f * scale, 108f * scale, 44f * scale);
+            GetBuildLayout(BuildScale, out Rect panel, out Rect button);
+            return button.Contains(point) || (buildOpen && panel.Contains(point));
+        }
+
+        private static void GetBuildLayout(float scale, out Rect panel, out Rect button)
+        {
+            panel = new Rect(Screen.width - (PanelSize + 22f) * scale,
+                Screen.height - (PanelSize + 76f) * scale, PanelSize * scale, PanelSize * scale);
+            button = new Rect(panel.center.x - 54f * scale, panel.yMax + 10f * scale, 108f * scale, 44f * scale);
+        }
+
+        public void DrawBuildMenu(IReadOnlyList<Building> buildings, UpgradeBubbles upgrades)
+        {
+            float scale = BuildScale;
+            GetBuildLayout(scale, out Rect panel, out Rect button);
             if (buildButton == null)
             {
                 buildButton = new GUIStyle(GUIStyle.none) { alignment = TextAnchor.MiddleCenter, fontStyle = FontStyle.Bold };
                 buildButton.normal.textColor = Cream;
                 buildButton.hover.textColor = Color.white;
                 buildButton.active.textColor = Cream;
+                slotLabel = new GUIStyle(buildButton) { fontStyle = FontStyle.Normal, wordWrap = true };
             }
             buildButton.fontSize = Mathf.RoundToInt(17f * scale);
+            slotLabel.fontSize = Mathf.RoundToInt(11f * scale);
+
+            var e = Event.current;
+            if (buildOpen && e.type == EventType.KeyDown && e.keyCode == KeyCode.Escape)
+            {
+                buildOpen = false;
+                e.Use();
+            }
+
+            int depth = GUI.depth;
+            GUI.depth = -1;
+            if (buildOpen)
+            {
+                if (e.type == EventType.Repaint)
+                    DrawBuildSurface(panel, 16f * scale, BuildPanel, Outline);
+
+                for (int i = 0; i < Columns * Columns; i++)
+                {
+                    float x = panel.x + (PanelPadding + i % Columns * (SlotSize + SlotSpacing)) * scale;
+                    float y = panel.y + (PanelPadding + i / Columns * (SlotSize + SlotSpacing)) * scale;
+                    var slot = new Rect(x, y, SlotSize * scale, SlotSize * scale);
+                    var building = i < buildings.Count ? buildings[i] : null;
+                    if (e.type == EventType.Repaint)
+                        DrawBuildSurface(slot, 9f * scale, SlotBackground,
+                            building != null && slot.Contains(e.mousePosition) ? HoverOutline : SlotOutline);
+
+                    if (building != null && DrawFacility(slot, building, scale) && upgrades != null)
+                    {
+                        upgrades.ShowBuilding(building);
+                        buildOpen = false;
+                    }
+                }
+            }
+
+            if (e.type == EventType.Repaint)
+            {
+                bool highlighted = buildOpen || button.Contains(e.mousePosition);
+                DrawPill(button, 11f * scale, highlighted ? new Color32(57, 38, 65, 255) : Shell,
+                    highlighted ? HoverOutline : Outline);
+            }
+            if (GUI.Button(button, "Build", buildButton))
+            {
+                buildOpen = !buildOpen;
+                if (buildOpen && upgrades != null) upgrades.ShowBuilding(null);
+            }
+            GUI.depth = depth;
+        }
+
+        private bool DrawFacility(Rect slot, Building building, float scale)
+        {
+            var state = building.state;
+            var node = state.Node;
+            if (node.isPlot) node = state.def.nodes[node.next[0]];
 
             if (Event.current.type == EventType.Repaint)
             {
-                DrawPill(panel, 16f * scale, Shell, Outline);
-                for (int row = 0; row < columns; row++)
-                {
-                    for (int column = 0; column < columns; column++)
-                    {
-                        float x = panel.x + (padding + column * (slotSize + spacing)) * scale;
-                        float y = panel.y + (padding + row * (slotSize + spacing)) * scale;
-                        var slot = new Rect(x, y, slotSize * scale, slotSize * scale);
-                        DrawPill(slot, 9f * scale, SlotBackground, SlotOutline);
-                    }
-                }
-
-                bool hovered = rect.Contains(Event.current.mousePosition);
-                DrawPill(rect, 11f * scale, hovered ? new Color32(57, 38, 65, 255) : Shell,
-                    hovered ? new Color32(173, 125, 159, 255) : Outline);
+                Sprite icon = BuildingArt.Get(state.def, node, building.footprint);
+                Rect source = icon.textureRect;
+                Texture2D texture = icon.texture;
+                var uv = new Rect(source.x / texture.width, source.y / texture.height,
+                    source.width / texture.width, source.height / texture.height);
+                float fit = 34f * scale / Mathf.Max(source.width, source.height);
+                float width = source.width * fit, height = source.height * fit;
+                GUI.DrawTextureWithTexCoords(new Rect(slot.center.x - width / 2f,
+                    slot.y + 22f * scale - height / 2f, width, height), texture, uv);
+                GUI.Label(new Rect(slot.x + 3f * scale, slot.y + 40f * scale, slot.width - 6f * scale, 24f * scale),
+                    node.name, slotLabel);
             }
-            // The preview shows the button styling before the build menu is wired up.
-            GUI.Button(rect, "Build", buildButton);
+            return GUI.Button(slot, GUIContent.none, GUIStyle.none);
+        }
+
+        private static void DrawBuildSurface(Rect rect, float radius, Color background, Color border)
+        {
+            GUI.DrawTexture(rect, OutpostGUI.White, ScaleMode.StretchToFill, true, 0f, background, 0f, radius);
+            GUI.DrawTexture(rect, OutpostGUI.White, ScaleMode.StretchToFill, true, 0f, border, 1f, radius);
         }
 
         private void UpdateReadouts(ColonyEconomy economy)
