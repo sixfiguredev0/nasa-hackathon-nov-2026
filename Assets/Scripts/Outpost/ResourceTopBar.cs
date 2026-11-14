@@ -6,13 +6,8 @@ namespace RedFrontier.Outpost
 {
     internal sealed class ResourceTopBar
     {
-        private static readonly Color32 Shell = new Color32(32, 23, 43, 248);
-        private static readonly Color32 Outline = new Color32(105, 76, 108, 255);
-        private static readonly Color32 BuildPanel = new Color32(32, 23, 43, 166);
-        private static readonly Color32 SlotBackground = new Color32(44, 32, 54, 135);
-        private static readonly Color32 SlotOutline = new Color32(83, 60, 87, 255);
         private static readonly Color32 HoverOutline = new Color32(173, 125, 159, 255);
-        private static readonly Color32 Track = new Color32(65, 44, 69, 255);
+        private static readonly Color32 Capacity = new Color32(207, 185, 184, 255);
         private static readonly Color32 Cream = new Color32(248, 232, 215, 255);
         private static readonly Color32 Gain = new Color32(160, 230, 183, 255);
         private static readonly Color32 Loss = new Color32(255, 151, 142, 255);
@@ -26,6 +21,9 @@ namespace RedFrontier.Outpost
         };
         private static readonly string[] Names = System.Enum.GetNames(typeof(Res));
 
+        private Texture2D resourceBarArt;
+        private Texture2D buildPanelArt;
+        private Texture2D buildButtonArt;
         private readonly Texture2D[] icons = new Texture2D[Names.Length];
         private readonly float[] displayedStock = new float[Names.Length];
         private readonly float[] displayedFill = new float[Names.Length];
@@ -46,6 +44,7 @@ namespace RedFrontier.Outpost
             if (Event.current.type != EventType.Repaint) return;
             if (text == null)
             {
+                resourceBarArt = Resources.Load<Texture2D>("OutpostHud/Resource Bar");
                 text = new GUIStyle(GUI.skin.label)
                 {
                     clipping = TextClipping.Clip,
@@ -57,22 +56,21 @@ namespace RedFrontier.Outpost
             }
 
             UpdateReadouts(economy);
-            const float width = 800f;
+            const float width = 640f, height = 44f;
             float scale = Mathf.Min(Mathf.Clamp(Screen.height / 720f, 1f, 1.5f), (Screen.width - 16f) / width);
-            bool compact = scale < 0.82f;
-            if (compact) scale = Mathf.Clamp(Screen.height / 720f, 1f, 1.5f);
-            float panelWidth = Mathf.Min(Screen.width - 16f, width * scale);
-            var panel = new Rect(Mathf.Round((Screen.width - panelWidth) / 2f), Mathf.Round(12f * scale),
-                panelWidth, Mathf.Round((compact ? 74f : 46f) * scale));
+            bool compact = scale < 0.85f;
+            float verticalScale = compact ? 1.7f : scale;
+            float panelWidth = Mathf.Round(width * scale);
+            var panel = new Rect(Mathf.Round((Screen.width - panelWidth) / 2f), 12f,
+                panelWidth, Mathf.Round(height * verticalScale));
 
-            DrawPill(panel, 12f * scale, Shell, Outline);
-            float inset = (compact ? 9f : 14f) * scale;
-            float cellWidth = (panel.width - 2f * inset) / (compact ? Names.Length : 5.35f);
+            GUI.DrawTexture(panel, resourceBarArt);
+            // These dimensions match the recessed compartments and tracks painted into the sprite.
             for (int i = 0; i < Names.Length; i++)
             {
-                float left = panel.x + inset + i * cellWidth;
-                float widthForResource = !compact && i == Names.Length - 1 ? cellWidth * 1.35f : cellWidth;
-                DrawCell(new Rect(left, panel.y, widthForResource, panel.height), i, economy, scale, compact);
+                float left = panel.x + (15f + i * 121f) * scale;
+                float cellWidth = (i == Names.Length - 1 ? 126f : 116f) * scale;
+                DrawCell(new Rect(left, panel.y, cellWidth, panel.height), i, economy, scale, verticalScale, compact);
             }
         }
 
@@ -95,6 +93,8 @@ namespace RedFrontier.Outpost
             GetBuildLayout(scale, out Rect panel, out Rect button);
             if (buildButton == null)
             {
+                buildPanelArt = Resources.Load<Texture2D>("OutpostHud/Build Panel");
+                buildButtonArt = Resources.Load<Texture2D>("OutpostHud/Build Button");
                 buildButton = new GUIStyle(GUIStyle.none) { alignment = TextAnchor.MiddleCenter, fontStyle = FontStyle.Bold };
                 buildButton.normal.textColor = Cream;
                 buildButton.hover.textColor = Color.white;
@@ -116,7 +116,7 @@ namespace RedFrontier.Outpost
             if (buildOpen)
             {
                 if (e.type == EventType.Repaint)
-                    DrawBuildSurface(panel, 16f * scale, BuildPanel, Outline);
+                    GUI.DrawTexture(panel, buildPanelArt);
 
                 for (int i = 0; i < Columns * Columns; i++)
                 {
@@ -124,9 +124,13 @@ namespace RedFrontier.Outpost
                     float y = panel.y + (PanelPadding + i / Columns * (SlotSize + SlotSpacing)) * scale;
                     var slot = new Rect(x, y, SlotSize * scale, SlotSize * scale);
                     var building = i < buildings.Count ? buildings[i] : null;
-                    if (e.type == EventType.Repaint)
-                        DrawBuildSurface(slot, 9f * scale, SlotBackground,
-                            building != null && slot.Contains(e.mousePosition) ? HoverOutline : SlotOutline);
+                    if (e.type == EventType.Repaint && building != null && slot.Contains(e.mousePosition))
+                    {
+                        var border = new Rect(slot.x + 2f * scale, slot.y + 2f * scale,
+                            slot.width - 4f * scale, slot.height - 4f * scale);
+                        GUI.DrawTexture(border, OutpostGUI.White, ScaleMode.StretchToFill, true, 0f,
+                            HoverOutline, scale, 4f * scale);
+                    }
 
                     if (building != null && DrawFacility(slot, building, scale) && upgrades != null)
                     {
@@ -139,10 +143,12 @@ namespace RedFrontier.Outpost
             if (e.type == EventType.Repaint)
             {
                 bool highlighted = buildOpen || button.Contains(e.mousePosition);
-                DrawPill(button, 11f * scale, highlighted ? new Color32(57, 38, 65, 255) : Shell,
-                    highlighted ? HoverOutline : Outline);
+                Color priorColor = GUI.color;
+                if (!highlighted) GUI.color *= new Color(0.86f, 0.86f, 0.86f);
+                GUI.DrawTexture(button, buildButtonArt);
+                GUI.color = priorColor;
             }
-            if (GUI.Button(button, "Build", buildButton))
+            if (GUI.Button(button, "BUILD", buildButton))
             {
                 buildOpen = !buildOpen;
                 if (buildOpen && upgrades != null) upgrades.ShowBuilding(null);
@@ -173,12 +179,6 @@ namespace RedFrontier.Outpost
             return GUI.Button(slot, GUIContent.none, GUIStyle.none);
         }
 
-        private static void DrawBuildSurface(Rect rect, float radius, Color background, Color border)
-        {
-            GUI.DrawTexture(rect, OutpostGUI.White, ScaleMode.StretchToFill, true, 0f, background, 0f, radius);
-            GUI.DrawTexture(rect, OutpostGUI.White, ScaleMode.StretchToFill, true, 0f, border, 1f, radius);
-        }
-
         private void UpdateReadouts(ColonyEconomy economy)
         {
             if (lastFrame == Time.frameCount) return;
@@ -197,55 +197,53 @@ namespace RedFrontier.Outpost
             }
         }
 
-        private static void DrawPill(Rect rect, float radius, Color background, Color border)
+        private void DrawCell(Rect cell, int index, ColonyEconomy economy, float scale, float verticalScale, bool compact)
         {
-            GUI.DrawTexture(rect, OutpostGUI.White, ScaleMode.StretchToFill, true, 0f, border, 0f, radius);
-            var inset = new Rect(rect.x + 1f, rect.y + 1f, rect.width - 2f, rect.height - 2f);
-            GUI.DrawTexture(inset, OutpostGUI.White, ScaleMode.StretchToFill, true, 0f, background, 0f, radius - 1f);
-        }
-
-        private void DrawCell(Rect cell, int index, ColonyEconomy economy, float scale, bool compact)
-        {
-            float iconSize = compact ? 16f : 24f;
-            float iconX = compact ? cell.center.x - iconSize / 2f : cell.x + 7f * scale;
-            float iconY = cell.y + (compact ? 5f : 7f) * scale;
+            float textScale = Mathf.Max(0.8f, scale);
+            float iconSize = Mathf.Round(16f * textScale);
+            float iconX = compact ? cell.center.x - iconSize / 2f : cell.x + scale;
+            float iconY = cell.y + (compact ? 3f : 10f) * verticalScale;
             if (icons[index] != null)
                 GUI.DrawTexture(new Rect(Mathf.Round(iconX), Mathf.Round(iconY), iconSize, iconSize), icons[index]);
 
             Color tint = StockColors[index];
-            Color capTint = Color.Lerp(tint, Shell, 0.19f);
-            string count = ColorText($"<b>{displayedStock[index]:0}</b>", compact ? 14f : 19f, tint, scale);
-            string cap = ColorText($"/{economy.cap[index]:0}", compact ? 10f : 13f, capTint, scale);
+            string count = ColorText($"<b>{displayedStock[index]:0}</b>", 14f, tint, textScale);
+            string cap = ColorText($"/{economy.cap[index]:0}", 11f, Capacity, textScale);
             float rate = economy.net[index];
             string rateLabel = Mathf.Abs(rate) >= 0.05f
-                ? ColorText(rate.ToString("+0.0;-0.0", CultureInfo.InvariantCulture) + "/s", 11f, rate > 0 ? Gain : Loss, scale)
+                ? ColorText(rate.ToString("+0.0;-0.0", CultureInfo.InvariantCulture) + "/s", 10f,
+                    rate > 0 ? Gain : Loss, textScale)
                 : string.Empty;
 
             if (compact)
             {
-                Label(new Rect(cell.x, cell.y + 22f * scale, cell.width, 14f * scale), Names[index], scale, TextAnchor.MiddleCenter);
-                Label(new Rect(cell.x, cell.y + 36f * scale, cell.width, 16f * scale), count + cap, scale, TextAnchor.MiddleCenter);
-                Label(new Rect(cell.x, cell.y + 51f * scale, cell.width, 14f * scale), rateLabel, scale, TextAnchor.MiddleCenter);
+                Label(new Rect(cell.x, cell.y + 11.5f * verticalScale, cell.width, 12f * textScale),
+                    Names[index], textScale, TextAnchor.MiddleCenter);
+                Label(new Rect(cell.x, cell.y + 18f * verticalScale, cell.width, 13f * textScale),
+                    count + cap, textScale, TextAnchor.MiddleCenter);
+                Label(new Rect(cell.x, cell.y + 25f * verticalScale, cell.width, 10f * textScale),
+                    rateLabel, textScale, TextAnchor.MiddleCenter);
             }
             else
             {
-                float left = cell.x + 34f * scale;
-                float available = cell.xMax - left - 3f * scale;
+                float left = cell.x + 21f * scale;
+                float available = cell.xMax - left;
                 string readout = Names[index] + "  " + count + cap;
-                string inlineRate = rateLabel.Length == 0 ? readout : readout + "  " + rateLabel;
-                text.fontSize = Mathf.RoundToInt(13f * scale);
+                string inlineRate = readout + "  " + rateLabel;
+                text.fontSize = Mathf.RoundToInt(11f * textScale);
                 bool rateFits = rateLabel.Length == 0 || text.CalcSize(new GUIContent(inlineRate)).x <= available;
-                Label(new Rect(left, cell.y + (rateFits ? 5f : 1f) * scale, available, 27f * scale),
-                    rateFits ? inlineRate : readout, scale, TextAnchor.MiddleLeft);
+                Label(new Rect(left, cell.y + (rateFits ? 8f : 5f) * scale, available, 18f * scale),
+                    rateFits ? inlineRate : readout, textScale, TextAnchor.MiddleLeft);
                 if (!rateFits)
-                    Label(new Rect(left, cell.y + 21f * scale, available, 13f * scale), rateLabel, scale, TextAnchor.MiddleLeft);
+                    Label(new Rect(left, cell.y + 19f * scale, available, 10f * scale), rateLabel,
+                        textScale, TextAnchor.MiddleLeft);
             }
 
-            float margin = (compact ? 5f : 8f) * scale;
-            var track = new Rect(cell.x + margin, Mathf.Round(cell.yMax - 10f * scale),
-                cell.width - 2f * margin, Mathf.Max(2f, Mathf.Round(3f * scale)));
-            OutpostGUI.Panel(track, Track);
-            OutpostGUI.Panel(new Rect(track.x, track.y, Mathf.Round(track.width * displayedFill[index]), track.height), tint);
+            float fillX = Mathf.Round(cell.x + 2f * scale);
+            float fillY = Mathf.Round(cell.y + 31f * verticalScale);
+            float fillWidth = Mathf.Round((cell.width - 4f * scale) * displayedFill[index]);
+            float fillHeight = Mathf.Max(1f, Mathf.Round(4f * verticalScale));
+            OutpostGUI.Panel(new Rect(fillX, fillY, fillWidth, fillHeight), tint);
         }
 
         private static string ColorText(string value, float size, Color color, float scale)
@@ -256,7 +254,7 @@ namespace RedFrontier.Outpost
         private void Label(Rect rect, string value, float scale, TextAnchor alignment)
         {
             text.alignment = alignment;
-            text.fontSize = Mathf.RoundToInt(13f * scale);
+            text.fontSize = Mathf.RoundToInt(11f * scale);
             text.normal.textColor = Cream;
             GUI.Label(rect, value, text);
         }
