@@ -16,11 +16,13 @@ Claim a task by writing your name or agent tag in **Owner** and committing befor
 | Assign roles in TEAM.md | | |
 | Review challenge Resources tab and record datasets in NASA_DATA.md register | | Global Awards need one from Resources |
 | Fill team lead, submission owner, demo fallback in DEVLOG.md | | |
+| Team: accept or amend decisions 0002 (scope) and 0004 (contracts) | | Devs 2 and 3 to answer; silence is not agreement |
 
 ## In progress
 
 | Task | Owner | Branch |
 |---|---|---|
+| Simulation architecture and staged plan (docs/planning/dev1-simulation/) | Dev 1 (simulation) | `claude/clever-einstein-rwr1ng` |
 
 ## Done
 
