@@ -42,3 +42,16 @@ Option 2. Full detail in [ARCHITECTURE.md](../planning/dev1-simulation/ARCHITECT
 - Shared-project items needing agreement: assembly definitions, folder layout under `Assets/`, one host prefab in the main scene, location of content JSON. See [0004](0004-simulation-contracts.md).
 - Affects: all simulation code (Developer 1); how UI code reads and invokes (Developer 2); content format (Developer 3).
 - Revisit when: the combined Unity project arrives with conventions that conflict (for example an existing manager framework or a different data approach); the engine decision changes; or `JsonUtility` cannot parse the agreed schema in a Web build.
+
+## Implementation notes (2026-11-14, Stage 1, branch `feat/dev1-core`)
+
+Small internal corrections made while implementing. Reversible, tested, no change to another developer's interface beyond additions.
+
+| Change | Reason | Test |
+|---|---|---|
+| A choice that takes Crew Health to 0 ends the mission at once (Failure, `health_zero`). | Section 4 only checked failure during `AdvanceSol`; step 3 recovery would otherwise revive a crew at 0. | `RulesTests.ChoiceThatZeroesHealth_EndsMissionImmediately` |
+| Negative `resource` effects are costs: summed per resource and payable in full, else the choice is unavailable with new code `cannot_afford`. Never clamped to 0. `requires` stays a check that spends nothing. | The architecture clamped resource effects to 0, which let an unaffordable payment through for free. | `RulesTests.UnaffordableCost_*`, `SplitCosts_*`, `Requirement_IsCheckedButNotSpent` |
+| Facility level fallback, capacity/waste and the event-free `Forecast` were built in Stage 1, not Stage 5. Level 0 must use nothing. | Fallback is the only way to keep facility costs unclamped; forecast was needed to prove reads do not advance the RNG. | `Facility_FallsBack*`, `Production_Clamps*`, `A3` |
+| `modifier` effects and `delaySols` are rejected by the validator in this build. | Stage 5 scope; failing loudly beats silently ignoring them. | `ContentValidator` |
+| Commands work on a copy and commit only on success. | Atomicity: a rejection or exception cannot leave half-applied state. | `ReadsAndRejections_LeaveStateAndRngUnchanged` |
+| `game/sim/.gitignore` re-includes the two hand-written `.csproj` files. | Root `.gitignore` ignores all `*.csproj`; a nested negation avoids editing the shared root file. Integrator may prefer a root rule. | n/a |

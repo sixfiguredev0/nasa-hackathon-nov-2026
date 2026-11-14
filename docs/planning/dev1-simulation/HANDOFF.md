@@ -2,72 +2,107 @@
 
 Keep this short and current. Replace sections rather than appending history; history belongs in [DEVLOG.md](../../../DEVLOG.md).
 
-Last updated: 2026-11-14 about 14:30 Sofia time, after the first planning pass. No game code exists.
+Last updated: 2026-11-14, after Stage 0, Stage 1 and the hybrid-event extension.
 
 ## Branch and commits
 
-- Working branch: `claude/clever-einstein-rwr1ng`. Local only at the time of writing; **not pushed** (Developer 1 asked for no pushes in the planning pass). The name is assigned by the agent session and does not follow the `docs/` or `feat/` convention in [WORKFLOW.md](../../../WORKFLOW.md).
-- Base inspected: `b9badba` ("Update README.md"), which is also the head of the remote default branch `claude/confident-shannon-w2swhj`.
-- `main` does not exist on the remote. Creating it is an open BOARD task for the integrator.
-- Game plan: `origin/docs/red-frontier-game-plan` at `7de7220`, two docs-only commits ahead of the base. Not merged into this branch on purpose. Read it with:
-  `git fetch --depth=50 origin docs/red-frontier-game-plan && git show origin/docs/red-frontier-game-plan:docs/planning/RED_FRONTIER_Complete_Game_Plan.txt`
-- Open pull requests: none (checked 2026-11-14).
+- Branch: `feat/dev1-core`, based on Fable's planning commit `6685ec9` (`claude/clever-einstein-rwr1ng`).
+- Latest implementation commit: `f0eacb6` (core, tests, example content). Docs commit follows it on the same branch.
+- **Not pushed** (instruction: no push, merge or PR in this task). The work ran in a cloud container. Unpushed commits are lost when the container is reclaimed, so pushing this branch needs Developer 1's approval soon.
+- `main` still does not exist. Combined Unity project: not present on any remote branch (checked 2026-11-14).
 
-## Read and verified
+## Authorisation recorded
 
-- Read in full: AGENTS, CLAUDE, CODEX, GEMINI, README, WORKFLOW, TEAM, DEVLOG, NASA_DATA, SUBMISSION, docs/challenge/brief.md, docs/design/game-design.md, docs/decisions/0001 and TEMPLATE, docs/planning/BOARD.md, docs/data/nasa-datasets.md, the folder READMEs, `.gitignore`, `.gitattributes`, the PR template, and the complete game plan.
-- Verified: there is no Unity project, no source code, no tests, no package manifest and no project settings on any remote branch. `game/` holds only a README.
-- Not verified: the official challenge page (the host was not reachable from the agent's environment; [brief.md](../../challenge/brief.md) was used instead). Nothing about Unity behaviour was tested; no Editor or C# toolchain was available.
+Developer 1 authorised starting the independent C# core before the Unity install finishes, the `main` branch exists or the planning gates are formally cleared. That authorisation is not a claim that a Unity build passed or that team decisions are final. Food, the 10-sol length and the feature cuts in 0002 stay **proposed**. The slice uses Power, Air and Crew Health only; mission length is configurable.
 
-## Changed in this pass
+## Done
 
-Documentation only:
-- [docs/decisions/0002-first-release-scope.md](../../decisions/0002-first-release-scope.md)
-- [docs/decisions/0003-simulation-architecture.md](../../decisions/0003-simulation-architecture.md)
-- [docs/decisions/0004-simulation-contracts.md](../../decisions/0004-simulation-contracts.md)
-- [ARCHITECTURE.md](ARCHITECTURE.md), [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md), [OPUS_PROMPT.md](OPUS_PROMPT.md), this file
-- One appended row in DEVLOG.md, two in BOARD.md
+- **Stage 0.** No Unity project available, so the code is in `game/sim/` as planned. .NET 8 SDK 8.0.428 installed user-local in the container (with approval). Test command below.
+- **Stage 1.** `GameSession` as the only state owner; definitions, state and reports in plain `[Serializable]` C#; sol steps 1 to 4 and 6 to 8; four commands plus `Can*` queries; `Changed` once per accepted command; detached snapshot and config copies; `SolReport`; event-free `Forecast`; one scripted two-choice event; success, failure, restart. All ten acceptance tests pass (`Stage1Tests` A1 to A10).
+- **Hybrid events** ([0005](../../decisions/0005-hybrid-event-structure.md)): milestones on fixed sols, authored variants resolved once, seeded random pool with windows, once-only, weights and minimum gap; ID-sorted ordering; reproduction log.
+- Pulled forward because correctness needed them (recorded in [0003](../../decisions/0003-simulation-architecture.md) implementation notes): facility level fallback, capacity/waste, health recovery, `cannot_afford`, immediate failure when a choice zeroes health.
+- Content validator with cost-free-choice lint. Illustrative example JSON in `game/sim/Content/example/`.
 
-## Accepted versus proposed
+## Not done
 
-| Item | Status | Evidence |
-|---|---|---|
-| Challenge: Junior Astronaut Mission Trainer | Accepted | DEVLOG, README |
-| Audience 7 to 12, outpost-management game | Accepted | DEVLOG, README |
-| Branch model, append-only DEVLOG and BOARD | Accepted | WORKFLOW |
-| Engine Unity 6 with Web build | **Stated by Developer 1 as team direction; repository still records it as open** | 0001 is "Proposed / Open"; AGENTS says never assume Unity |
-| Mars, turn-based sols, isometric pixel art, title | Proposed | Game plan is marked draft; game-design.md lists site and camera as open questions |
-| Three-developer split | Stated by Developer 1; TEAM.md still shows all owners TBD | Game plan section 10 |
-| Scope 0002, architecture 0003, contracts 0004 | Proposed | This pass |
+- Stage 2 (Unity bridge, `ContentLoader`, `SimulationHost`, debug HUD, asmdefs). Needs the combined project.
+- Stage 3 (Web build). Stage 4 (contract freeze with Developers 2 and 3).
+- Stage 5 items still missing: `modifier` effects, `delaySols` and scheduled effects (step 5). The validator rejects both for now.
+- Bot balance runs (Stage 7). Final content and balance are Developer 3's and the team's.
 
-Contradictions to resolve by the team, not by an agent: 0001 and AGENTS versus the stated Unity direction; game plan "locked decisions" versus its own draft banner; game-design.md's three resources versus the plan's seven systems (0002 proposes the resolution); BOARD "web export test blocks all game code" versus starting C# now.
+## Build and test
 
-## Open questions and blockers
+From `game/sim/`, with the .NET 8 SDK (in this container it is at `~/.dotnet/dotnet`):
 
-1. Is Unity 6 Web agreed by all three developers, so 0001 can be accepted? (Gate G1.)
-2. Where will the coding agent run: a machine with the Unity Editor, or a cloud session without it? May a .NET SDK be installed for tests? (Gate G3.)
-3. Is the 0002 scope accepted: Power, Air, Food, Crew Health, radiation through events, 10 sols?
-4. Combined Unity project: who, when, which branch and path, which UI technology?
-5. Who is the integrator, and when does `main` exist? What should code branches be based on until then?
-6. May this branch be pushed? Unpushed commits are lost when the agent's container is reclaimed.
-7. Hosting for the Web build.
+```bash
+dotnet build Core/RedFrontier.Core.csproj
+dotnet test Tests/RedFrontier.Core.Tests.csproj
+```
+
+Result on `f0eacb6`: Core builds with 0 warnings, 0 errors (`netstandard2.1`, `LangVersion 9.0`, warnings as errors). Tests: `Passed! - Failed: 0, Passed: 37, Skipped: 0, Total: 37`.
+
+Mutation check: removing the affordability check, running the forecast on live state, or letting random events displace milestones each made tests fail (2, 3 and 16 respectively). Reverted.
+
+## Not verified
+
+- **Unity:** nothing. Unknown Unity version. C# 9 / netstandard2.1 compatibility is assumed from Fable's plan, not tested in an Editor. NUnit tests use only classic `Assert.*` calls, expected to run in the Unity Test Runner, unverified.
+- **JsonUtility:** the example JSON was parsed with System.Text.Json (public fields, case-sensitive) as a stand-in. A real `JsonUtility` load must be checked in Stage 2, and in a Web build in Stage 3. `uint rngState` in `SimState` is expected to serialise; unverified.
+- **Browser:** nothing.
+
+## Public API (proposed until Developers 2 and 3 agree, see [0004](../../decisions/0004-simulation-contracts.md))
+
+```csharp
+var session = new GameSession(MissionConfig config, IEnumerable<EventDef> events, int seed); // throws ContentValidationException
+session.Changed += change => Redraw();   // once per accepted command; change.kind: CommandApplied|SolResolved|EventRaised|MissionEnded|Restarted
+
+// Read (fresh copies every time)
+SimState snapshot      = session.Snapshot;      // sol, phase, outcome, endReason, crewHealth, resources[], facilities[], pending, log[]
+SolReport forecast     = session.Forecast;      // next sol at current settings, no events; null once Ended
+SolReport last         = session.LastReport;    // null before the first sol
+PendingEventView ev    = session.PendingEvent;  // null if none; choices[] with effects, requires, available, unavailableReason
+IReadOnlyList<LogEntry> history = session.History;
+
+// Commands -> CommandResult { ok, reason }
+session.SetFacilityLevel("life_support", 1);
+session.ChooseEventOption(ev.instanceId, "clean_panels");
+session.AdvanceSol(snapshot.sol);
+session.Restart();       // same seed
+session.Restart(1234);   // explicit new seed
+// Queries, no side effects: CanSetFacilityLevel, CanAdvanceSol, CanChooseEventOption
+```
+
+Reason codes: `mission_ended`, `decision_pending`, `unknown_facility`, `invalid_level`, `no_pending_event`, `stale_event`, `unknown_choice`, `requirement_not_met`, `cannot_afford`, `stale_sol`. End reasons: `health_zero`, `mission_complete`. Facility run reason: `insufficient_resource`.
+
+`SolReport`: `sol`; `resources[]` {id, start, made, usedByFacilities, usedByCrew, wasted, end, shortage}; `facilities[]` {id, requestedLevel, levelRun, reason}; `healthBefore`, `healthAfter`, `healthCauses[]` {code `shortage`|`recovery`, resource, amount}; `eventRaisedId`, `eventRaisedVariantId`; `outcome`, `endReason`.
+
+`LogEntry` (`history`): `sol`, `kind` (`event_raised`, `choice_made`, `shortage`, `mission_ended`), `eventId`, `eventClass` (`major`|`random`), `variantId`, `instanceId`, `choiceId`, `resource`, `amount`, `code`. `ToString()` gives one line for bug reports; include the seed.
+
+## Event schema (for Developer 3)
+
+ARCHITECTURE section 7 plus [0005](../../decisions/0005-hybrid-event-structure.md). In short: one JSON file per event; `trigger.sol` > 0 is a milestone on that sol (optionally with `variants`), `trigger.sol` 0 is the random pool (`minSol`, `maxSol`, `weight`, `once`). Effects: `resource` (negative = cost paid in full) and `health`. 1 to 3 choices. Keep one choice per event always affordable. Examples: `game/sim/Content/example/`.
+
+## Minimal usage for UI (Developer 2)
+
+```csharp
+void Redraw() {
+    var s = session.Snapshot;
+    // draw meters from s.resources and s.crewHealth; disable Advance unless session.CanAdvanceSol().ok
+    var ev = session.PendingEvent;
+    if (ev != null) foreach (var c in ev.choices) { /* button c.label, c.preview, enabled = c.available */ }
+    if (s.phase == MissionPhase.Ended) { /* debrief from s.outcome, s.endReason, session.History */ }
+}
+```
+
+No resource arithmetic in UI code. Display text for codes belongs to Developer 2.
 
 ## Exact next task
 
-Clear gates G1 and G3 with Developer 1, then run Stage 0 and Stage 1 of [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) using [OPUS_PROMPT.md](OPUS_PROMPT.md). Stage 3a (blank Web build) should be started by whoever holds the combined Unity project as soon as it exists, independently of the simulation work.
+1. Developer 1: approve pushing `feat/dev1-core` (risk of loss otherwise) and tell Developers 2 and 3 the slice exists (point them at this file and 0005).
+2. When the combined Unity project exists: Stage 2. Check ARCHITECTURE section 9 first (Unity version, packages, existing code), `git mv` `game/sim/Core` into `Assets/RedFrontier/Core/` with `RedFrontier.Core.asmdef` (`noEngineReferences: true`), then `ContentLoader`, `SimulationHost`, debug HUD. Run the tests in the Unity Test Runner.
+
+Blocker for Stage 2: the combined Unity project and the Editor. Nothing else in Developer 1's scope is blocked.
 
 ## Shared updates needed from their owners
 
-- Integrator: decide and record 0001; create `main`; fill TEAM.md roles; allow one tracked test `.csproj` in `.gitignore`.
-- Developers 2 and 3: accept or amend 0002 and 0004.
-- README "Repository layout" will need the Unity project path once it exists (integrator only).
-
-## Commands
-
-```bash
-git status && git log --oneline -5
-git fetch --depth=50 origin docs/red-frontier-game-plan
-git ls-remote --heads origin          # see whether the combined project branch has appeared
-```
-
-No build or test commands exist yet. Stage 0 records them here.
+- Integrator: create `main`; record 0001; decide whether to keep the nested `game/sim/.gitignore` csproj negation or move it to the root file; README layout entry for `game/sim/`.
+- Developers 2 and 3: accept or amend 0002, 0004 and the 0005 schema.

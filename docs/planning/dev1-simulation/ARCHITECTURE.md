@@ -1,6 +1,8 @@
 # RED FRONTIER simulation architecture (Developer 1)
 
-Status: **proposed**. Decisions are recorded in [0002](../../decisions/0002-first-release-scope.md), [0003](../../decisions/0003-simulation-architecture.md) and [0004](../../decisions/0004-simulation-contracts.md). This document is the detail behind them. Code and JSON below are illustrative shapes, not final signatures. All numbers are placeholder game values, not scientific data.
+Status: **proposed**. Decisions are recorded in [0002](../../decisions/0002-first-release-scope.md), [0003](../../decisions/0003-simulation-architecture.md), [0004](../../decisions/0004-simulation-contracts.md) and [0005](../../decisions/0005-hybrid-event-structure.md) (hybrid events).
+
+**Implemented (2026-11-14):** Stage 1 and the hybrid-event extension, in `game/sim/Core`. Where the code differs from this text, the code and the implementation notes in 0003 win; the sections below are updated for the public contract (sections 6 and 7). This document is the detail behind them. Code and JSON below are illustrative shapes, not final signatures. All numbers are placeholder game values, not scientific data.
 
 Written without sight of the combined Unity project. Section 9 lists what to check when it arrives.
 
@@ -110,7 +112,7 @@ The player plans sol N (sets levels, answers that sol's event). `AdvanceSol(expe
 | 4 | `sol` becomes N+1. Modifiers whose `lastSol` is below N+1 expire. | |
 | 5 | Scheduled effects with `dueSol == N+1` apply in the order they were queued, then leave the queue. | Reported with source event, choice and the sol it was chosen. |
 | 6 | End check: health at 0 gives Failure. Otherwise N+1 beyond `missionLengthSols` gives Success. If ended, stop here. | Failure is checked first. |
-| 7 | `EventDirector` picks at most one event for sol N+1. If one is raised, phase becomes AwaitingDecision. | Scripted (`trigger.sol`) beats the random pool. |
+| 7 | `EventDirector` picks at most one event for sol N+1. If one is raised, phase becomes AwaitingDecision. | Major milestone (`trigger.sol`) always wins; its variant is picked and stored now. Otherwise the seeded random pool (see [0005](../../decisions/0005-hybrid-event-structure.md)). |
 | 8 | Publish snapshot, forecast, report and history. Fire `Changed` once. | |
 
 Timing of effects:
@@ -159,13 +161,23 @@ public sealed class GameSession {
     // Ask before showing a control. Same checks as the commands, no side effects.
     public CommandResult CanSetFacilityLevel(string facilityId, int level);
     public CommandResult CanAdvanceSol();
+    public CommandResult CanChooseEventOption(int eventInstanceId, string choiceId);
+
+    // Added in implementation:
+    public CommandResult Restart();            // same seed: replays the run
+    public int Seed { get; }
+    public IReadOnlyList<string> Warnings { get; } // content lint found at construction
 }
+// As built: Forecast and LastReport are both SolReport (Forecast is null once Ended);
+// History is IReadOnlyList<LogEntry>; the constructor is
+// new GameSession(MissionConfig config, IEnumerable<EventDef> events, int seed)
+// and throws ContentValidationException on invalid content.
 ```
 
 | Command | Accepted when | Rejection codes |
 |---|---|---|
 | `SetFacilityLevel` | Phase Planning, facility exists, level exists. | `mission_ended`, `decision_pending`, `unknown_facility`, `invalid_level` |
-| `ChooseEventOption` | Phase AwaitingDecision, instance matches, choice exists, its `requires` are met. | `no_pending_event`, `stale_event`, `unknown_choice`, `requirement_not_met` |
+| `ChooseEventOption` | Phase AwaitingDecision, instance matches, choice exists, its `requires` are met, its costs are affordable in full. | `mission_ended`, `no_pending_event`, `stale_event`, `unknown_choice`, `requirement_not_met`, `cannot_afford` |
 | `AdvanceSol` | Phase Planning, `expectedSol` equals current sol. | `mission_ended`, `decision_pending`, `stale_sol` |
 | `Restart` | Always. | none |
 
@@ -219,20 +231,21 @@ One JSON file per event, named `<id>.json`. One file per event keeps several aut
 | Field | Meaning |
 |---|---|
 | `trigger.sol` | Scripted: raise at the start of exactly this sol. Use for the tutorial and the demo path. |
-| `trigger.minSol`, `maxSol`, `weight`, `once` | Random pool (later stage): eligible window, relative weight, whether it may repeat. Leave `sol` at 0. |
+| `trigger.minSol`, `maxSol`, `weight`, `once` | Random pool: eligible window, relative weight (0 = 1), whether it may occur only once. Leave `sol` at 0. Random events only occur on sols with no major event. |
+| `variants` | Major events only, optional: authored variants, one picked when the event is raised. Same choice IDs and effect types/targets in every variant; amounts, requirements and text may differ. Replaces `choices`. See [0005](../../decisions/0005-hybrid-event-structure.md). |
 | `severity` | `info`, `warning`, `critical`. Presentation hint only. Every event must be answered before the next sol; an `info` event has one choice. |
 | `dataBasis` | `illustrative` or `archived_nasa`. With `archived_nasa`, `sourceRef` must name the entry in the [NASA_DATA.md](../../../NASA_DATA.md) register and the text must give the real date. Nothing is ever labelled live. |
-| `requires` | Resource minimums for a choice to be selectable. The UI shows unavailable choices as disabled with the reason. |
+| `requires` | Resource minimums for a choice to be selectable. A check only: nothing is spent. The UI shows unavailable choices as disabled with the reason. |
 | `preview` | The one-sentence cost statement shown before confirming. Must match the effects; the validator cannot check prose. |
 
 Effect types, closed set for schema version 1:
 
 | `type` | Fields | Does |
 |---|---|---|
-| `resource` | `target` (resource id), `amount` (signed) | Adds to or removes from stock, clamped to 0 and capacity. |
+| `resource` | `target` (resource id), `amount` (signed) | A gain is clamped to capacity. A loss is a cost: the choice is unavailable (`cannot_afford`) unless the full amount can be paid. Never clamped to 0. |
 | `health` | `amount` (signed) | Changes Crew Health, clamped 0 to 100. |
-| `modifier` | `target` (facility id), `percent` (signed), `durationSols` (>= 1) | Scales that facility's output for the duration. |
-| any | optional `delaySols` (>= 1) | Queues the effect instead of applying it now. |
+| `modifier` | `target` (facility id), `percent` (signed), `durationSols` (>= 1) | Scales that facility's output for the duration. **Stage 5; rejected by the validator in the current build.** |
+| any | optional `delaySols` (>= 1) | Queues the effect instead of applying it now. **Stage 5; rejected in the current build.** |
 
 Because the parser has no nulls, 0 means "not set" for `sol`, `delaySols`, `minSol`, `maxSol`.
 

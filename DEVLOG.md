@@ -19,6 +19,7 @@ Record concise dated decisions, data changes, milestones and risks. Never log se
 | 2026-11-14 | Branch model: one integrator merges to `main` via PRs; everyone uses short-lived task branches | Avoid long-lived branches colliding before the demo deadline; see WORKFLOW.md | |
 | 2026-11-14 | Pending: create `main`, set as default, protect it | Repo default is currently the setup branch | |
 | 2026-11-14 14:30 | Proposed, not yet agreed: first-release scope (0002), simulation architecture (0003), simulation/UI/content contracts (0004). No game code written. | Brief R10 and about 24 h to local demo argue for three meters plus Crew Health; no Unity project in the repo yet; details in docs/planning/dev1-simulation/ | Dev 1 (simulation) |
+| 2026-11-14 | Simulation core Stage 0+1 built in `game/sim` (plain C#, no Unity), plus hybrid events (0005): fixed milestones with authored variants, seeded random events between. 37 tests pass with `dotnet test`. Unity, JsonUtility and browser unverified. Fixture values are placeholders. Not pushed. | Dev 1 authorised starting before Unity install finished; team confirmed hybrid event direction; schema proposed | Dev 1 (simulation) |
 
 ## Progress
 ### 2026-11-14

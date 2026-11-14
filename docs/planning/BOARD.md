@@ -17,12 +17,14 @@ Claim a task by writing your name or agent tag in **Owner** and committing befor
 | Review challenge Resources tab and record datasets in NASA_DATA.md register | | Global Awards need one from Resources |
 | Fill team lead, submission owner, demo fallback in DEVLOG.md | | |
 | Team: accept or amend decisions 0002 (scope) and 0004 (contracts) | | Devs 2 and 3 to answer; silence is not agreement |
+| Dev 3: review hybrid event schema (0005) and example events in game/sim/Content/example | | Proposed schema; numbers are placeholders |
 
 ## In progress
 
 | Task | Owner | Branch |
 |---|---|---|
 | Simulation architecture and staged plan (docs/planning/dev1-simulation/) | Dev 1 (simulation) | `claude/clever-einstein-rwr1ng` |
+| Simulation core: Stage 1 done, hybrid events done; next Stage 2 Unity bridge (needs combined project) | Dev 1 (simulation) | `feat/dev1-core` (local, unpushed) |
 
 ## Done
 
