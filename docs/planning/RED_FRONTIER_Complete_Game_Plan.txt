@@ -222,17 +222,61 @@ Core modules and ownership:
 
 Use data assets (for example ScriptableObjects or JSON where appropriate) for resources, facilities, event definitions, and balance values. Keep simulation logic testable independently from presentation. Use stable IDs for buildings and events. Keep dependencies simple and document public interfaces before parallel implementation.
 
-10. WORK DISTRIBUTION
+10. WORK DISTRIBUTION — THREE DEVELOPERS
 
-For a team of up to six, assign one owner per workstream:
-1. Technical Lead / Integrator: Unity configuration, architecture, main scene, repository, integration, builds, code review.
-2. Game Systems Developer: resources, life support, energy, food, water, sol progression, win/lose rules.
-3. Environment and Pixel Artist: tileset, Mars terrain, facility sprites, visual consistency, small animations.
-4. UI/UX Developer: menu, HUD, facility panel, event panel, history, debrief, responsive layout.
-5. Science and Research Lead: verified science references, assumptions, scenarios, educational explanations.
-6. Gameplay, QA, and Presentation: event writing, balance, bug reports, browser/device checks, demo and submission materials.
+Use three workstreams with one named owner each. Each developer owns the files listed below and delivers a working slice that can be integrated without editing another developer’s main files. The technical choices in this draft remain proposals until the team confirms them.
 
-If there are fewer people, combine science with gameplay/QA; combine environment art with UI; keep integration ownership with the technical lead. Agree on data formats and interfaces early. Work in separate files/folders, integrate frequently, and avoid multiple people editing the same scene or core script at once.
+DEVELOPER 1 — SIMULATION AND INTEGRATION LEAD
+Owns the game rules and keeps the project playable as the other workstreams integrate.
+
+Responsibilities:
+- Set up the agreed engine project, shared scene structure, repository workflow, and first runnable build.
+- Define the simulation state, resource data, stable IDs, and order of operations for each sol.
+- Implement resource accounting and the agreed first-mission systems: power, life support, water, food, and facility condition, trimming to the team-approved scope.
+- Implement player actions, validation, mission success/failure, restart, and basic local save if time permits.
+- Define and document the data/API contracts that Developers 2 and 3 will use.
+- Integrate changes, resolve conflicts, and keep a working build available.
+
+Owns: core simulation code under game/, plus shared project settings and integration scenes after the team chooses an engine. Coordinate before changing any shared scene or project settings.
+
+Deliverable: a playable graybox in which advancing a sol updates the simulation, the player can inspect state, and mission end conditions work.
+
+DEVELOPER 2 — WORLD, PIXEL ART, AND PLAYER INTERFACE
+Owns how the game looks and how the player reads and controls it.
+
+Responsibilities:
+- Build the compact outpost map and readable facility sprites using the team-approved art style and camera.
+- Create the resource HUD, sol controls, facility inspection panel, alerts, decision-panel presentation, and debrief layout.
+- Add selection feedback, status icons, simple transitions, and responsive layouts for the agreed target devices.
+- Connect UI controls to Developer 1’s documented commands and display state from the simulation; keep game rules out of UI code.
+- Use placeholders first, then replace them with consistent final art after the graybox works.
+
+Owns: assets/ and the presentation/UI portion of game/. Coordinate on shared scenes; do not change simulation rules or resource values.
+
+Deliverable: a coherent, readable mission-control screen where every core facility can be selected and its current status and available actions are visible.
+
+DEVELOPER 3 — MISSION CONTENT, SCIENCE, EVENTS, AND PLAYTESTING
+Owns the scenarios that teach the game’s ideas and verifies that the mission is understandable and scientifically responsible.
+
+Responsibilities:
+- Review the selected challenge brief and identify the required NASA data source; record sources, assumptions, units, transformations, attribution, and limitations in the repository’s source register.
+- Draft the first mission tutorial, event descriptions, choice text, science notes, and cause-and-effect debrief language for the agreed child audience.
+- Prepare event data using Developer 1’s agreed schema; avoid adding unverified scientific claims or presenting illustrative values as observations.
+- Balance the first mission with the team, run short playthroughs, log bugs and confusing moments, and verify that choices have understandable consequences.
+- Check the agreed browser/device targets, accessibility/readability, and demo flow; prepare screenshots or presentation materials if needed.
+
+Owns: event and science content under data/, source notes under docs/source/, and QA/demo notes. Coordinate with Developer 2 on text length and Developer 1 on event schema and effect limits.
+
+Deliverable: a documented, playable first-mission scenario with traceable sources, clear event choices, a tested demo path, and prioritized bug reports.
+
+SHARED HANDOFFS AND ORDER
+1. Developer 1 publishes the project skeleton, simulation state, event schema, and one working sol update.
+2. Developer 2 builds the HUD and one selectable facility against those interfaces, using placeholders as needed.
+3. Developer 3 supplies one science-reviewed event in the agreed data format and a short playtest checklist.
+4. Integrate that vertical slice and play it together before expanding systems, art, or event count.
+5. Each developer reviews the integrated mission; Developer 1 owns the final build, while everyone fixes issues in their owned files.
+
+Keep the first release small: one map, one short mission, the minimum resource set approved by the team, and a few polished events. Defer extra systems, maps, and decorative content until the vertical slice is stable.
 
 AI workflow proposed in the source chat:
 - Claude Code: primary implementation and architecture.
@@ -240,7 +284,6 @@ AI workflow proposed in the source chat:
 - Gemini: research, calculations, and scenario design.
 - Antigravity: visual direction, interface concepts, and asset workflow.
 Use one shared repository and clearly assign file ownership; do not let every tool make overlapping edits to the same files.
-
 11. DELIVERY PHASES AND PRIORITIES
 
 Phase 0 — Project setup
@@ -347,4 +390,3 @@ Browser and handoff:
 7. Play through the mission as a new player, adjust balance, then polish art and browser UX.
 
 END OF PLAN
-
