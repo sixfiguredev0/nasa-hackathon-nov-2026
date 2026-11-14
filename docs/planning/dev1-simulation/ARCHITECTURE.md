@@ -244,8 +244,9 @@ Effect types, closed set for schema version 1:
 |---|---|---|
 | `resource` | `target` (resource id), `amount` (signed) | A gain is clamped to capacity. A loss is a cost: the choice is unavailable (`cannot_afford`) unless the full amount can be paid. Never clamped to 0. |
 | `health` | `amount` (signed) | Changes Crew Health, clamped 0 to 100. |
-| `modifier` | `target` (facility id), `percent` (signed), `durationSols` (>= 1) | Scales that facility's output for the duration. **Stage 5; rejected by the validator in the current build.** |
-| any | optional `delaySols` (>= 1) | Queues the effect instead of applying it now. **Stage 5; rejected in the current build.** |
+| `modifier` | `target` (facility id), `percent` (signed, >= -100), `durationSols` (>= 1) | Scales that facility's output for the duration; stacks additively. Implemented, see decision 0007. |
+| `radiation` | `amount` (>= 1 exposure units) | Adds exposure to the current sol (applied once in step 3a). Decision 0007. |
+| any | optional `delaySols` (>= 1) | Queues the effect for sol + delaySols (not allowed on resource costs). Implemented, decision 0007. |
 
 Because the parser has no nulls, 0 means "not set" for `sol`, `delaySols`, `minSol`, `maxSol`.
 

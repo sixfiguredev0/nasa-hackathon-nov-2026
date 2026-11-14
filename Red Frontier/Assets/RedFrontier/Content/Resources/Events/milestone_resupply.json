@@ -10,9 +10,10 @@
   "dataBasis": "illustrative",
   "sourceRef": "",
   "choices": [
-    { "id": "unload_now", "label": "Unload it now", "preview": "Uses 2 power. Gain 5 air.",
+    { "id": "unload_now", "label": "Unload it now", "preview": "Uses 2 power. Gain 5 air now and 6 food in 2 sols.",
       "effects": [ { "type": "resource", "target": "power", "amount": -2 },
-                   { "type": "resource", "target": "air", "amount": 5 } ] },
+                   { "type": "resource", "target": "air", "amount": 5 },
+                   { "type": "resource", "target": "food", "amount": 6, "delaySols": 2 } ] },
     { "id": "unload_later", "label": "Leave it for later", "preview": "Crew Health drops by 5.",
       "effects": [ { "type": "health", "amount": -5 } ] }
   ]

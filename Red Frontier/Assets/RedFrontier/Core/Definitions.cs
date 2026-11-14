@@ -23,6 +23,10 @@ namespace RedFrontier.Core
         public int eventChancePercent;
         /// <summary>Minimum difference in sol numbers between two random events. 0 or 1 allows consecutive sols.</summary>
         public int randomEventMinGapSols;
+        /// <summary>Illustrative radiation exposure units every sol (game value, not a physical dose).</summary>
+        public int radiationPerSol;
+        /// <summary>Crew Health lost per unshielded exposure unit (illustrative).</summary>
+        public int radiationDamagePerUnit;
 
         public MissionConfig Clone()
         {
@@ -75,6 +79,8 @@ namespace RedFrontier.Core
         public string id = "";
         public List<FlowDef> uses = new List<FlowDef>();
         public List<FlowDef> makes = new List<FlowDef>();
+        /// <summary>Exposure units blocked per sol while this level runs (radiation protection).</summary>
+        public int shielding;
 
         public FacilityLevelDef Clone()
         {
@@ -205,7 +211,7 @@ namespace RedFrontier.Core
     /// <summary>
     /// Effect types in this build: "resource" (target = resource id, signed amount; a negative amount
     /// is a cost and must be affordable in full) and "health" (signed amount). "modifier" and
-    /// delaySols are part of the proposed schema but rejected by the validator until Stage 5.
+    /// (facility id, percent, durationSols) and "radiation" (exposure units now); delaySols >= 1 queues any non-cost effect (decision 0007).
     /// </summary>
     [Serializable]
     public sealed class EffectDef

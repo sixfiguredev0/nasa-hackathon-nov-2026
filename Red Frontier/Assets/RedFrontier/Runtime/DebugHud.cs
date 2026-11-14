@@ -35,6 +35,7 @@ namespace RedFrontier.Runtime
         int lastPendingId = -1;
         bool wasEnded;
         bool clearFocus;
+        bool seedFocused;
 
         /// <summary>Number of Changed notifications handled. Play Mode checks use it to detect duplicate subscriptions.</summary>
         public int RefreshCount { get; private set; }
@@ -106,8 +107,9 @@ namespace RedFrontier.Runtime
             Bind();
             if (panelMode)
             {
-                if (clearFocus) { GUIUtility.keyboardControl = 0; clearFocus = false; }
-                EditingText = PanelOpen && GUI.GetNameOfFocusedControl() == SeedControl;
+                if (clearFocus) { GUIUtility.keyboardControl = 0; clearFocus = false; seedFocused = false; }
+                // Focus names are registered as controls draw, so use the value cached after the seed field in the previous event.
+                EditingText = PanelOpen && seedFocused;
                 var e = Event.current;
                 if (e.type == EventType.KeyDown && e.keyCode == KeyCode.Tab && !EditingText) { SetPanelOpen(!PanelOpen); e.Use(); }
                 if (GUI.Button(new Rect(Screen.width - 170, 10, 160, 30), PanelOpen ? "Functions (Tab) - close" : "Functions (Tab)")) SetPanelOpen(!PanelOpen);
@@ -149,6 +151,12 @@ namespace RedFrontier.Runtime
             foreach (var r in snap.resources) line.Append(Title(r.id)).Append(": ").Append(r.amount).Append(" / ").Append(r.capacity).Append("     ");
             line.Append("Crew Health: ").Append(snap.crewHealth).Append(" / 100");
             GUILayout.Label("<b>" + line + "</b>", Rich());
+            GUILayout.Label("Radiation: " + config.radiationPerSol + " unit(s)/sol baseline" + (snap.radiationPending > 0 ? " + " + snap.radiationPending + " from events today" : "")
+                + ", unshielded so far " + snap.radiationTotal + " (illustrative units, " + config.radiationDamagePerUnit + " Health each)");
+            foreach (var m in snap.modifiers)
+                GUILayout.Label("Modifier: " + Title(m.facilityId) + " output " + (m.percent > 0 ? "+" : "") + m.percent + "% on sols " + m.firstSol + "-" + m.lastSol + " (" + m.sourceEventId + ")");
+            foreach (var d in snap.scheduled)
+                GUILayout.Label("Delayed: " + d.effect.type + " " + d.effect.target + " " + (d.effect.type == "modifier" ? d.effect.percent + "%" : d.effect.amount.ToString()) + " lands on sol " + d.dueSol + " (" + d.sourceEventId + ")");
             if (lastRejection.Length > 0) GUILayout.Label("Last command rejected: " + lastRejection);
         }
 
@@ -214,6 +222,11 @@ namespace RedFrontier.Runtime
                     + ", crew used " + rr.usedByCrew + (rr.wasted > 0 ? ", wasted " + rr.wasted : "")
                     + (rr.shortage > 0 ? "   <color=red>SHORTAGE " + rr.shortage + "</color>" : ""), Rich());
             foreach (var fr in r.facilities)
+                if (fr.modifierPercent != 0)
+                    GUILayout.Label("    " + Title(fr.id) + " output modified " + (fr.modifierPercent > 0 ? "+" : "") + fr.modifierPercent + "%");
+            GUILayout.Label("    Radiation: " + r.radiationExposure + " exposure, " + r.radiationBlocked + " blocked by shielding, " + r.radiationNet + " unshielded");
+            foreach (var d in r.delayedApplied) GUILayout.Label("    Delayed effect landed: " + d);
+            foreach (var fr in r.facilities)
                 if (fr.levelRun != fr.requestedLevel)
                     GUILayout.Label("    " + Title(fr.id) + " runs at level " + fr.levelRun + " instead of " + fr.requestedLevel + " (" + fr.reason + ")");
             var causes = new StringBuilder();
@@ -245,6 +258,7 @@ namespace RedFrontier.Runtime
                 GUILayout.Label("New seed:", GUILayout.Width(70));
                 GUI.SetNextControlName(SeedControl);
                 seedText = GUILayout.TextField(seedText);
+                seedFocused = GUI.GetNameOfFocusedControl() == SeedControl;
                 GUILayout.EndHorizontal();
                 valid = int.TryParse(seedText, out newSeed);
                 GUI.enabled = valid;
@@ -308,7 +322,13 @@ namespace RedFrontier.Runtime
         {
             var sb = new StringBuilder();
             foreach (var ef in effects)
-                sb.Append(sb.Length > 0 ? ", " : "").Append(ef.type == "health" ? "Crew Health" : ef.target).Append(ef.amount > 0 ? " +" : " ").Append(ef.amount);
+            {
+                sb.Append(sb.Length > 0 ? ", " : "");
+                if (ef.type == "modifier") sb.Append(ef.target).Append(" output ").Append(ef.percent > 0 ? "+" : "").Append(ef.percent).Append("% for ").Append(ef.durationSols).Append(" sol(s)");
+                else if (ef.type == "radiation") sb.Append("radiation +").Append(ef.amount);
+                else sb.Append(ef.type == "health" ? "Crew Health" : ef.target).Append(ef.amount > 0 ? " +" : " ").Append(ef.amount);
+                if (ef.delaySols > 0) sb.Append(" (in ").Append(ef.delaySols).Append(" sol(s))");
+            }
             return sb.Length > 0 ? sb.ToString() : "none";
         }
 

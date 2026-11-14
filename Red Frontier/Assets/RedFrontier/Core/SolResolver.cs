@@ -17,6 +17,7 @@ namespace RedFrontier.Core
 
             // Step 1: facilities in config order. Each runs at the highest level <= requested that it
             // can pay for in full, costs summed per resource. Costs are never clamped: an unaffordable level is not run.
+            int shielding = 0;
             for (int i = 0; i < c.facilities.Count; i++)
             {
                 var def = c.facilities[i];
@@ -31,22 +32,28 @@ namespace RedFrontier.Core
                     s.Resource(u.resource).amount -= u.amount;
                     report.Resource(u.resource).usedByFacilities += u.amount;
                 }
+                // Modifiers scale output only (not costs): floor(amount * (100 + sum) / 100), minimum 0.
+                int pct = EffectApplier.ModifierPercent(s, def.id);
                 foreach (var m in level.makes)
                 {
                     var rs = s.Resource(m.resource);
                     var rr = report.Resource(m.resource);
+                    int scaled = 100 + pct <= 0 ? 0 : m.amount * (100 + pct) / 100;
                     int room = rs.capacity - rs.amount;
-                    int added = m.amount < room ? m.amount : room;
+                    int added = scaled < room ? scaled : room;
                     rs.amount += added;
                     rr.made += added;
-                    rr.wasted += m.amount - added;
+                    rr.wasted += scaled - added;
                 }
+                shielding += level.shielding;
                 report.facilities.Add(new FacilityReport
                 {
                     id = def.id,
                     requestedLevel = requested,
                     levelRun = run,
                     reason = run == requested ? "" : ReasonCodes.InsufficientResource,
+                    modifierPercent = pct,
+                    shielding = level.shielding,
                 });
             }
 
@@ -67,8 +74,25 @@ namespace RedFrontier.Core
                 }
             }
 
-            // Step 3: health. Penalty per shortage; recovery only on a sol with no shortage. Clamp 0..100.
+            // Step 3a: radiation. Exposure = baseline + event units queued for this sol; shielding from levels that
+            // actually ran blocks up to its total. Pending units are consumed here, so each applies exactly once.
+            report.radiationExposure = c.radiationPerSol + s.radiationPending;
+            report.radiationBlocked = shielding < report.radiationExposure ? shielding : report.radiationExposure;
+            report.radiationNet = report.radiationExposure - report.radiationBlocked;
+            s.radiationPending = 0;
+            s.radiationTotal += report.radiationNet;
+
+            // Step 3b: health. Penalty per shortage and per unshielded radiation unit; recovery only on a sol with
+            // neither, so recovery never cancels damage. Clamp 0..100.
             int health = s.crewHealth;
+            int radDamage = report.radiationNet * c.radiationDamagePerUnit;
+            if (radDamage > 0)
+            {
+                int before = health;
+                health -= radDamage;
+                if (health < 0) health = 0;
+                report.healthCauses.Add(new HealthCause { code = "radiation", amount = health - before });
+            }
             if (shortages.Count > 0)
             {
                 foreach (var kv in shortages)
@@ -79,7 +103,7 @@ namespace RedFrontier.Core
                     report.healthCauses.Add(new HealthCause { code = "shortage", resource = kv.Key.resource, amount = health - before });
                 }
             }
-            else if (c.healthRecoveryPerSol > 0 && health < 100)
+            else if (radDamage == 0 && c.healthRecoveryPerSol > 0 && health < 100)
             {
                 int before = health;
                 health += c.healthRecoveryPerSol;

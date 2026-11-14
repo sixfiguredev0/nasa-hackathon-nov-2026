@@ -23,7 +23,7 @@ namespace RedFrontier.Core.Tests
         {
             MissionConfig m; List<EventDef> e;
             ContentLoader.LoadFromResources(out m, out e);
-            Assert.AreEqual(4, e.Count);
+            Assert.AreEqual(5, e.Count);
             var r = ContentValidator.Validate(m, e);
             Assert.IsTrue(r.Ok, r.ToString());
             Assert.AreEqual(0, r.warnings.Count, r.ToString());

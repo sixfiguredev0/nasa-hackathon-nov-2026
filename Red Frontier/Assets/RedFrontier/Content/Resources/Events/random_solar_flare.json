@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "id": "random_solar_flare",
+  "category": "environment",
+  "severity": "warning",
+  "trigger": { "minSol": 2, "maxSol": 9, "weight": 2, "once": true },
+  "title": "Solar flare warning",
+  "body": "A burst of radiation from the Sun will reach Mars today. (Placeholder game values, not physical doses.)",
+  "scienceNote": "",
+  "dataBasis": "illustrative",
+  "sourceRef": "",
+  "choices": [
+    { "id": "take_cover", "label": "Everyone into the shelter", "preview": "Uses 4 power. 2 radiation units today.",
+      "effects": [ { "type": "resource", "target": "power", "amount": -4 },
+                   { "type": "radiation", "amount": 2 } ] },
+    { "id": "keep_working", "label": "Keep working", "preview": "6 radiation units today (the shelter facility can block some).",
+      "effects": [ { "type": "radiation", "amount": 6 } ] }
+  ]
+}

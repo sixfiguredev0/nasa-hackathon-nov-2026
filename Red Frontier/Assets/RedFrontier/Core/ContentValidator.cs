@@ -43,7 +43,7 @@ namespace RedFrontier.Core
             foreach (var e in events)
             {
                 if (e == null) { r.errors.Add("event: null entry"); continue; }
-                ValidateEvent(e, c, r, resourceIds, eventIds, majorSols);
+                ValidateEvent(e, c, r, resourceIds, facilityIds, eventIds, majorSols);
             }
             return r;
         }
@@ -55,6 +55,8 @@ namespace RedFrontier.Core
             if (c.crewCount < 1) r.errors.Add("mission: crewCount must be >= 1");
             if (c.startHealth < 1 || c.startHealth > 100) r.errors.Add("mission: startHealth must be 1..100");
             if (c.healthRecoveryPerSol < 0) r.errors.Add("mission: healthRecoveryPerSol must be >= 0");
+            if (c.radiationPerSol < 0) r.errors.Add("mission: radiationPerSol must be >= 0");
+            if (c.radiationDamagePerUnit < 0) r.errors.Add("mission: radiationDamagePerUnit must be >= 0");
             if (c.eventChancePercent < 0 || c.eventChancePercent > 100) r.errors.Add("mission: eventChancePercent must be 0..100");
             if (c.randomEventMinGapSols < 0) r.errors.Add("mission: randomEventMinGapSols must be >= 0");
 
@@ -94,6 +96,7 @@ namespace RedFrontier.Core
                     if (i == 0 && l.uses != null && l.uses.Count > 0) r.errors.Add(lw + ": level 0 must use nothing (it is the fallback)");
                     ValidateFlows(l.uses, lw + " uses", r, resourceIds);
                     ValidateFlows(l.makes, lw + " makes", r, resourceIds);
+                    if (l.shielding < 0) r.errors.Add(lw + ": shielding must be >= 0");
                 }
             }
         }
@@ -109,7 +112,7 @@ namespace RedFrontier.Core
             }
         }
 
-        static void ValidateEvent(EventDef e, MissionConfig c, ValidationResult r, HashSet<string> resourceIds,
+        static void ValidateEvent(EventDef e, MissionConfig c, ValidationResult r, HashSet<string> resourceIds, HashSet<string> facilityIds,
             HashSet<string> eventIds, Dictionary<int, string> majorSols)
         {
             string where = "event '" + e.id + "'";
@@ -155,18 +158,18 @@ namespace RedFrontier.Core
                     if (!IsId(v.id)) r.errors.Add(vw + ": id must be lowercase snake_case");
                     else if (!variantIds.Add(v.id)) r.errors.Add(vw + ": duplicate id");
                     if (v.weight < 0) r.errors.Add(vw + ": weight must be >= 0");
-                    ValidateChoices(v.choices ?? new List<ChoiceDef>(), vw, r, resourceIds);
+                    ValidateChoices(v.choices ?? new List<ChoiceDef>(), vw, r, resourceIds, facilityIds);
                     if (reference == null) reference = v.choices;
                     else CheckSameShape(reference, v.choices ?? new List<ChoiceDef>(), vw, r);
                 }
             }
             else
             {
-                ValidateChoices(choices, where, r, resourceIds);
+                ValidateChoices(choices, where, r, resourceIds, facilityIds);
             }
         }
 
-        static void ValidateChoices(List<ChoiceDef> choices, string where, ValidationResult r, HashSet<string> resourceIds)
+        static void ValidateChoices(List<ChoiceDef> choices, string where, ValidationResult r, HashSet<string> resourceIds, HashSet<string> facilityIds)
         {
             if (choices.Count < 1 || choices.Count > MaxChoices) r.errors.Add(where + ": needs 1 to " + MaxChoices + " choices");
             var ids = new HashSet<string>();
@@ -189,7 +192,8 @@ namespace RedFrontier.Core
                 foreach (var ef in ch.effects ?? new List<EffectDef>())
                 {
                     if (ef == null) { r.errors.Add(cw + ": null effect"); continue; }
-                    if (ef.delaySols != 0) r.errors.Add(cw + ": delaySols is not supported in this build (planned for Stage 5)");
+                    if (ef.delaySols < 0) r.errors.Add(cw + ": delaySols must be >= 0");
+                    if (ef.delaySols > 0 && ef.type == "resource" && ef.amount < 0) r.errors.Add(cw + ": a resource cost cannot be delayed (costs are paid when chosen)");
                     switch (ef.type)
                     {
                         case "resource":
@@ -203,7 +207,16 @@ namespace RedFrontier.Core
                             if (ef.amount < 0) hasCost = true;
                             break;
                         case "modifier":
-                            r.errors.Add(cw + ": modifier effects are not supported in this build (planned for Stage 5)");
+                            if (!facilityIds.Contains(ef.target)) r.errors.Add(cw + ": modifier on unknown facility '" + ef.target + "'");
+                            if (ef.percent == 0 || ef.percent < -100) r.errors.Add(cw + ": modifier percent must be non-zero and >= -100");
+                            if (ef.durationSols < 1) r.errors.Add(cw + ": modifier durationSols must be >= 1");
+                            if (ef.amount != 0) r.errors.Add(cw + ": modifier takes percent, not amount");
+                            if (ef.percent < 0) hasCost = true;
+                            break;
+                        case "radiation":
+                            if (!string.IsNullOrEmpty(ef.target)) r.errors.Add(cw + ": radiation effect takes no target");
+                            if (ef.amount < 1) r.errors.Add(cw + ": radiation amount must be >= 1");
+                            hasCost = true;
                             break;
                         default:
                             r.errors.Add(cw + ": unknown effect type '" + ef.type + "'");

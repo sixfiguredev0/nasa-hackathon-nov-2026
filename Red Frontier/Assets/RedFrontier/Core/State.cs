@@ -34,6 +34,12 @@ namespace RedFrontier.Core
         public int lastRandomEventSol;
         /// <summary>Reproduction log: events raised (milestone, variant, sol), choices, shortages, outcome.</summary>
         public List<LogEntry> log = new List<LogEntry>();
+        /// <summary>Exposure units added by events, consumed by the next sol resolution (applied once).</summary>
+        public int radiationPending;
+        /// <summary>Total unshielded exposure units this mission.</summary>
+        public int radiationTotal;
+        public List<ActiveModifier> modifiers = new List<ActiveModifier>();
+        public List<ScheduledEffect> scheduled = new List<ScheduledEffect>();
 
         public SimState Clone()
         {
@@ -43,6 +49,8 @@ namespace RedFrontier.Core
             c.pending = pending == null ? new PendingEvent() : pending.Clone();
             c.usedEventIds = new List<string>(usedEventIds);
             c.log = Copy.List(log, x => x.Clone());
+            c.modifiers = Copy.List(modifiers, x => x.Clone());
+            c.scheduled = Copy.List(scheduled, x => x.Clone());
             return c;
         }
 
@@ -66,6 +74,30 @@ namespace RedFrontier.Core
         public int amount;
         public int capacity;
         public ResourceState Clone() { return (ResourceState)MemberwiseClone(); }
+    }
+
+    /// <summary>Scales one facility's output on sols firstSol..lastSol. Stacks additively with others on the same facility.</summary>
+    [Serializable]
+    public sealed class ActiveModifier
+    {
+        public string facilityId = "";
+        public int percent;
+        public int firstSol;
+        public int lastSol;
+        public string sourceEventId = "";
+        public string sourceChoiceId = "";
+        public ActiveModifier Clone() { return (ActiveModifier)MemberwiseClone(); }
+    }
+
+    /// <summary>An effect queued by delaySols; applied once in step 5 of the advance that enters dueSol.</summary>
+    [Serializable]
+    public sealed class ScheduledEffect
+    {
+        public int dueSol;
+        public EffectDef effect = new EffectDef();
+        public string sourceEventId = "";
+        public string sourceChoiceId = "";
+        public ScheduledEffect Clone() { var c = (ScheduledEffect)MemberwiseClone(); c.effect = effect.Clone(); return c; }
     }
 
     [Serializable]
@@ -127,5 +159,7 @@ namespace RedFrontier.Core
         public const string ChoiceMade = "choice_made";
         public const string Shortage = "shortage";
         public const string MissionEnded = "mission_ended";
+        public const string DelayedEffect = "delayed_effect";
+        public const string Radiation = "radiation";
     }
 }

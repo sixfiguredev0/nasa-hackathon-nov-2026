@@ -63,6 +63,12 @@ namespace RedFrontier.Core
         /// <summary>Event raised for the next sol, "" if none.</summary>
         public string eventRaisedId = "";
         public string eventRaisedVariantId = "";
+        /// <summary>Radiation: units from baseline + events, units blocked by shielding, unshielded units (health damage = net x damagePerUnit).</summary>
+        public int radiationExposure;
+        public int radiationBlocked;
+        public int radiationNet;
+        /// <summary>Delayed effects that landed at the start of the next sol (AdvanceSol reports only).</summary>
+        public List<string> delayedApplied = new List<string>();
         public MissionOutcome outcome;
         public string endReason = "";
 
@@ -72,6 +78,7 @@ namespace RedFrontier.Core
             c.resources = Copy.List(resources, x => x.Clone());
             c.facilities = Copy.List(facilities, x => x.Clone());
             c.healthCauses = Copy.List(healthCauses, x => x.Clone());
+            c.delayedApplied = new List<string>(delayedApplied);
             return c;
         }
 
@@ -106,6 +113,9 @@ namespace RedFrontier.Core
         public int levelRun;
         /// <summary>"" when levelRun == requestedLevel; otherwise a code such as insufficient_resource.</summary>
         public string reason = "";
+        /// <summary>Sum of active modifier percents applied to this facility's output this sol.</summary>
+        public int modifierPercent;
+        public int shielding;
         public FacilityReport Clone() { return (FacilityReport)MemberwiseClone(); }
     }
 

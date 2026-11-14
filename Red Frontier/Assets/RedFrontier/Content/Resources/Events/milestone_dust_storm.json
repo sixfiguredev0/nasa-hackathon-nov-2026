@@ -14,19 +14,19 @@
       "choices": [
         { "id": "clean_panels", "label": "Brush the panels", "preview": "Uses 2 power now.",
           "effects": [ { "type": "resource", "target": "power", "amount": -2 } ] },
-        { "id": "wait", "label": "Wait it out", "preview": "Crew Health drops by 5.",
-          "effects": [ { "type": "health", "amount": -5 } ] } ] },
+        { "id": "wait", "label": "Wait it out", "preview": "Crew Health drops by 5; solar output -50% for 2 sols.",
+          "effects": [ { "type": "health", "amount": -5 }, { "type": "modifier", "target": "solar_array", "percent": -50, "durationSols": 2 } ] } ] },
     { "id": "heavy", "weight": 1, "body": "A thick dust storm is coming.",
       "choices": [
         { "id": "clean_panels", "label": "Brush the panels", "preview": "Uses 5 power now.",
           "effects": [ { "type": "resource", "target": "power", "amount": -5 } ] },
-        { "id": "wait", "label": "Wait it out", "preview": "Crew Health drops by 15.",
-          "effects": [ { "type": "health", "amount": -15 } ] } ] },
+        { "id": "wait", "label": "Wait it out", "preview": "Crew Health drops by 15; solar output -50% for 2 sols.",
+          "effects": [ { "type": "health", "amount": -15 }, { "type": "modifier", "target": "solar_array", "percent": -50, "durationSols": 2 } ] } ] },
     { "id": "long", "weight": 2, "body": "A long dust storm is coming.",
       "choices": [
         { "id": "clean_panels", "label": "Brush the panels", "preview": "Uses 3 power now.",
           "effects": [ { "type": "resource", "target": "power", "amount": -3 } ] },
-        { "id": "wait", "label": "Wait it out", "preview": "Crew Health drops by 10.",
-          "effects": [ { "type": "health", "amount": -10 } ] } ] }
+        { "id": "wait", "label": "Wait it out", "preview": "Crew Health drops by 10; solar output -50% for 2 sols.",
+          "effects": [ { "type": "health", "amount": -10 }, { "type": "modifier", "target": "solar_array", "percent": -50, "durationSols": 2 } ] } ] }
   ]
 }

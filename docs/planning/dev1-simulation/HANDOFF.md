@@ -4,6 +4,30 @@ Keep this short and current. Replace sections rather than appending history; his
 
 Last updated: 2026-11-14, Opus checkpoint 1 (verify and preserve the Unity prototype). No gameplay was added in this checkpoint.
 
+## Stage 5 candidate: `feat/dev1-complete` (2026-11-14, read this first)
+
+Not the shared baseline. Based on `integration/map-v1-dev1` (`5f7d232`). Contracts: [decision 0007](../../decisions/0007-four-resources-radiation-modifiers-delays.md).
+
+**Play:** Unity 2022.3.18f1, project `Red Frontier/`, scene `Assets/RedFrontier/Scenes/Integration_MapV1.unity`, press Play. Functions panel (button or Tab) shows Power (Energy), Air (Oxygen), Water, Food, Crew Health, radiation (baseline, today's event units, unshielded total), active modifiers, queued delayed effects, five facilities (solar array, life support, water recycler, greenhouse, radiation shelter), forecast with radiation and modifier lines, events with effect previews, Advance, outcome, restarts.
+
+**Done (Developer 1 simulation):**
+- Four resources through existing data-driven content; Water separate from Oxygen; greenhouse (power + water -> food); water recycler; shortage penalties per resource; recovery only on a sol without shortage or radiation damage.
+- Radiation: baseline + event exposure, facility shielding (shelter costs power), damage applied once per sol, consumed pending exposure, forecast/report/panel fields.
+- Timed modifiers (additive stacking, output only, expiry in step 4) and delayed effects (step 5, once, logged, reported); restart clears both. Validator accepts `modifier`, `radiation`, `delaySols`, `shielding` with bounds; rejects delayed costs.
+- Example content (placeholder): dust storm fallback adds solar -50% for 2 sols; resupply adds +6 food in 2 sols; new random `random_solar_flare` (radiation, shelter choice costs power).
+
+**Not done / limits:**
+- Balance is placeholder; no NASA-sourced values (Developer 3).
+- No save/load; no production GUI (Developer 2).
+- No Plastic transfer yet.
+
+**Checks:**
+- Passed: .NET build + tests 56/56 (47 existing + 9 Stage 5). Unity EditMode 63/63 (52 + 9 Stage 5 + 2 saved-scene checks). Unity PlayMode 5/5 (rerun after the final DebugHud fix). No duplicate GUIDs.
+- Passed: clean Development WebGL build of the final code, compression Disabled, 23,988,371 bytes, 1:40 build. Edge 157 over http://127.0.0.1:8767 with CDP-injected mouse/keyboard (not physical): four resources, radiation line and five facilities shown; shelter on changed forecast power use 8 -> 11 and radiation to 1 blocked; Life support + Water recycler off changed forecast Air 12 -> 8, Water 12 -> 7; panel button and Tab toggle; ArrowRight pans with the panel closed, ArrowLeft does nothing with it open; Tab inside the seed field is ignored (a defect found and fixed in this pass: focus was read before the field registered its name). Map hash `b6ed98ff` (seed 1337), generation 4.6-5.7 s in the dev build. 0 console errors.
+- NOT RUN in browser/Editor UI: Advance with the new content, event choices (solar flare, dust-storm modifier, delayed food), success, failure, same/new-seed restart, map unchanged after restart. These are covered only by automated tests (session API), which do not count as UI verification.
+- NOT RUN: fresh-checkout Unity open/test of the pushed commit; Editor Play Mode with real input.
+- Known: placeholder balance (power capacity 24 wastes solar output at start); delayed effects due after the last sol never land (mission ends first).
+
 ## Integration candidate (2026-11-14, supersedes the Git/Plastic notes below)
 - Branch `integration/map-v1-dev1` holds a complete openable project: Packages, ProjectSettings, map and Dev 1 code. Play `Assets/RedFrontier/Scenes/Integration_MapV1.unity`.
 - DebugHud gained an opt-in `panelMode` (Functions button, Tab, auto-open on event/outcome); Dev1_Debug keeps the default full-width HUD. Core and content unchanged.
