@@ -64,4 +64,4 @@ Recorded in DEVLOG under "Developer 1 final verification". Known limitations:
 
 ## Unity Version Control
 
-See DEVLOG "Unity Version Control transfer" for repository, branch, changeset and status.
+Branch `/main/dev1-complete`, changeset **cs:3**, based on `/main` cs:2 (Map v1); not merged into `/main`. GitHub and UVC are separate; nothing synchronises them. Details in DEVLOG. Known tooling issue: batch PlayMode tests stall inside a UVC workspace (version-control editor plugin); run them in the Editor or in a copy without `.plastic`.
