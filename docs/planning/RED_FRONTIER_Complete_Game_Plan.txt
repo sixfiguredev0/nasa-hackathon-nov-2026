@@ -1,0 +1,392 @@
+DRAFT FOR TEAM REVIEW
+
+This is a detailed proposal from a separate planning conversation. It is not an approved project specification and does not replace the current challenge brief, docs/design/game-design.md, or docs/decisions. In particular, engine, platform, art style, camera, resource scope, and mission scope remain subject to the repository's kickoff decisions. Review and reconcile those choices before implementation.
+
+---
+
+RED FRONTIER — COMPLETE GAME PLAN
+Coding Foxes | Unity 6 | Browser game | Pixel art
+Prepared: 14 November 2026
+
+1. PROJECT SUMMARY
+
+RED FRONTIER is a single-player Mars outpost management and survival game. The player commands humanity’s first permanent research outpost and must keep the crew safe while maintaining life support, energy, food, water, infrastructure, and morale. Each turn advances one Martian sol. Environmental events and mission decisions create trade-offs whose effects can unfold over time.
+
+The intended experience is a polished, scientifically grounded browser game that a judge or first-time player can understand and play within 10–15 minutes. No installation, account, or internet connection during gameplay should be required after the game loads.
+
+Core promise: Humanity’s survival is an engineering problem.
+
+2. LOCKED DESIGN DECISIONS
+
+- Game title: RED FRONTIER.
+- Genre: single-player outpost management / survival simulation.
+- Engine and language: Unity 6 and C#.
+- Target: Unity Web build (WebGL/Web platform), playable in a modern browser.
+- Art direction: predominantly pixel art.
+- World view: compact 2D isometric outpost, with a stationary orthographic-style presentation. Keep the whole base visible; no camera rotation, panning, or zoom in the first version.
+- Input: mouse and touch-friendly interface.
+- Simulation: turn-based, one sol at a time; the player chooses when to advance.
+- Persistence: local save; no account or online services needed.
+- Scope: one compact, complete mission before adding more maps or extensive content.
+
+The conversation explored both a 3D environment and a 2D isometric approach. The complete game-plan decision is to use 2D isometric rendering because it better supports consistent pixel art, faster asset production, simpler interaction, and browser performance. Treat 3D modeling as out of scope for the first playable release.
+
+3. PLAYER EXPERIENCE AND GAME LOOP
+
+Main loop:
+1. Review Mission Control: current sol, crew condition, resources, alerts, and forecast.
+2. Inspect facilities and understand their production, consumption, condition, and upgrades.
+3. Choose priorities or respond to an active mission event.
+4. Advance one sol.
+5. Resolve resource production and consumption, maintenance, crew needs, and delayed effects.
+6. Present a readable summary of what changed and why.
+7. Continue until the mission is completed or the outpost can no longer operate; show a debrief.
+
+An active critical decision pauses advancing the next sol until it is resolved. Ordinary informational events need not interrupt play. Explain outcomes clearly so failure feels connected to the player’s choices rather than arbitrary.
+
+The first mission should teach the core systems in a short sequence: establish the outpost, manage a first resource trade-off, respond to an environmental event, and reach a clear mission outcome.
+
+4. GAME SYSTEMS
+
+A. Life support (critical)
+- Oxygen / atmosphere and crew health.
+- Crew needs and daily consumption.
+- Low reserves cause escalating warnings and consequences, not an instant unexplained loss.
+
+B. Energy (critical)
+- Solar generation, battery storage, and power distribution.
+- Facilities consume power; storms or maintenance issues can reduce generation.
+- Make generation, consumption, and reserve runway easy to understand.
+
+C. Food and greenhouse (critical)
+- Crop production, food reserves, greenhouse condition, water use, and electricity use.
+- Reduced operations conserve power but lower future yields.
+
+D. Water (critical)
+- Extraction, purification, recycling, storage, and facility demand.
+- Recycling and greenhouse decisions connect water to energy and food.
+
+E. Radiation protection (critical)
+- Background exposure and solar particle events.
+- Sheltering protects crew; events should distinguish radiation risk to people/electronics from dust effects on solar production.
+
+F. Infrastructure and maintenance (critical)
+- Facility condition gradually changes; faults affect output or demand.
+- Repairs and upgrades use time, rover capacity, or maintenance materials.
+
+G. Crew wellbeing
+- Morale, work availability, and health respond to workload, safety, and recreation.
+- Non-critical choices can have meaningful effects without threatening immediate survival.
+
+These systems must interact. For example, reducing greenhouse activity saves electricity and water but reduces future food. Turning down recycling can save energy initially but risks the water reserve.
+
+5. MAP, BUILDINGS, AND ART
+
+Keep the first map to approximately one screen and make every visible facility readable and clickable. Suggested facilities:
+- Main Habitat: crew quarters, atmosphere, health.
+- Greenhouse: food production; consumes water and power.
+- Solar Array / Power Station: generates electricity; affected by dust and maintenance.
+- Battery Storage: stores reserve energy.
+- Water Processing Facility: extraction, purification, recycling, storage.
+- Radiation Shelter: protects crew during radiation events.
+- Engineering Workshop: repairs, maintenance materials, upgrades.
+- Landing Pad: mission arrival and visual landmark.
+
+Optional visual details after the core is complete: connecting corridors, communications antenna, rover(s), rocks, distant formations, and environmental overlays.
+
+Pixel-art principles:
+- Pick a consistent pixel scale, palette, outline style, and light direction before producing assets.
+- Create a small reusable tileset and a coherent sprite for each required facility.
+- Use layered sprites, shadows, selection highlights, status icons, and restrained animation to create depth.
+- Prioritize clear silhouettes and readable facility labels over decoration.
+- Keep asset sizes, compression, and animation counts appropriate for a browser build.
+
+6. MISSION DECISIONS AND EVENTS
+
+This is a defining feature: the player balances competing priorities with incomplete information. Choices should rarely have a single obviously correct answer. Avoid punishing a player simply for choosing; make trade-offs legible and outcomes fair.
+
+Event flow:
+1. Detect or schedule an event.
+2. Show a notification and severity/category.
+3. Explain the situation, forecast, and relevant science in plain language.
+4. Offer two or three choices with likely costs and benefits.
+5. Player selects an action.
+6. Simulation validates and applies effects.
+7. Record the choice and outcome in mission history.
+
+Event types for the first release (target 10–12 well-designed events):
+- Radiation / space weather: 2.
+- Dust storms / environment: 2.
+- Infrastructure failures: 2.
+- Food and water: 2.
+- Crew wellbeing: 2.
+- Scientific discoveries: 2.
+
+Example trade-offs:
+- Solar particle event: shelter crew and postpone work, or send an autonomous rover to attempt maintenance at the cost of rover battery and materials.
+- Dust storm: clean panels before arrival using rover resources, or preserve reserves and accept lower energy production.
+- Greenhouse temperature failure: spend extra electricity to preserve crops, or reduce greenhouse operations and lose some production while repairs proceed.
+- Crew recreation request: improve morale while delaying non-critical work, or keep the schedule and risk reduced morale.
+
+Consequences should support:
+- Immediate effects: resource or condition changes on selection.
+- Delayed effects: consequences several sols later.
+- Conditional effects: depend on prior choices, facility state, or available supplies.
+- Positive effects: discoveries, successful repairs, and upgrades can create opportunities.
+
+Store event content as data rather than hardcoding each event into UI code. A reusable event definition should include ID, title, description, category, severity, choices, immediate effects, delayed effects, requirements/conditions, and an educational explanation. The event manager presents events; the simulation engine validates and applies effects. Choices must not write directly to displayed UI values.
+
+Mission history should show prior choices and connect them to later outcomes where possible (for example, postponed maintenance contributing to an energy shortage during a later storm).
+
+7. USER INTERFACE
+
+A. Mission Control (primary screen)
+- Isometric map, sol counter, crew status, resource dashboard, forecast, alerts, and Advance Sol action.
+- Always show units and explain important changes.
+
+B. Facility panel
+- Facility purpose, condition, current output/consumption, maintenance needs, and available actions/upgrades.
+
+C. Decision/event panel
+- Situation, severity, choices, expected trade-offs, and science note.
+- Keep the game paused for unresolved critical decisions.
+
+D. Mission history
+- Timeline of events, player decisions, and consequences.
+
+E. Debrief
+- Mission outcome, key resource trends, major decisions, and short educational takeaways.
+- Offer restart and return-to-menu actions.
+
+F. Main menu / pause
+- Clear Play action, controls/help, audio options if time permits, and local save/resume.
+
+Design for desktop first but ensure panels and controls remain usable on narrow screens and touch devices. The map may scale to fit; UI must not cover essential interactions.
+
+8. GAME RULES AND BALANCING
+
+- Use a single authoritative simulation state and a clear order of operations for each sol.
+- Track starting values, production, consumption, reserves, facility condition, crew state, active effects, and mission status.
+- Show forecasts and warnings before severe consequences when feasible.
+- Use tunable data for resource rates and event effects so balancing does not require rewriting core logic.
+- Define explicit completion, success, and failure conditions. Prefer gradual, understandable escalation over sudden hidden failure.
+- Provide a short tutorial or contextual hints for the first run.
+- Keep scientific facts separate from simplified game rules. Label assumptions and explain abstractions in the Science Center or event notes.
+
+9. TECHNICAL ARCHITECTURE
+
+Suggested Unity project structure:
+Assets/
+  Art/Environment/
+  Art/Buildings/
+  Art/Characters/
+  Art/Effects/
+  Art/UI/
+  Audio/
+  Animations/
+  Scenes/MainMenu.unity
+  Scenes/Game.unity
+  Scripts/Core/
+  Scripts/Simulation/
+  Scripts/Buildings/
+  Scripts/Events/
+  Scripts/UI/
+  Scripts/SaveSystem/
+  Data/Resources/
+  Data/Buildings/
+  Data/Events/
+  Data/Science/
+  Prefabs/
+  Settings/
+Documentation/
+  GAME_DESIGN.md
+  TECHNICAL_ARCHITECTURE.md
+  SCIENTIFIC_SOURCES.md
+  CONTRIBUTIONS.md
+Builds/
+README.md
+
+Core modules and ownership:
+- GameManager: overall state, scene flow, mission status.
+- SimulationManager: advances sols and calls systems in a documented order.
+- ResourceManager: validated resource balances and capacity limits.
+- LifeSupportSystem: crew needs, atmosphere, and health.
+- EnergySystem: generation, demand, storage, and brownouts.
+- FoodSystem: greenhouse operation and food reserves.
+- WaterSystem: production, recycling, consumption, and reserves.
+- InfrastructureSystem: facility condition, faults, maintenance, upgrades.
+- EventManager: event selection, availability, and active decisions.
+- Effect/Consequence queue: immediate and scheduled effects.
+- UI controllers: display state and submit player commands; never own game rules.
+- SaveSystem: versioned local save and safe resume.
+
+Use data assets (for example ScriptableObjects or JSON where appropriate) for resources, facilities, event definitions, and balance values. Keep simulation logic testable independently from presentation. Use stable IDs for buildings and events. Keep dependencies simple and document public interfaces before parallel implementation.
+
+10. WORK DISTRIBUTION — THREE DEVELOPERS
+
+Use three workstreams with one named owner each. Each developer owns the files listed below and delivers a working slice that can be integrated without editing another developer’s main files. The technical choices in this draft remain proposals until the team confirms them.
+
+DEVELOPER 1 — SIMULATION AND INTEGRATION LEAD
+Owns the game rules and keeps the project playable as the other workstreams integrate.
+
+Responsibilities:
+- Set up the agreed engine project, shared scene structure, repository workflow, and first runnable build.
+- Define the simulation state, resource data, stable IDs, and order of operations for each sol.
+- Implement resource accounting and the agreed first-mission systems: power, life support, water, food, and facility condition, trimming to the team-approved scope.
+- Implement player actions, validation, mission success/failure, restart, and basic local save if time permits.
+- Define and document the data/API contracts that Developers 2 and 3 will use.
+- Integrate changes, resolve conflicts, and keep a working build available.
+
+Owns: core simulation code under game/, plus shared project settings and integration scenes after the team chooses an engine. Coordinate before changing any shared scene or project settings.
+
+Deliverable: a playable graybox in which advancing a sol updates the simulation, the player can inspect state, and mission end conditions work.
+
+DEVELOPER 2 — WORLD, PIXEL ART, AND PLAYER INTERFACE
+Owns how the game looks and how the player reads and controls it.
+
+Responsibilities:
+- Build the compact outpost map and readable facility sprites using the team-approved art style and camera.
+- Create the resource HUD, sol controls, facility inspection panel, alerts, decision-panel presentation, and debrief layout.
+- Add selection feedback, status icons, simple transitions, and responsive layouts for the agreed target devices.
+- Connect UI controls to Developer 1’s documented commands and display state from the simulation; keep game rules out of UI code.
+- Use placeholders first, then replace them with consistent final art after the graybox works.
+
+Owns: assets/ and the presentation/UI portion of game/. Coordinate on shared scenes; do not change simulation rules or resource values.
+
+Deliverable: a coherent, readable mission-control screen where every core facility can be selected and its current status and available actions are visible.
+
+DEVELOPER 3 — MISSION CONTENT, SCIENCE, EVENTS, AND PLAYTESTING
+Owns the scenarios that teach the game’s ideas and verifies that the mission is understandable and scientifically responsible.
+
+Responsibilities:
+- Review the selected challenge brief and identify the required NASA data source; record sources, assumptions, units, transformations, attribution, and limitations in the repository’s source register.
+- Draft the first mission tutorial, event descriptions, choice text, science notes, and cause-and-effect debrief language for the agreed child audience.
+- Prepare event data using Developer 1’s agreed schema; avoid adding unverified scientific claims or presenting illustrative values as observations.
+- Balance the first mission with the team, run short playthroughs, log bugs and confusing moments, and verify that choices have understandable consequences.
+- Check the agreed browser/device targets, accessibility/readability, and demo flow; prepare screenshots or presentation materials if needed.
+
+Owns: event and science content under data/, source notes under docs/source/, and QA/demo notes. Coordinate with Developer 2 on text length and Developer 1 on event schema and effect limits.
+
+Deliverable: a documented, playable first-mission scenario with traceable sources, clear event choices, a tested demo path, and prioritized bug reports.
+
+SHARED HANDOFFS AND ORDER
+1. Developer 1 publishes the project skeleton, simulation state, event schema, and one working sol update.
+2. Developer 2 builds the HUD and one selectable facility against those interfaces, using placeholders as needed.
+3. Developer 3 supplies one science-reviewed event in the agreed data format and a short playtest checklist.
+4. Integrate that vertical slice and play it together before expanding systems, art, or event count.
+5. Each developer reviews the integrated mission; Developer 1 owns the final build, while everyone fixes issues in their owned files.
+
+Keep the first release small: one map, one short mission, the minimum resource set approved by the team, and a few polished events. Defer extra systems, maps, and decorative content until the vertical slice is stable.
+
+AI workflow proposed in the source chat:
+- Claude Code: primary implementation and architecture.
+- Codex: independent review, debugging, and implementation support.
+- Gemini: research, calculations, and scenario design.
+- Antigravity: visual direction, interface concepts, and asset workflow.
+Use one shared repository and clearly assign file ownership; do not let every tool make overlapping edits to the same files.
+11. DELIVERY PHASES AND PRIORITIES
+
+Phase 0 — Project setup
+- Confirm Unity 6 installation and Web Build Support.
+- Create repository, Unity project, folder structure, README, and contribution rules.
+- Agree on screen resolution, pixel scale, resource units, save format, and simulation interfaces.
+- Deliverable: project opens cleanly and builds a blank browser scene.
+
+Phase 1 — Playable graybox (P0)
+- One map, fixed view, clickable placeholder facilities.
+- HUD with sol, crew, and core resource values.
+- Advance Sol button and deterministic simulation tick.
+- Basic resource production/consumption and clear mission end conditions.
+- Deliverable: an end-to-end playable loop with placeholder art.
+
+Phase 2 — Core survival gameplay (P0)
+- Implement life support, energy, greenhouse/food, water, infrastructure condition, and warnings.
+- Facility panels and player actions.
+- Balance a short mission and explain resource changes.
+- Deliverable: systems interact and the player can complete or fail a mission fairly.
+
+Phase 3 — Events and consequences (P0/P1)
+- Notification and decision panels; two choices per initial event.
+- Immediate effects first; then delayed/conditional effects and mission history.
+- Add 10–12 events in the agreed categories, with science notes.
+- Deliverable: choices affect the simulation and later outcomes are understandable.
+
+Phase 4 — Art and usability polish (P1)
+- Replace placeholders with consistent pixel-art tiles, buildings, icons, and restrained effects.
+- Improve feedback, tutorial, accessibility/readability, sound if time allows.
+- Deliverable: visually coherent game that communicates state quickly.
+
+Phase 5 — Save, browser build, and release checks (P0)
+- Local save/resume, restart, loading screen, browser hosting configuration, and build-size review.
+- Check common desktop browsers and at least one narrow/touch layout.
+- Deliverable: shareable browser link or packaged web build that starts reliably.
+
+Phase 6 — Demo and handoff
+- Prepare a 10–15 minute demo path, short pitch, screenshots/video if required, README, controls, science sources, known limitations, and team contributions.
+- Deliverable: another person can launch, understand, and present the game without developer assistance.
+
+12. PRIORITY SUMMARY
+
+P0 — required for a credible first release:
+- Browser build and first-run launch.
+- Main menu and Mission Control.
+- Fixed isometric map with clickable core facilities.
+- Sol-based simulation and resource dashboard.
+- Core life support, energy, water, food, and crew systems.
+- Two-choice decision events and immediate consequences.
+- Clear tutorial/help, mission outcome, restart, and debrief.
+- Science notes and source list.
+
+P1 — add once P0 is integrated:
+- Delayed consequences and mission history.
+- Conditional choices and more detailed facility upgrades.
+- Local save/resume, improved feedback, responsive UI refinement.
+- Full initial set of 10–12 events.
+
+P2 — only if time permits:
+- Three-choice events, event-specific illustrations, extra animations/audio, additional missions/maps, richer decorative environment.
+
+13. ACCEPTANCE CHECKLIST
+
+Gameplay:
+[ ] A new player can explain the objective after the tutorial.
+[ ] Advance Sol updates all systems once, in a consistent order.
+[ ] Resource production, use, and event effects are visible and understandable.
+[ ] Every required facility has a gameplay purpose and responds to selection.
+[ ] Critical decisions prevent advancing until answered.
+[ ] Decisions create fair, traceable consequences.
+[ ] Mission success/failure, debrief, restart, and save/resume work.
+
+Presentation:
+[ ] Pixel-art assets use a consistent scale and palette.
+[ ] The whole initial outpost fits the fixed view.
+[ ] HUD and panels remain readable and do not hide important controls.
+[ ] Alerts communicate urgency without overwhelming the player.
+
+Browser and handoff:
+[ ] Web build opens in a modern browser without installation or account.
+[ ] Startup, loading, input, save, and restart work in the target browser.
+[ ] README explains how to run/build; scientific sources and assumptions are documented.
+[ ] Demo can be completed in approximately 10–15 minutes.
+
+14. KEY RISKS AND MITIGATIONS
+
+- Scope grows beyond available time: finish one mission and one map before adding content; cut P2 first.
+- Systems become hard to integrate: define shared data structures and sol-update order at the start; keep one integration owner.
+- Art delays gameplay: graybox early and replace placeholders incrementally; prioritize readable silhouettes.
+- Browser build is left until the end: make a blank web build during setup and keep checking the target build.
+- Player cannot tell why a resource changed: show per-sol breakdowns, forecasts, and event history.
+- Science feels inaccurate or overly complex: distinguish verified facts from game abstractions; use concise explanations and citations in project documentation.
+- Decisions feel like traps: show likely trade-offs, provide warnings, and avoid hidden instant failure.
+
+15. IMMEDIATE NEXT ACTIONS
+
+1. Create the Unity 6 project with Web Build Support and confirm a blank browser build works.
+2. Put this plan, game design, technical architecture, science sources, and contributions documents in the repository.
+3. Assign workstream owners and file ownership.
+4. Agree on the exact starting resource values, units, sol-update order, and mission end conditions.
+5. Build the clickable graybox and one complete simulation turn.
+6. Integrate the first event and decision panel before producing the full event set.
+7. Play through the mission as a new player, adjust balance, then polish art and browser UX.
+
+END OF PLAN
