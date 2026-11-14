@@ -22,6 +22,7 @@ namespace RedFrontier.Outpost
         /// <summary>Flat, rock-free lattice cells the player may build on: the outpost zones' bounds plus their clearance ring.</summary>
         public RectInt BuildArea { get; private set; }
         public bool Ready { get; private set; }
+        internal readonly ResourceTopBar resourceTopBar = new ResourceTopBar();
 
         void Awake() => Instance = this;
 
@@ -120,23 +121,11 @@ namespace RedFrontier.Outpost
         void OnGUI()
         {
             if (!Ready) return;
+            resourceTopBar.Draw(economy);
             float s = OutpostGUI.Scale, w = 150 * s, h = 22 * s, pad = 6 * s;
-            for (int i = 0; i < ColonyEconomy.ResCount; i++)
-            {
-                var r = (Res)i;
-                var rect = new Rect(pad + i * (w + pad), pad, w, h);
-                bool flash = economy.lifeSupportShort && economy.shortOf == r && Mathf.Repeat(Time.unscaledTime * 2f, 1f) < 0.5f;
-                OutpostGUI.Panel(rect, flash ? new Color(0.6f, 0f, 0f, 0.8f) : new Color(0f, 0f, 0f, 0.6f));
-                OutpostGUI.Panel(new Rect(rect.x, rect.y, 4 * s, h), OutpostGUI.ResColor(r));
-                float n = economy.net[i];
-                string rate = Mathf.Abs(n) < 0.005f ? "" : string.Format("  <color={0}>{1:+0.0;-0.0}/s</color>", n > 0 ? "#8f8" : "#f88", n);
-                GUI.Label(new Rect(rect.x + 8 * s, rect.y, w - 8 * s, h),
-                    string.Format("{0} {1:0}/{2:0}{3}", r, economy.stock[i], economy.cap[i], rate),
-                    OutpostGUI.Text(11 * s, TextAnchor.MiddleLeft, Color.white));
-            }
 
             // crew fitness bar under the resources
-            var fr = new Rect(pad, pad * 2 + h, w * 1.6f, h * 0.85f);
+            var fr = new Rect(pad, resourceTopBar.Bottom + pad, w * 1.6f, h * 0.85f);
             OutpostGUI.Panel(fr, new Color(0f, 0f, 0f, 0.6f));
             var fc = Color.Lerp(new Color(0.9f, 0.25f, 0.2f), new Color(0.35f, 0.85f, 0.4f), economy.fitness);
             OutpostGUI.Panel(new Rect(fr.x, fr.yMax - 3 * s, fr.width * economy.fitness, 3 * s), fc);

@@ -84,12 +84,13 @@ namespace RedFrontier.Outpost
             var e = Event.current;
             var mouse = e.mousePosition;
 
-            buttonRect = new Rect(Screen.width - 116 * s, Screen.height - 40 * s, 106 * s, 30 * s);
-            panelRect = new Rect(Screen.width - 226 * s, 40 * s, 216 * s, buttonRect.y - 48 * s);
+            buttonRect = ResourceTopBar.BuildButtonRect;
+            float top = colony.resourceTopBar.Bottom + 8 * s;
+            panelRect = new Rect(Screen.width - 226 * s, top, 216 * s, buttonRect.y - 8 * s - top);
 
             if (selected != null && !OverUI(mouse)) DrawPlacement(s, mouse);
             BuildingDef hovered = open ? DrawPanel(s, mouse) : null;
-            DrawButton(s, mouse);
+            if (colony.resourceTopBar.DrawBuildButton(open)) Toggle(); // uses the click, so the handler below never sees it
             if (hovered != null)
             {
                 var cost = colony.PlaceCost(hovered);
@@ -100,8 +101,7 @@ namespace RedFrontier.Outpost
 
             if (e.type == EventType.MouseDown && e.button == 0)
             {
-                if (buttonRect.Contains(mouse)) { Toggle(); e.Use(); }
-                else if (open && panelRect.Contains(mouse))
+                if (open && panelRect.Contains(mouse))
                 {
                     if (hovered != null) selected = selected == hovered ? null : hovered;
                     e.Use();
@@ -184,15 +184,6 @@ namespace RedFrontier.Outpost
                     OutpostGUI.Text(10 * s, TextAnchor.MiddleLeft, Color.white));
             }
             return hovered;
-        }
-
-        void DrawButton(float s, Vector2 mouse)
-        {
-            bool hot = buttonRect.Contains(mouse);
-            OutpostGUI.Panel(new Rect(buttonRect.x - 2 * s, buttonRect.y - 2 * s, buttonRect.width + 4 * s, buttonRect.height + 4 * s),
-                open ? new Color(0.95f, 0.7f, 0.15f) : Color.white);
-            OutpostGUI.Panel(buttonRect, hot ? new Color(0.25f, 0.22f, 0.3f) : new Color(0.1f, 0.1f, 0.13f));
-            GUI.Label(buttonRect, "<b>BUILD</b>  <color=#aaa>[B]</color>", OutpostGUI.Text(12 * s, TextAnchor.MiddleCenter, Color.white));
         }
 
         static void Label(Vector2 at, string text, float s)
