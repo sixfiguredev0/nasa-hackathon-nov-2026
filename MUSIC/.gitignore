@@ -1,0 +1,17 @@
+# Local-only production material (kept on disk, not versioned)
+auditions/*
+working/*
+tools/
+!auditions/.gitkeep
+!working/.gitkeep
+# Final masters stay local; the shipping copies under Assets/Audio are the tracked binaries
+final/**/*.wav
+final/**/*.mp3
+final/**/*.ogg
+final/**/*.flac
+# Credentials and audio-tool sidecars
+.env
+*.key
+*.reapeaks
+*.pkf
+*.asd
