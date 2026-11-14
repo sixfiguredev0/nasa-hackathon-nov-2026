@@ -8,6 +8,9 @@
 ## Git
 At kickoff confirm repository URL, access, default branch and protection. Use short-lived `feat/<topic>`, `fix/<topic>` or `docs/<topic>` branches. Start from current default branch, commit focused changes, push early, review meaningful diffs, and merge only when the default branch remains demoable. Avoid force-pushing shared branches. Resolve conflicts with file owners; never discard others' uncommitted work. Simplify only by team agreement.
 
+### Unity routing
+Start future work on a new branch from current GitHub `main` (after promotion; until then `integration/map-v1-dev1` is only a candidate). Ownership by folder: docs/integration/MAP-V1-DEV1.md. GitHub `main` and Plastic `/main` are not synchronised.
+
 ### Branch roles
 - One integrator owns `main` and is the only person who merges into it, through pull requests. `main` must always be demoable.
 - Everyone, the integrator included, works on short-lived task branches (`feat/`, `fix/`, `docs/`), merged within a few hours and then deleted. No long-lived personal branches.

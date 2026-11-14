@@ -2,6 +2,9 @@
 
 Team instruction set for 14–15 November 2026. Challenge and stack are **kickoff decisions**.
 
+## Current Unity baseline (integration candidate)
+Unity **2022.3.18f1**, project `Red Frontier/`, combined scene `Assets/RedFrontier/Scenes/Integration_MapV1.unity`. Candidate on `integration/map-v1-dev1` until promoted to GitHub `main`. GitHub `main` and Unity Version Control `/main` are separate and never synchronised automatically. How to open, run, test, build, ownership and onboarding: [docs/integration/MAP-V1-DEV1.md](docs/integration/MAP-V1-DEV1.md). The game plan in `docs/planning/RED_FRONTIER_Complete_Game_Plan.txt` is a draft where it conflicts (it names Unity 6 and no panning).
+
 ## Start here
 - AI agents and teammates: [AGENTS.md](AGENTS.md) is authoritative.
 - Tool entry points: [CLAUDE.md](CLAUDE.md), [GEMINI.md](GEMINI.md), [CODEX.md](CODEX.md) defer to AGENTS.md.

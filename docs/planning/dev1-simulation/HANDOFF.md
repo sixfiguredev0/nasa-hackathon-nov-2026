@@ -4,6 +4,11 @@ Keep this short and current. Replace sections rather than appending history; his
 
 Last updated: 2026-11-14, Opus checkpoint 1 (verify and preserve the Unity prototype). No gameplay was added in this checkpoint.
 
+## Integration candidate (2026-11-14, supersedes the Git/Plastic notes below)
+- Branch `integration/map-v1-dev1` holds a complete openable project: Packages, ProjectSettings, map and Dev 1 code. Play `Assets/RedFrontier/Scenes/Integration_MapV1.unity`.
+- DebugHud gained an opt-in `panelMode` (Functions button, Tab, auto-open on event/outcome); Dev1_Debug keeps the default full-width HUD. Core and content unchanged.
+- Checks, provenance limits and ownership: [MAP-V1-DEV1](../../integration/MAP-V1-DEV1.md). Promotion to GitHub `main` only after its checks pass.
+
 ## Workspace and branch
 
 - Git checkout: the workspace root `RED FRONTIER/`, branch `feat/dev1-core`, based on `origin/feat/dev1-core` at `61f1ec3`. Checkpoint 1 is a **local commit** on top of it. Not pushed, merged or opened as a PR.

@@ -30,6 +30,7 @@ Claim a task by writing your name or agent tag in **Owner** and committing befor
 | Simulation core: Stage 1 done, hybrid events done; next Stage 2 Unity bridge (needs combined project) | Dev 1 (simulation) | `feat/dev1-core` (local, unpushed) |
 | Stage 2 Unity slice: Core in Assets, loader, host, debug HUD, scene `Dev1_Debug`; review fixes A and B | Dev 1 (simulation) | `feat/dev1-core` (local diff, workspace-root checkout) |
 | Checkpoint 1: lifecycle fix, PlayMode tests, .NET and WebGL browser verification (awaiting Codex review) | Dev 1 (simulation) | `feat/dev1-core` (local commit, not pushed) |
+| Integration candidate: map v1 + Dev 1 in `Integration_MapV1`, Functions panel, full project config; promotion to `main` pending checks | Integration role (executed by Opus) | `integration/map-v1-dev1` |
 
 ## Done
 

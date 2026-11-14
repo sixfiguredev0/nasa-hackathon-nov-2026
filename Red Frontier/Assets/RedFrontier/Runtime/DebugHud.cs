@@ -26,8 +26,32 @@ namespace RedFrontier.Runtime
         string seedText = "";
         Vector2 scroll;
 
+        const string SeedControl = "rf-seed";
+
+        [SerializeField, Tooltip("Off (default, Dev1_Debug): full-width HUD. On (integration scene): narrow side panel with a Functions button and Tab toggle.")]
+        bool panelMode;
+        [SerializeField] float panelWidth = 420f;
+
+        int lastPendingId = -1;
+        bool wasEnded;
+        bool clearFocus;
+
         /// <summary>Number of Changed notifications handled. Play Mode checks use it to detect duplicate subscriptions.</summary>
         public int RefreshCount { get; private set; }
+
+        public bool PanelMode { get { return panelMode; } set { panelMode = value; } }
+        /// <summary>Panel mode only: whether the panel is drawn. Hiding never touches the session or subscriptions.</summary>
+        public bool PanelOpen { get; private set; } = true;
+        /// <summary>True while the seed field has keyboard focus (Tab is then ignored).</summary>
+        public bool EditingText { get; private set; }
+        /// <summary>Map input (panning) must be blocked while this is true.</summary>
+        public bool BlocksMapInput { get { return panelMode && isActiveAndEnabled && PanelOpen; } }
+
+        public void SetPanelOpen(bool open)
+        {
+            if (!open) clearFocus = true;
+            PanelOpen = open;
+        }
 
         void OnEnable()
         {
@@ -54,6 +78,7 @@ namespace RedFrontier.Runtime
         void OnChanged(SessionChange change)
         {
             RefreshCount++;
+            if (change.kind == ChangeKind.Restarted) { lastPendingId = -1; wasEnded = false; }
             Refresh();
         }
 
@@ -65,6 +90,13 @@ namespace RedFrontier.Runtime
             pending = session.PendingEvent;
             canAdvance = session.CanAdvanceSol();
             if (seedText.Length == 0) seedText = (snap.seed + 1).ToString();
+
+            // Auto-open only on a new event or a new outcome, so the player can still close it while one is pending.
+            bool ended = snap.phase == MissionPhase.Ended;
+            int pendingId = pending != null ? pending.instanceId : -1;
+            if ((pending != null && pendingId != lastPendingId) || (ended && !wasEnded)) PanelOpen = true;
+            lastPendingId = pendingId;
+            wasEnded = ended;
         }
 
         void Run(CommandResult r) { lastRejection = r.ok ? "" : r.reason; }
@@ -72,8 +104,20 @@ namespace RedFrontier.Runtime
         void OnGUI()
         {
             Bind();
+            if (panelMode)
+            {
+                if (clearFocus) { GUIUtility.keyboardControl = 0; clearFocus = false; }
+                EditingText = PanelOpen && GUI.GetNameOfFocusedControl() == SeedControl;
+                var e = Event.current;
+                if (e.type == EventType.KeyDown && e.keyCode == KeyCode.Tab && !EditingText) { SetPanelOpen(!PanelOpen); e.Use(); }
+                if (GUI.Button(new Rect(Screen.width - 170, 10, 160, 30), PanelOpen ? "Functions (Tab) - close" : "Functions (Tab)")) SetPanelOpen(!PanelOpen);
+                if (!PanelOpen) return;
+                float w = Mathf.Min(panelWidth, Screen.width - 20);
+                GUILayout.BeginArea(new Rect(Screen.width - w - 10, 46, w, Screen.height - 56), GUI.skin.box);
+            }
+            else
             GUILayout.BeginArea(new Rect(10, 10, Mathf.Min(Screen.width - 20, 760), Screen.height - 20), GUI.skin.box);
-            scroll = GUILayout.BeginScrollView(scroll);
+            scroll = panelMode ? GUILayout.BeginScrollView(scroll, false, true, GUIStyle.none, GUI.skin.verticalScrollbar) : GUILayout.BeginScrollView(scroll);
             GUILayout.Label("<b>RED FRONTIER - Developer 1 debug HUD</b>  (placeholder content, illustrative numbers)", Rich());
             if (session == null)
             {
@@ -120,7 +164,7 @@ namespace RedFrontier.Runtime
             foreach (var c in pending.choices)
             {
                 GUI.enabled = c.available;
-                if (GUILayout.Button(c.label + "  -  " + c.preview))
+                if (panelMode ? GUILayout.Button(c.label + "  -  " + c.preview, WrapButton()) : GUILayout.Button(c.label + "  -  " + c.preview))
                     Run(session.ChooseEventOption(pending.instanceId, c.id));
                 GUI.enabled = true;
                 GUILayout.Label("    effects: " + Effects(c.effects) + Requires(c.requires));
@@ -135,14 +179,15 @@ namespace RedFrontier.Runtime
             GUILayout.Label("<b>Facilities</b> (operating level applies when the sol resolves)", Rich());
             foreach (var f in config.facilities)
             {
+                if (panelMode) GUILayout.Label(Title(f.id));
                 GUILayout.BeginHorizontal();
-                GUILayout.Label(Title(f.id), GUILayout.Width(140));
+                if (!panelMode) GUILayout.Label(Title(f.id), GUILayout.Width(140));
                 int current = snap.Facility(f.id).level;
                 for (int i = 0; i < f.levels.Count; i++)
                 {
                     GUI.enabled = session.CanSetFacilityLevel(f.id, i).ok;
                     string label = (i == current ? "[" : "") + f.levels[i].id + (i == current ? "]" : "");
-                    if (GUILayout.Button(label, GUILayout.Width(80))) Run(session.SetFacilityLevel(f.id, i));
+                    if (panelMode ? GUILayout.Button(label, GUILayout.MinWidth(50)) : GUILayout.Button(label, GUILayout.Width(80))) Run(session.SetFacilityLevel(f.id, i));
                     GUI.enabled = true;
                 }
                 GUILayout.EndHorizontal();
@@ -190,12 +235,28 @@ namespace RedFrontier.Runtime
         void DrawRestart()
         {
             GUILayout.Space(6);
+            int newSeed;
+            bool valid;
+            if (panelMode)
+            {
+                // Narrow layout: stacked rows instead of one 560 px row.
+                if (GUILayout.Button("Restart (same seed " + snap.seed + ")")) Run(session.Restart());
+                GUILayout.BeginHorizontal();
+                GUILayout.Label("New seed:", GUILayout.Width(70));
+                GUI.SetNextControlName(SeedControl);
+                seedText = GUILayout.TextField(seedText);
+                GUILayout.EndHorizontal();
+                valid = int.TryParse(seedText, out newSeed);
+                GUI.enabled = valid;
+                if (GUILayout.Button("Restart with new seed")) Run(session.Restart(newSeed));
+                GUI.enabled = true;
+                return;
+            }
             GUILayout.BeginHorizontal();
             if (GUILayout.Button("Restart (same seed " + snap.seed + ")", GUILayout.Width(220))) Run(session.Restart());
             GUILayout.Label("New seed:", GUILayout.Width(70));
             seedText = GUILayout.TextField(seedText, GUILayout.Width(90));
-            int newSeed;
-            bool valid = int.TryParse(seedText, out newSeed);
+            valid = int.TryParse(seedText, out newSeed);
             GUI.enabled = valid;
             if (GUILayout.Button("Restart with new seed", GUILayout.Width(180))) Run(session.Restart(newSeed));
             GUI.enabled = true;
@@ -259,6 +320,13 @@ namespace RedFrontier.Runtime
         }
 
         static string Title(string id) { return id.Length == 0 ? id : char.ToUpperInvariant(id[0]) + id.Substring(1).Replace('_', ' '); }
+
+        static GUIStyle wrapButton;
+        static GUIStyle WrapButton()
+        {
+            if (wrapButton == null) wrapButton = new GUIStyle(GUI.skin.button) { wordWrap = true };
+            return wrapButton;
+        }
 
         static GUIStyle rich;
         static GUIStyle Rich()

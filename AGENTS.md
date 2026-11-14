@@ -7,6 +7,10 @@ Authoritative shared instructions for Coding Foxes. Tool-specific files only poi
 - Challenge and stack are undecided until kickoff. Never assume Unity, C#, or another stack.
 - Read README.md and relevant project files before acting. See NASA_DATA.md, WORKFLOW.md and SUBMISSION.md.
 
+## Unity project (decided)
+- Stack decided: Unity **2022.3.18f1** (do not upgrade), project folder `Red Frontier/`. Read docs/integration/MAP-V1-DEV1.md for ownership, scenes and Git main vs Plastic /main.
+- Commit assets with their `.meta` files. Preserve others' uncommitted work. Shared scenes, Build Settings, Packages and ProjectSettings go through the integration role.
+
 ## Before editing
 1. Inspect repository status, relevant code, docs and configuration. Preserve existing work.
 2. Confirm challenge, stack, scope, owner and acceptance criteria. If missing, make read-only progress and ask one concise question.
