@@ -343,7 +343,7 @@ public sealed class MainMenu : MonoBehaviour
         {
             // Keep the star tethered to the orbit. During each cycle it lifts a few design pixels.
             float lift = reduced ? 0f : Mathf.Round(4f * (1f - Mathf.Cos(motionTime * tau / 5f)));
-            // Crop bounds in the original 1774 × 887 wordmark artwork.
+            // Crop bounds in the original 1774 x 887 wordmark artwork.
             Place(titleStar.rectTransform, logoSize, logoSize.x * (1140f / 1774f),
                 logoSize.y * (20f / 887f) - lift, logoSize.x * (252f / 1774f), logoSize.y * (290f / 887f));
         }
