@@ -37,10 +37,27 @@ namespace RedFrontier.Outpost
         }
     }
 
-    /// <summary>Resource stock, caps and production. Plain C# so it can be tested without a scene.</summary>
+    /// <summary>Resource stock, caps, production, crew life support and fitness. Plain C# so it can be tested without a scene.</summary>
     public class ColonyEconomy
     {
         public static readonly int ResCount = Enum.GetValues(typeof(Res)).Length;
+
+        /// <summary>What each astronaut breathes, eats and drinks per second.</summary>
+        public static readonly Amount[] UpkeepPerCrew = { new Amount(Res.Oxygen, 0.15f), new Amount(Res.Food, 0.08f), new Amount(Res.Water, 0.08f) };
+        public const float FitnessLoss = 1f / 300f;    // per second in low gravity: fit to unfit in 5 minutes
+        public const float ShortageLoss = 1f / 25f;    // per second while Oxygen, Food or Water has run out
+        public const float RepeatCostStep = 0.35f;     // each extra copy of a building costs 35% more to place
+
+        /// <summary>Astronauts to keep alive. 0 (tests) turns off upkeep and fitness.</summary>
+        public int crew;
+        /// <summary>0..1. Sets crew walk/build speed and every building's output (50% when unfit).</summary>
+        public float fitness = 1f;
+        /// <summary>Gym the crew is training in right now (set by Crew), or null.</summary>
+        public BuildingState training;
+        public bool lifeSupportShort;
+        public Res shortOf;
+
+        public float Efficiency => Mathf.Lerp(0.5f, 1f, fitness);
 
         public readonly float[] stock = new float[ResCount], cap = new float[ResCount], net = new float[ResCount];
         public readonly List<BuildingState> buildings = new List<BuildingState>();
@@ -64,13 +81,31 @@ namespace RedFrontier.Outpost
             for (int i = 0; i < ResCount; i++) stock[i] = Mathf.Min(stock[i], cap[i]);
         }
 
-        /// <summary>Producers run first so consumers can use this tick's output. A consumer that can't pay stops (stalled).</summary>
+        /// <summary>
+        /// Producers run first so consumers can use this tick's output. A consumer that can't pay stops (stalled).
+        /// Then the crew takes life support; running out of any of it wrecks their fitness fast.
+        /// </summary>
         public void Tick(float dt)
         {
             Array.Clear(net, 0, ResCount);
+            float eff = Efficiency;
             for (int pass = 0; pass < 2; pass++)
                 foreach (var b in buildings)
-                    if (Consumes(b.Node) == (pass == 1)) Run(b, dt);
+                    if (Consumes(b.Node) == (pass == 1)) Run(b, dt, eff);
+            if (crew <= 0) return;
+
+            lifeSupportShort = false;
+            foreach (var a in UpkeepPerCrew)
+            {
+                int i = (int)a.res;
+                float need = a.value * crew * dt;
+                net[i] -= a.value * crew;
+                if (stock[i] >= need) stock[i] -= need;
+                else { stock[i] = 0f; lifeSupportShort = true; shortOf = a.res; }
+            }
+            float f = fitness - (lifeSupportShort ? ShortageLoss : FitnessLoss) * dt;
+            if (training != null && !training.stalled && !lifeSupportShort && buildings.Contains(training)) f += training.Node.train * dt;
+            fitness = Mathf.Clamp01(f);
         }
 
         static bool Consumes(UpgradeNode n)
@@ -79,7 +114,8 @@ namespace RedFrontier.Outpost
             return false;
         }
 
-        void Run(BuildingState b, float dt)
+        /// <summary>Output is scaled by crew efficiency; what a building uses is not.</summary>
+        void Run(BuildingState b, float dt, float eff)
         {
             var rates = b.Node.rates;
             b.stalled = false;
@@ -88,8 +124,9 @@ namespace RedFrontier.Outpost
             foreach (var a in rates)
             {
                 int i = (int)a.res;
-                stock[i] = Mathf.Min(stock[i] + a.value * dt, cap[i]);
-                net[i] += a.value;
+                float v = a.value > 0 ? a.value * eff : a.value;
+                stock[i] = Mathf.Min(stock[i] + v * dt, cap[i]);
+                net[i] += v;
             }
         }
 
@@ -97,6 +134,20 @@ namespace RedFrontier.Outpost
         {
             foreach (var a in cost) if (stock[(int)a.res] < a.value) return false;
             return true;
+        }
+
+        public void Pay(Amount[] cost)
+        {
+            foreach (var a in cost) stock[(int)a.res] -= a.value;
+        }
+
+        /// <summary>Place cost of a building when the colony already has <paramref name="owned"/> of its kind.</summary>
+        public static Amount[] PlaceCost(BuildingDef def, int owned)
+        {
+            var baseCost = def.nodes[def.root].cost;
+            var c = new Amount[baseCost.Length];
+            for (int i = 0; i < c.Length; i++) c[i] = new Amount(baseCost[i].res, Mathf.Round(baseCost[i].value * (1f + RepeatCostStep * owned)));
+            return c;
         }
 
         public NodeStatus Status(BuildingState b, string id)
@@ -119,7 +170,7 @@ namespace RedFrontier.Outpost
         public bool TryUpgrade(BuildingState b, string id)
         {
             if (Status(b, id) != NodeStatus.Available) return false;
-            foreach (var a in b.def.nodes[id].cost) stock[(int)a.res] -= a.value;
+            Pay(b.def.nodes[id].cost);
             b.nodeId = id;
             RecomputeCaps();
             return true;

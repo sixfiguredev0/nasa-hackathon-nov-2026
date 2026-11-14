@@ -69,16 +69,15 @@ namespace RedFrontier.Outpost.EditorTools
             Check(e.cap[(int)Res.Metal] == 100 && e.RocketTier == 1, "rocket1 caps / tier");
 
             e[Res.Metal] = 100;
-            Check(e.TryUpgrade(solar, "solar1") && Near(e[Res.Metal], 80), "build solar1 pays 20 Metal");
+            Check(solar.nodeId == "solar1" && e.Status(solar, "solar1") == NodeStatus.Current, "placed buildings start at level 1");
             Check(e.Status(solar, "solar2") == NodeStatus.NeedsRocket, "solar2 gated by rocket tier");
             Check(!e.TryUpgrade(solar, "solar3a"), "cannot skip steps");
-            Check(e.Status(water, "water1") == NodeStatus.Available && e.Status(water, "water3a") == NodeStatus.Future, "plot statuses");
-            Check(e.TryUpgrade(water, "water1"), "build water1");
+            Check(e.Status(water, "water2") == NodeStatus.NeedsRocket && e.Status(water, "water3a") == NodeStatus.Future, "future statuses");
 
-            solar.nodeId = "solar0"; e[Res.Energy] = 0; e[Res.Water] = 0;
+            e.buildings.Remove(solar); e[Res.Energy] = 0; e[Res.Water] = 0;
             e.Tick(1f);
             Check(water.stalled && water.missing == Res.Energy && Near(e[Res.Water], 0), "drill stalls without energy");
-            solar.nodeId = "solar1";
+            e.buildings.Insert(1, solar);
             e.Tick(1f);
             Check(!water.stalled && Near(e[Res.Water], 1) && Near(e[Res.Energy], 1) && Near(e.net[(int)Res.Energy], 1), "solar powers drill same tick");
 
@@ -92,6 +91,37 @@ namespace RedFrontier.Outpost.EditorTools
             for (int i = 0; i < ColonyEconomy.ResCount; i++) e.stock[i] = e.cap[i];
             Check(e.TryUpgrade(solar, "solar2") && e.TryUpgrade(solar, "solar3a"), "solar path to 3a");
             Check(e.Status(solar, "solar3b") == NodeStatus.Closed && e.Status(solar, "solar1") == NodeStatus.Owned, "other branch closed");
+
+            // builder mode: place cost grows per copy, footprints may touch but not overlap or leave the area
+            var solarDef = BuildingCatalog.Get(BuildingKind.Solar);
+            Check(Near(ColonyEconomy.PlaceCost(solarDef, 0)[0].value, 20) && Near(ColonyEconomy.PlaceCost(solarDef, 2)[0].value, 34), "place cost +35% per copy");
+            var area = new RectInt(0, 0, 10, 10);
+            var taken = new[] { new RectInt(2, 2, 3, 3) };
+            Check(Colony.Fits(area, new RectInt(5, 2, 2, 2), taken), "touching edge fits");
+            Check(!Colony.Fits(area, new RectInt(4, 4, 2, 2), taken), "overlap blocked");
+            Check(!Colony.Fits(area, new RectInt(9, 0, 2, 2), taken), "outside area blocked");
+            Check(BuildingCatalog.Get(BuildingKind.Gym) != null && BuildingCatalog.Get(BuildingKind.Gym).nodes["gym1"].train > 0, "gym trains");
+
+            // crew upkeep, fitness, gym
+            var ce = new ColonyEconomy { crew = 2 };
+            var gym = new BuildingState(BuildingCatalog.Get(BuildingKind.Gym));
+            ce.buildings.Add(new BuildingState(rocketDef)); ce.buildings.Add(gym);
+            ce.RecomputeCaps();
+            ce[Res.Oxygen] = 10; ce[Res.Food] = 10; ce[Res.Water] = 10; ce[Res.Energy] = 0;
+            ce.Tick(1f);
+            Check(Near(ce[Res.Oxygen], 9.7f) && !ce.lifeSupportShort && Near(ce.fitness, 1f - ColonyEconomy.FitnessLoss), "crew breathe 0.3 O2/s and lose fitness");
+            ce.training = gym; ce.fitness = 0.5f;
+            ce.Tick(1f);
+            Check(gym.stalled && ce.fitness < 0.5f, "stalled gym gives no training");
+            ce[Res.Energy] = 50; ce.fitness = 0.5f;
+            ce.Tick(1f);
+            Check(ce.fitness > 0.5f, "powered gym trains crew");
+            ce.training = null; ce[Res.Oxygen] = 0; ce.fitness = 1f;
+            ce.Tick(1f);
+            Check(ce.lifeSupportShort && ce.shortOf == Res.Oxygen && Near(ce.fitness, 1f - ColonyEconomy.ShortageLoss), "running out of oxygen hurts");
+            float metalBefore = ce[Res.Metal]; ce.fitness = 0f; ce[Res.Oxygen] = 50;
+            ce.Tick(1f);
+            Check(Near(ce[Res.Metal] - metalBefore, 0.2f), "unfit crew halves output");
 
             sb.AppendLine(fails == 0 ? "ALL PASS" : fails + " FAILED");
             return sb.ToString();
