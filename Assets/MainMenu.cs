@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using RedFrontier.Outpost;
 using static FrontierUi;
 
 public sealed class MainMenu : MonoBehaviour
@@ -48,6 +49,11 @@ public sealed class MainMenu : MonoBehaviour
     private int resolutionIndex;
     private bool fullscreenOn;
 
+    private const float CardHeight = 250, ArtSize = 128;
+    private RectTransform crewPanel;
+    private PixelLabel crewHeading;
+    private PixelButton pickFemale, pickMale, crewBack;
+
     private void Awake()
     {
         reduced = ReduceMotion;
@@ -80,10 +86,12 @@ public sealed class MainMenu : MonoBehaviour
         overlay = FitLayout(canvas);
         overlay.name = "Panel layout";
         BuildOptions();
+        BuildCrewPick();
         fade = Fill("Scene fade", canvas, new Color32(Background.r, Background.g, Background.b, 0));
         SetOptionsVisible(false);
+        SetCrewPickVisible(false);
 
-        start.onClick.AddListener(Launch);
+        start.onClick.AddListener(OpenCrewPick);
         options.onClick.AddListener(OpenOptions);
         optionsBack.onClick.AddListener(CloseOptions);
         events.firstSelectedGameObject = start.gameObject;
@@ -157,6 +165,42 @@ public sealed class MainMenu : MonoBehaviour
         Chain(motion, volume, fullscreen, resolution, optionsBack);
     }
 
+    // Start Mission opens this: pick the astronaut who lands with the rocket, then the outpost loads.
+    private void BuildCrewPick()
+    {
+        crewPanel = PanelFrame("Crew panel", overlay);
+        crewHeading = PixelLabel.Create("Heading", crewPanel, "Choose your astronaut", 4, Cream, .5f, true);
+        pickFemale = CrewCard("Woman", "AstronautFemale", 0, Astronaut.Female);
+        pickMale = CrewCard("Man", "AstronautMale", 1, Astronaut.Male);
+        crewBack = FrontierUi.Button("Back", crewPanel, false);
+        crewBack.onClick.AddListener(CloseCrewPick);
+        Chain(pickFemale, pickMale, crewBack);
+    }
+
+    // A tall button showing the astronaut's south-facing frame (frame index from Crew's direction map).
+    private PixelButton CrewCard(string caption, string sheet, int southFrame, Astronaut who)
+    {
+        var card = FrontierUi.Button(caption, crewPanel, false);
+        var art = Resources.Load<Texture2D>("Crew/" + sheet);
+        if (art != null)
+        {
+            int frames = Mathf.Max(1, art.width / art.height);
+            var image = Art("Astronaut", card.face, art);
+            image.uvRect = new Rect((float)southFrame / frames, 0, 1f / frames, 1);
+            var r = image.rectTransform;
+            r.anchorMin = r.anchorMax = r.pivot = new Vector2(.5f, 1);
+            r.sizeDelta = new Vector2(ArtSize, ArtSize);
+            r.anchoredPosition = new Vector2(0, -36);
+        }
+        var label = card.label.Rect;
+        label.anchorMin = Vector2.zero;
+        label.anchorMax = new Vector2(1, 0);
+        label.offsetMin = new Vector2(8, 20);
+        label.offsetMax = new Vector2(-8, 60);
+        card.onClick.AddListener(() => Pick(who));
+        return card;
+    }
+
     private void Update()
     {
         if (narrow != IsNarrow)
@@ -164,7 +208,14 @@ public sealed class MainMenu : MonoBehaviour
         CoverSky(stars, sky);
 
         var selected = events.currentSelectedGameObject;
-        if (optionsPanel.gameObject.activeSelf)
+        if (crewPanel.gameObject.activeSelf)
+        {
+            if (Input.GetButtonDown("Cancel") && !launching)
+                CloseCrewPick();
+            else if (!launching && (selected == null || !selected.transform.IsChildOf(crewPanel)))
+                pickFemale.Select();
+        }
+        else if (optionsPanel.gameObject.activeSelf)
         {
             // Focus stays inside the open panel; Esc or the Cancel button closes it.
             if (Input.GetButtonDown("Cancel"))
@@ -210,6 +261,7 @@ public sealed class MainMenu : MonoBehaviour
         LayoutPanel(optionsPanel, optionsHeading, panelWidth,
             (motion.transform, RowHeight), (volumeRow, 58f), (fullscreen.transform, RowHeight),
             (resolution.transform, RowHeight), (controlsSection, 128f), (optionsBack.transform, RowHeight));
+        LayoutCrewPick(panelWidth);
 
         // Mars fills the right half; the orbit's ends clear the silhouette by the relay's half-diagonal.
         float radius = narrow ? 174 : 264;
@@ -245,6 +297,19 @@ public sealed class MainMenu : MonoBehaviour
             Place((RectTransform)row, panelSize, PanelPad, y, width - 2 * PanelPad, rowHeight);
             y += rowHeight + RowGap;
         }
+    }
+
+    private void LayoutCrewPick(float width)
+    {
+        float height = PanelPad + HeadingHeight + RowGap + CardHeight + RowGap + RowHeight + PanelPad;
+        var panelSize = new Vector2(width, height);
+        Place(crewPanel, size, Mathf.Round((size.x - width) / 2), Mathf.Round((size.y - height) / 2), width, height);
+        Place(crewHeading.Rect, panelSize, PanelPad, PanelPad, width - 2 * PanelPad, HeadingHeight);
+        float inner = width - 2 * PanelPad, cardWidth = Mathf.Floor((inner - RowGap) / 2);
+        float y = PanelPad + HeadingHeight + RowGap;
+        Place((RectTransform)pickFemale.transform, panelSize, PanelPad, y, cardWidth, CardHeight);
+        Place((RectTransform)pickMale.transform, panelSize, width - PanelPad - cardWidth, y, cardWidth, CardHeight);
+        Place((RectTransform)crewBack.transform, panelSize, PanelPad, y + CardHeight + RowGap, inner, RowHeight);
     }
 
     private static Vector2 Point(Vector2 center, float width, float angle)
@@ -291,6 +356,44 @@ public sealed class MainMenu : MonoBehaviour
         SetOptionsVisible(false);
         SetMenuInteractable(true);
         options.Select();
+    }
+
+    private void OpenCrewPick()
+    {
+        if (launching)
+            return;
+        SetMenuInteractable(false);
+        SetCrewPickVisible(true);
+        pickFemale.Select();
+    }
+
+    private void CloseCrewPick()
+    {
+        SetCrewPickVisible(false);
+        SetMenuInteractable(true);
+        start.Select();
+    }
+
+    private void SetCrewPickVisible(bool visible)
+    {
+        dim.gameObject.SetActive(visible);
+        crewPanel.gameObject.SetActive(visible);
+    }
+
+    private void Pick(Astronaut who)
+    {
+        if (launching)
+            return;
+        Crew.Picked = new[] { who };
+        Launch();
+        if (!launching)
+        {
+            CloseCrewPick(); // scene missing: Launch showed the error under the title buttons
+            return;
+        }
+        foreach (var card in new[] { pickFemale, pickMale, crewBack })
+            card.interactable = false;
+        (who == Astronaut.Female ? pickFemale : pickMale).HoldPressed = true;
     }
 
     private void SetOptionsVisible(bool visible)
