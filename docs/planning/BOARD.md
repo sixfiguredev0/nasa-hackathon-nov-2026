@@ -1,6 +1,6 @@
 # Task board
 
-Claim a task by writing your name or agent tag in **Owner** and committing before you start. Move it to Done with a link to the PR.
+Claim a task by writing your name or agent tag in **Owner** and committing before you start. Move it to Done with a link to the PR. WORKFLOW.md takes precedence over this file once it is added.
 
 ## To do
 
@@ -12,6 +12,9 @@ Claim a task by writing your name or agent tag in **Owner** and committing befor
 | Decide prototype site: Moon, Mars, or both | | |
 | Pick art style and camera | | Keep it cheap |
 | Draft attribution screen text | | |
+| Add WORKFLOW.md, NASA_DATA.md, SUBMISSION.md to repo root | | Referenced by AGENTS.md |
+| Review challenge Resources tab and record datasets in docs/data/ | | |
+| Fill team lead, submission owner, demo fallback in DEVLOG.md | | |
 
 ## In progress
 
