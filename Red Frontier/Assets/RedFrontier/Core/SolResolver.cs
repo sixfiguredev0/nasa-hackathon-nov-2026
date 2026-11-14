@@ -111,7 +111,18 @@ namespace RedFrontier.Core
                 report.healthCauses.Add(new HealthCause { code = "recovery", amount = health - before });
             }
             s.crewHealth = health;
-            report.healthAfter = health;
+
+            // Step 5 (decision 0007, amended): delayed effects due on the next sol land here, after health, so the
+            // forecast and the report include them. A crew already at 0 is not revived (death latch in ApplyDue).
+            var stockBefore = new Dictionary<string, int>();
+            foreach (var res in s.resources) stockBefore[res.id] = res.amount;
+            int hBefore = s.crewHealth;
+            foreach (var d in EffectApplier.ApplyDue(s, s.sol + 1))
+                report.delayedApplied.Add(d.sourceEventId + "/" + d.sourceChoiceId + ": " + d.effect.type + " " + d.effect.target + " "
+                    + (d.effect.type == "modifier" ? d.effect.percent + "% x" + d.effect.durationSols : d.effect.amount.ToString()));
+            foreach (var res in s.resources) report.Resource(res.id).fromEffects = res.amount - stockBefore[res.id];
+            if (s.crewHealth != hBefore) report.healthCauses.Add(new HealthCause { code = "delayed_effect", amount = s.crewHealth - hBefore });
+            report.healthAfter = s.crewHealth;
 
             foreach (var rr in report.resources) rr.end = s.Resource(rr.id).amount;
             return report;

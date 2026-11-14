@@ -47,22 +47,29 @@ namespace RedFrontier.Core
                 if (ef.delaySols > 0)
                     s.scheduled.Add(new ScheduledEffect { dueSol = s.sol + ef.delaySols, effect = ef.Clone(), sourceEventId = eventId, sourceChoiceId = choiceId });
                 else
-                    Apply(s, ef, eventId, choiceId);
+                    Apply(s, ef, eventId, choiceId, s.sol);
             }
         }
 
-        /// <summary>Step 5: applies, once and in queue order, every effect due on the (new) current sol, and removes it.</summary>
-        public static List<ScheduledEffect> ApplyDue(SimState s)
+        /// <summary>
+        /// Step 5: applies, once and in queue order, every effect due on enteringSol, and removes it.
+        /// Death latch: if Crew Health is 0 (before or after any effect), nothing further applies; the mission
+        /// fails in step 6 and the remaining queued effects stay unapplied in the ended state.
+        /// </summary>
+        public static List<ScheduledEffect> ApplyDue(SimState s, int enteringSol)
         {
+            var applied = new List<ScheduledEffect>();
             var due = new List<ScheduledEffect>();
             for (int i = 0; i < s.scheduled.Count; i++)
-                if (s.scheduled[i].dueSol <= s.sol) due.Add(s.scheduled[i]);
+                if (s.scheduled[i].dueSol <= enteringSol) due.Add(s.scheduled[i]);
             foreach (var d in due)
             {
+                if (s.crewHealth <= 0) break;
                 s.scheduled.Remove(d);
-                Apply(s, d.effect, d.sourceEventId, d.sourceChoiceId);
+                Apply(s, d.effect, d.sourceEventId, d.sourceChoiceId, enteringSol);
+                applied.Add(d);
             }
-            return due;
+            return applied;
         }
 
         /// <summary>Sum of modifier percents active on this facility on the state's current sol.</summary>
@@ -74,7 +81,7 @@ namespace RedFrontier.Core
             return p;
         }
 
-        static void Apply(SimState s, EffectDef ef, string eventId, string choiceId)
+        static void Apply(SimState s, EffectDef ef, string eventId, string choiceId, int startSol)
         {
             {
                 switch (ef.type)
@@ -97,7 +104,7 @@ namespace RedFrontier.Core
                         // Active on sols S..S+d-1, S = the sol it takes effect (choice sol, or due sol if delayed).
                         s.modifiers.Add(new ActiveModifier
                         {
-                            facilityId = ef.target, percent = ef.percent, firstSol = s.sol, lastSol = s.sol + ef.durationSols - 1,
+                            facilityId = ef.target, percent = ef.percent, firstSol = startSol, lastSol = startSol + ef.durationSols - 1,
                             sourceEventId = eventId, sourceChoiceId = choiceId,
                         });
                         break;

@@ -99,6 +99,8 @@ namespace RedFrontier.Core
         public int usedByCrew;
         /// <summary>Production lost because stock was at capacity.</summary>
         public int wasted;
+        /// <summary>Net change from delayed effects that landed in this resolution (after capacity clamp).</summary>
+        public int fromEffects;
         public int end;
         /// <summary>Crew need that could not be met.</summary>
         public int shortage;

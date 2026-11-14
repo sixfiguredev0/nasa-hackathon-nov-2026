@@ -26,6 +26,7 @@ Record concise dated decisions, data changes, milestones and risks. Never log se
 ## Progress
 ### 2026-11-14
 - Integration candidate `integration/map-v1-dev1`: Dev 1 `6ae1ed6` + game-plan docs merge + reviewed local map import (Plastic provenance unconfirmed: unfinished cs1->cs2 update with package conflicts). New scene `Integration_MapV1` (map seed 1337, fixed) with SimulationHost and a toggleable Functions panel (DebugHud panel mode) and a map-pan bridge. Evidence and limits: docs/integration/MAP-V1-DEV1.md and HANDOFF.
+- Fix after Codex review of `416e005` (.NET 59/59, Unity EditMode 66/66, PlayMode 5/5, review harness rerun): delayed effects now in forecast/report totals; death latch stops delayed healing reviving a crew at 0 (decision 0007 amended). Balance still unfinished (Codex: neglect fails, default play wins 200/200). Still to do: UI playthroughs, fresh-checkout test.
 - Developer 1 Stage 5 candidate on `feat/dev1-complete`: Food and Water (greenhouse, water recycler), radiation exposure with a shelter facility and a solar-flare event, timed modifiers (dust storm), delayed effects (resupply food). Placeholder values. Decision 0007.
 - Record challenge, roles, stack, NASA dataset and initial scope.
 ### 2026-11-15

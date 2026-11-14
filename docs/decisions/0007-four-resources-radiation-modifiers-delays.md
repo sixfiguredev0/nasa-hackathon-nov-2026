@@ -17,7 +17,9 @@ All values are **illustrative placeholder game values**, not NASA data, physical
 
 **Delayed effect** (`delaySols` k >= 1 on any effect except a resource cost): queued at choice time with `dueSol = sol + k`; in step 5 of the advance that enters `dueSol` it is applied once, in queue order, removed from the queue, logged (`delayed_effect`) and listed in that `SolReport.delayedApplied`. Resource costs cannot be delayed (costs are paid when chosen; validator error).
 
-**Order of an advance:** 1 facilities (with modifiers) -> 2 crew needs -> 3a radiation -> 3b health -> 4 sol+1 and modifier expiry -> 5 delayed effects -> 6 failure/success -> 7 events.
+**Order of an advance (amended after review of 416e005):** 1 facilities (with modifiers) -> 2 crew needs -> 3a radiation -> 3b health -> 5 delayed effects due on the next sol -> 4 sol+1 and modifier expiry -> 6 failure/success -> 7 events. Step 5 runs inside the shared resolution, so the forecast and `SolReport` include it (`ResourceReport.fromEffects`, health cause `delayed_effect`). A delayed modifier still starts on its due sol.
+
+**Death latch:** once Crew Health is 0 in steps 2-3b or after any delayed effect, no further delayed effect applies (no revival); the mission fails in step 6. Unapplied queued effects stay in the ended state and never apply.
 
 **Restart** builds a fresh state: modifiers, scheduled effects and radiation are cleared.
 

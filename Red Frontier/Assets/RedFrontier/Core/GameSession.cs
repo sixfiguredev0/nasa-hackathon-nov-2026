@@ -194,12 +194,9 @@ namespace RedFrontier.Core
             next.sol++;
             next.modifiers.RemoveAll(m => m.lastSol < next.sol);
 
-            // Step 5: delayed effects due on the new sol land once, in queue order, before the failure check.
-            foreach (var d in EffectApplier.ApplyDue(next))
-            {
-                report.delayedApplied.Add(d.sourceEventId + "/" + d.sourceChoiceId + ": " + d.effect.type + " " + d.effect.target + " " + (d.effect.type == "modifier" ? d.effect.percent + "% x" + d.effect.durationSols : d.effect.amount.ToString()));
-                next.log.Add(new LogEntry { sol = next.sol, kind = LogKind.DelayedEffect, eventId = d.sourceEventId, choiceId = d.sourceChoiceId, resource = d.effect.target, amount = d.effect.amount, code = d.effect.type });
-            }
+            // Step 5 ran inside RunFlows (shared with the forecast); record what landed.
+            foreach (var line in report.delayedApplied)
+                next.log.Add(new LogEntry { sol = next.sol, kind = LogKind.DelayedEffect, code = line });
 
             // Step 6: failure first.
             var kind = ChangeKind.SolResolved;

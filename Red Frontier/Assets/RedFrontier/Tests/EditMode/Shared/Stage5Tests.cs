@@ -161,5 +161,50 @@ namespace RedFrontier.Core.Tests
             for (int i = 0; i < 5; i++) { var _ = a.Forecast; }
             Assert.AreEqual(Fingerprint(b), Fingerprint(a));
         }
+
+        // Regression (review of 416e005): due effects must be in the forecast and report totals.
+        [Test]
+        public void DueEffects_AreInForecastAndReport_WithClamps_AndForecastDoesNotMutate()
+        {
+            var c = Stage1Mission(); c.startHealth = 80;
+            var s = WithSol1Event(c, Delayed(Res("air", 15), 1), Delayed(Health(30), 1));
+            var f = s.Forecast;
+            Assert.AreEqual(2, s.Snapshot.scheduled.Count);
+            Assert.IsTrue(s.AdvanceSol(1).ok);
+            var r = s.LastReport;
+            Assert.AreEqual(20, s.Snapshot.Resource("air").amount, "clamped to capacity");
+            Assert.AreEqual(s.Snapshot.Resource("air").amount, r.resources.Single(x => x.id == "air").end);
+            Assert.AreEqual(f.resources.Single(x => x.id == "air").end, r.resources.Single(x => x.id == "air").end, "forecast = report");
+            Assert.AreEqual(100, s.Snapshot.crewHealth, "clamped to 100");
+            Assert.AreEqual(s.Snapshot.crewHealth, r.healthAfter);
+            Assert.AreEqual(f.healthAfter, r.healthAfter);
+            Assert.AreEqual(0, s.Snapshot.scheduled.Count);
+        }
+
+        [Test]
+        public void LethalRadiation_IsNotRevivedByDelayedHealing()
+        {
+            var c = Stage1Mission(); c.startHealth = 1; c.healthRecoveryPerSol = 0; c.radiationPerSol = 1; c.radiationDamagePerUnit = 2;
+            var s = WithSol1Event(c, Delayed(Health(5), 1));
+            Assert.AreEqual(0, s.Forecast.healthAfter);
+            Assert.IsTrue(s.AdvanceSol(1).ok);
+            Assert.AreEqual(0, s.Snapshot.crewHealth);
+            Assert.AreEqual(0, s.LastReport.healthAfter);
+            Assert.AreEqual(MissionOutcome.Failure, s.Snapshot.outcome);
+            Assert.AreEqual(ReasonCodes.HealthZero, s.Snapshot.endReason);
+            Assert.AreEqual(1, s.Snapshot.scheduled.Count, "unapplied effect stays queued in the ended state");
+        }
+
+        [Test]
+        public void LethalDelayedEffect_FollowedByDelayedHealing_Fails()
+        {
+            var c = Stage1Mission(); c.startHealth = 50;
+            var s = WithSol1Event(c, Delayed(Health(-100), 1), Delayed(Health(50), 1));
+            Assert.AreEqual(0, s.Forecast.healthAfter);
+            Assert.IsTrue(s.AdvanceSol(1).ok);
+            Assert.AreEqual(0, s.Snapshot.crewHealth);
+            Assert.AreEqual(0, s.LastReport.healthAfter);
+            Assert.AreEqual(MissionOutcome.Failure, s.Snapshot.outcome);
+        }
     }
 }

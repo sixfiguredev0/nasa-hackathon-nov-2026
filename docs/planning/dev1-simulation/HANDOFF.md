@@ -16,6 +16,11 @@ Not the shared baseline. Based on `integration/map-v1-dev1` (`5f7d232`). Contrac
 - Timed modifiers (additive stacking, output only, expiry in step 4) and delayed effects (step 5, once, logged, reported); restart clears both. Validator accepts `modifier`, `radiation`, `delaySols`, `shielding` with bounds; rejects delayed costs.
 - Example content (placeholder): dust storm fallback adds solar -50% for 2 sols; resupply adds +6 food in 2 sols; new random `random_solar_flare` (radiation, shelter choice costs power).
 
+**Fixed after Codex review of 416e005 (regression tests fail before, pass after):**
+- Delayed effects were applied after the numeric report, so forecast and `LastReport` missed them (food +6 showed 0). They now resolve inside the shared resolution used by both.
+- Delayed healing could revive a crew at 0 (health 1, radiation 2, delayed +5 -> 5, mission continued). Death latch added; the mission fails.
+- Checks for this fix: .NET 59/59; Codex harness rerun (forecast/report food 6; lethal case Failure, health 0). Unity EditMode 66/66, PlayMode 5/5 (batch). WebGL not rebuilt for this fix; browser evidence predates it.
+
 **Not done / limits:**
 - Balance is placeholder; no NASA-sourced values (Developer 3).
 - No save/load; no production GUI (Developer 2).
