@@ -1,6 +1,6 @@
 # Integration: Mars map v1 + Developer 1 simulation
 
-Status: **integration candidate** on `integration/map-v1-dev1`. It becomes the shared baseline only once it is promoted to GitHub `main`. See "Checks" for what was and was not verified.
+Status: superseded by `feat/dev1-complete` (Developer 1 final). Current instructions: [HANDOFF](../planning/dev1-simulation/HANDOFF.md). GitHub `main` has not been created; the verified branch is the delivery reference until the team promotes it.
 
 ## Open, run, test, build
 
@@ -52,7 +52,7 @@ GitHub `main` and Unity Version Control `/main` are different branches in differ
 4. Move only the files you own into it, always with their `.meta` files. Do not replace baseline files blindly; ask the integration role about scenes, `Packages/` or `ProjectSettings/`.
 5. Never discard someone else's uncommitted work.
 
-## Checks (2026-11-14, local Windows, Unity 2022.3.18f1 batch mode)
+## Checks of the first integration candidate (historical, 2026-11-14; superseded by the final checks in DEVLOG)
 
 Passed:
 - Unity compiles; batch scene setup and build logged no compile errors. Integration scene: new GUID `5ed251bd6d48edb4a925b441c018abde` (MarsOutpost keeps `20665ddf…`), 1 camera, 1 AudioListener, 1 SimulationHost. MarsOutpost is byte-identical to the source; Dev1_Debug unchanged.

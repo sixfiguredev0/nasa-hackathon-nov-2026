@@ -1,6 +1,6 @@
 # Developer 1 implementation plan
 
-Status: **proposed**, for the coding agent. Progress 2026-11-14: Stages 0 and 1 done in `game/sim` (37 tests pass), plus the hybrid-event part of Stage 6 per [0005](../../decisions/0005-hybrid-event-structure.md); see [HANDOFF.md](HANDOFF.md). Read [ARCHITECTURE.md](ARCHITECTURE.md) first. Current state and open questions are in [HANDOFF.md](HANDOFF.md).
+Status: Stages 0-7 implemented on `feat/dev1-complete` (Stage 6 authored events and Stage 8 production UI belong to Developers 3 and 2); "water as its own resource" below is superseded by decision 0007. Original status: **proposed**, for the coding agent. Progress 2026-11-14: Stages 0 and 1 done in `game/sim` (37 tests pass), plus the hybrid-event part of Stage 6 per [0005](../../decisions/0005-hybrid-event-structure.md); see [HANDOFF.md](HANDOFF.md). Read [ARCHITECTURE.md](ARCHITECTURE.md) first. Current state and open questions are in [HANDOFF.md](HANDOFF.md).
 
 Clock (Sofia local, from [SUBMISSION.md](../../../SUBMISSION.md), to reconfirm onsite): local demo video due Sun 15 Nov 14:00; global submission closes 23:59. Target times below are suggestions to make cuts visible, not commitments.
 

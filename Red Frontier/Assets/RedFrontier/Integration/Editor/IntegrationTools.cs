@@ -44,6 +44,14 @@ namespace RedFrontier.Integration
                 + " hosts " + Object.FindObjectsOfType<SimulationHost>(true).Length);
         }
 
+        /// <summary>Opens Integration_MapV1 and enters Play Mode (menu, or -executeMethod when launching the Editor).</summary>
+        [MenuItem("Red Frontier/Play Integration Scene")]
+        public static void PlayIntegrationScene()
+        {
+            EditorSceneManager.OpenScene(Scene, OpenSceneMode.Single);
+            EditorApplication.EnterPlaymode();
+        }
+
         /// <summary>Clean Development WebGL build of the integration scene, compression disabled. Output: -buildPath argument.</summary>
         public static void BuildWebGL()
         {
