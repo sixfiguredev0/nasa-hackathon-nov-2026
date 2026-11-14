@@ -47,14 +47,16 @@ internal static class FrontierUi
 
     public static bool IsNarrow => Screen.width < Screen.height * 1.25f;
 
-    public static RectTransform CreateCanvas(out EventSystem events)
+    public static RectTransform CreateCanvas(out EventSystem events, bool opaqueBackdrop = true)
     {
         var root = new GameObject("Frontier Canvas", typeof(RectTransform), typeof(Canvas),
             typeof(CanvasScaler), typeof(GraphicRaycaster));
         root.GetComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
-        events = new GameObject("Event System", typeof(EventSystem),
-            typeof(StandaloneInputModule)).GetComponent<EventSystem>();
-        Fill("Backdrop", root.transform, Background);
+        events = opaqueBackdrop ? null : EventSystem.current;
+        if (events == null)
+            events = new GameObject("Event System", typeof(EventSystem),
+                typeof(StandaloneInputModule)).GetComponent<EventSystem>();
+        if (opaqueBackdrop) Fill("Backdrop", root.transform, Background);
         return root.GetComponent<RectTransform>();
     }
 

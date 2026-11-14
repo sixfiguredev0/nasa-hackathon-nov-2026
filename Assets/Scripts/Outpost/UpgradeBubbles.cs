@@ -23,8 +23,16 @@ namespace RedFrontier.Outpost
         readonly Dictionary<string, Vector2> cell = new Dictionary<string, Vector2>(); // x = depth, y = row
         readonly Dictionary<string, Vector2> pos = new Dictionary<string, Vector2>();
 
+        internal bool CancelForEscape()
+        {
+            if (open == null) return false;
+            open = null;
+            return true;
+        }
+
         void Update()
         {
+            if (MissionPauseMenu.BlocksGameplayInput) return;
             if (colony == null) colony = Colony.Instance;
             if (cam == null) cam = Camera.main;
             if (colony == null || cam == null) return;
@@ -37,11 +45,11 @@ namespace RedFrontier.Outpost
                 open = b == open ? null : b;
                 mode = Mode.Buttons;
             }
-            if (Input.GetKeyDown(KeyCode.Escape)) open = null;
         }
 
         void OnGUI()
         {
+            if (MissionPauseMenu.BlocksGameplayInput) return;
             if (colony == null || cam == null) return;
             if (BuilderMode.Placing || BuilderMode.PointerOverUI(Event.current.mousePosition)) return;
             if (open == null) { HoverHint(); return; }

@@ -51,6 +51,7 @@ namespace RedFrontier.Outpost
             economy.RecomputeCaps();
             for (int i = 0; i < ColonyEconomy.ResCount && i < startStock.Length; i++)
                 economy.stock[i] = Mathf.Min(startStock[i], economy.cap[i]);
+            gameObject.AddComponent<MissionPauseMenu>();
             Ready = true;
         }
 

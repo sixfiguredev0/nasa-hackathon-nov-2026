@@ -60,6 +60,11 @@ namespace RedFrontier.Mars
 
         void LateUpdate()
         {
+            if (RedFrontier.Outpost.MissionPauseMenu.BlocksGameplayInput)
+            {
+                lastMouse = Input.mousePosition;
+                return;
+            }
             if (!allowPan || cam == null || !Application.isPlaying) return;
             var p = cam.transform.position;
             var move = new Vector3(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"), 0f);
