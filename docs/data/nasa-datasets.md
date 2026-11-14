@@ -1,6 +1,6 @@
-# NASA datasets
+# Candidate NASA datasets
 
-Candidate sources named in the challenge. Mark each as **Used**, **Candidate** or **Rejected** and note how the game uses it.
+Research notes on sources named in the challenge. The official record is the **Source register in [NASA_DATA.md](../../NASA_DATA.md)**: once a dataset is used, record it there with full details and mark it **Used** here.
 
 | Dataset | What it gives us | Possible game use | Access | Status |
 |---|---|---|---|---|

@@ -1,9 +1,3 @@
-# Submission
+# Submission artefacts
 
-Hackathon deliverables:
-
-- [ ] Link to the playable build
-- [ ] Demo video
-- [ ] Presentation slides
-- [ ] Short explanation of NASA datasets used and why (the brief rewards this)
-- [ ] Team and AI-tool disclosure, if required by the event rules
+Store demo video, slides, screenshots and the fallback recording here. The checklist and deadlines are in [SUBMISSION.md](../SUBMISSION.md).
