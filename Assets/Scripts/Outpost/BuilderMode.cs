@@ -50,14 +50,26 @@ namespace RedFrontier.Outpost
         internal static bool PointerOverUI(Vector2 guiPos) => current != null && current.OverUI(guiPos);
         bool OverUI(Vector2 guiPos) => buttonRect.Contains(guiPos) || (open && panelRect.Contains(guiPos));
 
+        internal bool CancelForEscape()
+        {
+            if (selected == null && !open) return false;
+            if (selected != null)
+            {
+                selected = null;
+                if (ghost != null) ghost.enabled = false;
+            }
+            else open = false;
+            return true;
+        }
+
         void Update()
         {
+            if (MissionPauseMenu.BlocksGameplayInput) return;
             if (colony == null) colony = Colony.Instance;
             if (cam == null) cam = Camera.main;
             if (colony == null || cam == null || !colony.Ready) return;
 
             if (Input.GetKeyDown(KeyCode.B)) Toggle();
-            if (Input.GetKeyDown(KeyCode.Escape)) { if (selected != null) selected = null; else open = false; }
             if (Input.GetMouseButtonDown(1)) rightDown = Input.mousePosition;
             if (Input.GetMouseButtonUp(1) && ((Vector2)Input.mousePosition - rightDown).magnitude <= 6f) selected = null; // a click, not a camera drag
 
@@ -84,6 +96,7 @@ namespace RedFrontier.Outpost
 
         void OnGUI()
         {
+            if (MissionPauseMenu.BlocksGameplayInput && Event.current.type != EventType.Repaint) return;
             if (colony == null || cam == null || !colony.Ready) return;
             float s = OutpostGUI.Scale;
             var e = Event.current;
