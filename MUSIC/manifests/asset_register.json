@@ -1,34 +1,1844 @@
 {
-  "schema_version": 1,
-  "notes": "One entry per take. status: planned | generated | auditioned | rejected | approved | exported. Only explicit user feedback may set auditioned/approved/rejected.",
-  "_template": {
-    "id": "SFX_EXAMPLE",
-    "take": 1,
-    "status": "planned",
-    "category": "sfx | music | ambience",
-    "description": "What it sounds like",
-    "game_action": "Intended action/location, with code reference from AUDIO_PLAN.md",
-    "trigger": "Exact event that plays it",
-    "playback": "one-shot | loop; scaled/unscaled time; fade rules",
-    "duration_s": 0,
-    "loop": false,
-    "variations": ["SFX_EXAMPLE_01"],
-    "prompt": "Exact prompt text",
-    "model": "eleven_text_to_sound_v2",
-    "parameters": {},
-    "flow_id": null,
-    "generation_id": null,
-    "credits": null,
-    "audition_file": "auditions/SFX_EXAMPLE__take1__<generation_id>.<ext>",
-    "editing": [],
-    "source_file": null,
-    "final_file": null,
-    "export_path": null,
-    "volume_db": 0,
-    "cooldown_ms": 0,
-    "max_voices": 1,
-    "review": { "listener": null, "date": null, "notes": null },
-    "licence": "ElevenLabs Creator tier; terms check pending, see evidence/"
+ "schema_version": 2,
+ "generated_by": "MUSIC/scripts/build_register.py",
+ "status_vocabulary": [
+  "generated",
+  "technically checked",
+  "agent-selected",
+  "user-approved"
+ ],
+ "assets": [
+  {
+   "id": "MUS_TITLE",
+   "category": "music",
+   "description": "Welcoming suite movement: organ swell, felt-piano theme, strings rise and settle (D major)",
+   "game_action": "Title screen",
+   "trigger": "MainMenu.Awake -> GameAudio.EnterTitle",
+   "playback": "Plays to its natural end, 6-12 s of silence, repeats; 2 s crossfade from any other music",
+   "loop": false,
+   "variations": 1,
+   "model": "eleven_music_v2_5",
+   "flow_id": "izO4t6ilZxMzlux1XlEy",
+   "node_id": "hW5tVwYW7pjY8u9GBqTa",
+   "prompt": "Instrumental cinematic ambient chamber piece in D major, slow 70 BPM, calm cosmic wonder, intimate and hopeful. Warm sustained organ-like pads, soft felt piano, restrained string ensemble, airy analog synth textures and a delicate slowly evolving arpeggio. Opens with a gentle organ swell and a simple felt-piano melody, strings enter warmly in the middle with a modest rise, then it settles back to quiet piano and pads for a calm, open ending. Spacious and soft, no drums, no vocals, no harsh highs, light low end.",
+   "selection_note": null,
+   "volume_db": -4.0,
+   "cooldown_s": 0.0,
+   "max_voices": 1,
+   "priority": 100,
+   "pitch_jitter": 0.0,
+   "catalog_variations": 1,
+   "status": [
+    "generated",
+    "technically checked",
+    "agent-selected"
+   ],
+   "user_approved": false,
+   "listening": "not auditioned by ear: no listening capability was available to the agent",
+   "licence": "ElevenLabs Creator (paid) output; see MUSIC/evidence/2026-11-15_usage_rights.md",
+   "files": [
+    {
+     "final_master": "MUSIC/final/music/MUS_TITLE_01.ogg",
+     "shipping_copy": "Assets/Audio/Resources/Audio/Music/MUS_TITLE_01.ogg",
+     "source": "MUSIC/auditions/MUS_TITLE__take1__wtpQSg9bMdLCII5nTke6.mp3",
+     "generation_id": "wtpQSg9bMdLCII5nTke6",
+     "duration_s": 97.761,
+     "lufs": -18.0,
+     "true_peak_db": -4.9,
+     "editing": [
+      "highpass=f=35:poles=2",
+      "trim lead 0.35s tail 1.89s",
+      "fade in 30 ms, fade out 1.5 s",
+      "gain -4.00 dB (from I -14.0 LUFS, S max -11.9, TP -1.0)",
+      "encode Ogg Vorbis q8"
+     ]
+    }
+   ]
   },
-  "assets": []
+  {
+   "id": "MUS_ARRIVAL",
+   "category": "music",
+   "description": "Short rising organ/string swell resolving on D",
+   "game_action": "Launch -> landing",
+   "trigger": "MainMenu.Launch -> GameAudio.Launch",
+   "playback": "Starts with the fly-to-Mars transition and carries across the scene load; gameplay music waits for it to finish",
+   "loop": false,
+   "variations": 1,
+   "model": "eleven_music_v2_5",
+   "flow_id": "izO4t6ilZxMzlux1XlEy",
+   "node_id": "QGULnObm8AorjMD5x3jk",
+   "prompt": "Short instrumental arrival cue in D major, around 70 BPM, wondrous and gentle. A soft rising swell of warm organ and restrained strings with shimmering analog textures and a few felt-piano notes, cresting softly and resolving on a sustained D major chord that fades out. No drums, no vocals, no harsh highs; bass kept light and soft with no deep sub-bass.",
+   "selection_note": null,
+   "volume_db": -4.0,
+   "cooldown_s": 0.0,
+   "max_voices": 1,
+   "priority": 100,
+   "pitch_jitter": 0.0,
+   "catalog_variations": 1,
+   "status": [
+    "generated",
+    "technically checked",
+    "agent-selected"
+   ],
+   "user_approved": false,
+   "listening": "not auditioned by ear: no listening capability was available to the agent",
+   "licence": "ElevenLabs Creator (paid) output; see MUSIC/evidence/2026-11-15_usage_rights.md",
+   "files": [
+    {
+     "final_master": "MUSIC/final/music/MUS_ARRIVAL_01.ogg",
+     "shipping_copy": "Assets/Audio/Resources/Audio/Music/MUS_ARRIVAL_01.ogg",
+     "source": "MUSIC/auditions/MUS_ARRIVAL__take1__MYmE8R8MvqHesPcxyEjA.mp3",
+     "generation_id": "MYmE8R8MvqHesPcxyEjA",
+     "duration_s": 23.66,
+     "lufs": -17.9,
+     "true_peak_db": -3.4,
+     "editing": [
+      "highpass=f=35:poles=2",
+      "trim lead 0.34s tail 0.00s",
+      "fade in 30 ms, fade out 1.5 s",
+      "gain -1.80 dB (from I -16.2 LUFS, S max -14.6, TP -1.6)",
+      "encode Ogg Vorbis q8"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "MUS_SURFACE_A",
+   "category": "music",
+   "description": "'First Light': sparse felt piano over organ drone, arpeggio emerges (G/D)",
+   "game_action": "Outpost gameplay rotation",
+   "trigger": "MusicSelector after a rest",
+   "playback": "Natural start and end; never within 2 picks of itself; 8-20 s rests (30%: 25-50 s)",
+   "loop": false,
+   "variations": 1,
+   "model": "eleven_music_v2_5",
+   "flow_id": "izO4t6ilZxMzlux1XlEy",
+   "node_id": "77Gl5AXy1EWa4MlwWy4j",
+   "prompt": "Instrumental cinematic ambient chamber music in D major, around 70 BPM, calm cosmic wonder. Warm sustained organ-like pads, soft felt piano, restrained strings, airy analog synth textures, delicate evolving arpeggios. Sparse and gentle: felt piano phrases with long pauses over a soft organ drone, a quiet arpeggio slowly emerges midway, the harmony drifts to G major and B minor before returning home, ending softly on a sustained D chord. Spacious, no drums, no vocals, no harsh highs; bass kept light and soft with no deep sub-bass.",
+   "selection_note": null,
+   "volume_db": -4.0,
+   "cooldown_s": 0.0,
+   "max_voices": 1,
+   "priority": 100,
+   "pitch_jitter": 0.0,
+   "catalog_variations": 1,
+   "status": [
+    "generated",
+    "technically checked",
+    "agent-selected"
+   ],
+   "user_approved": false,
+   "listening": "not auditioned by ear: no listening capability was available to the agent",
+   "licence": "ElevenLabs Creator (paid) output; see MUSIC/evidence/2026-11-15_usage_rights.md",
+   "files": [
+    {
+     "final_master": "MUSIC/final/music/MUS_SURFACE_A_01.ogg",
+     "shipping_copy": "Assets/Audio/Resources/Audio/Music/MUS_SURFACE_A_01.ogg",
+     "source": "MUSIC/auditions/MUS_SURFACE_A__take1__EuFvpO5qDI8vXTKVTBEb.mp3",
+     "generation_id": "EuFvpO5qDI8vXTKVTBEb",
+     "duration_s": 93.218,
+     "lufs": -18.0,
+     "true_peak_db": -2.7,
+     "editing": [
+      "highpass=f=35:poles=2",
+      "trim lead 0.79s tail 0.99s",
+      "fade in 30 ms, fade out 1.5 s",
+      "gain -2.00 dB (from I -16.0 LUFS, S max -13.3, TP -0.7)",
+      "encode Ogg Vorbis q8"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "MUS_SURFACE_B",
+   "category": "music",
+   "description": "'Red Horizon': warmer low-string melody over shimmering pads (D/A)",
+   "game_action": "Outpost gameplay rotation",
+   "trigger": "MusicSelector after a rest",
+   "playback": "As MUS_SURFACE_A",
+   "loop": false,
+   "variations": 1,
+   "model": "eleven_music_v2_5",
+   "flow_id": "izO4t6ilZxMzlux1XlEy",
+   "node_id": "KvcrXC1rB1baV4Vq4TP4",
+   "prompt": "Instrumental cinematic ambient chamber music in D major, around 70 BPM, calm cosmic wonder. Warm sustained organ-like pads, soft felt piano, restrained strings, airy analog synth textures, delicate evolving arpeggios. Warmer and fuller: low strings carry a slow singing melody over shimmering analog pads and a delicate felt-piano arpeggio, a modest swell in the middle, then a calm descent to a quiet ending. Spacious, no drums, no vocals, no harsh highs; bass kept light and soft with no deep sub-bass.",
+   "selection_note": null,
+   "volume_db": -4.0,
+   "cooldown_s": 0.0,
+   "max_voices": 1,
+   "priority": 100,
+   "pitch_jitter": 0.0,
+   "catalog_variations": 1,
+   "status": [
+    "generated",
+    "technically checked",
+    "agent-selected"
+   ],
+   "user_approved": false,
+   "listening": "not auditioned by ear: no listening capability was available to the agent",
+   "licence": "ElevenLabs Creator (paid) output; see MUSIC/evidence/2026-11-15_usage_rights.md",
+   "files": [
+    {
+     "final_master": "MUSIC/final/music/MUS_SURFACE_B_01.ogg",
+     "shipping_copy": "Assets/Audio/Resources/Audio/Music/MUS_SURFACE_B_01.ogg",
+     "source": "MUSIC/auditions/MUS_SURFACE_B__take1__P4XlRSDEWmyOrkz8x6gc.mp3",
+     "generation_id": "P4XlRSDEWmyOrkz8x6gc",
+     "duration_s": 100.0,
+     "lufs": -18.0,
+     "true_peak_db": -4.1,
+     "editing": [
+      "highpass=f=45:poles=2",
+      "trim lead 0.00s tail 0.00s",
+      "fade in 30 ms, fade out 1.5 s",
+      "gain -3.80 dB (from I -14.2 LUFS, S max -11.7, TP -0.3)",
+      "encode Ogg Vorbis q8"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "MUS_SURFACE_C",
+   "category": "music",
+   "description": "'Quiet Machines': minimal analog textures, drifting arpeggio, long breaths (B minor/D)",
+   "game_action": "Outpost gameplay rotation",
+   "trigger": "MusicSelector after a rest",
+   "playback": "As MUS_SURFACE_A",
+   "loop": false,
+   "variations": 1,
+   "model": "eleven_music_v2_5",
+   "flow_id": "izO4t6ilZxMzlux1XlEy",
+   "node_id": "6a044R3LLHqMiQAFeq8w",
+   "prompt": "Instrumental ambient chamber music in D major, around 70 BPM, calm and weightless. Airy analog synth textures and soft organ tones lead; a slow pulsing synth arpeggio drifts in and out, felt piano appears only as occasional single notes, long breathing spaces with no melody for stretches, gently fading to near silence at the end. Minimal and spacious, no drums, no vocals, no harsh highs; bass kept light and soft with no deep sub-bass.",
+   "selection_note": null,
+   "volume_db": -4.0,
+   "cooldown_s": 0.0,
+   "max_voices": 1,
+   "priority": 100,
+   "pitch_jitter": 0.0,
+   "catalog_variations": 1,
+   "status": [
+    "generated",
+    "technically checked",
+    "agent-selected"
+   ],
+   "user_approved": false,
+   "listening": "not auditioned by ear: no listening capability was available to the agent",
+   "licence": "ElevenLabs Creator (paid) output; see MUSIC/evidence/2026-11-15_usage_rights.md",
+   "files": [
+    {
+     "final_master": "MUSIC/final/music/MUS_SURFACE_C_01.ogg",
+     "shipping_copy": "Assets/Audio/Resources/Audio/Music/MUS_SURFACE_C_01.ogg",
+     "source": "MUSIC/auditions/MUS_SURFACE_C__take2__RGa81eOTXgTRdrbcED6y.mp3",
+     "generation_id": "RGa81eOTXgTRdrbcED6y",
+     "duration_s": 88.156,
+     "lufs": -20.5,
+     "true_peak_db": -1.4,
+     "editing": [
+      "highpass=f=35:poles=2",
+      "trim lead 0.70s tail 1.15s",
+      "fade in 30 ms, fade out 1.5 s",
+      "gain -0.10 dB (from I -20.5 LUFS, S max -14.5, TP -1.4)",
+      "encode Ogg Vorbis q8"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "MUS_SURFACE_D",
+   "category": "music",
+   "description": "'Long Day': organ chorale answered by felt piano, gentle string lift",
+   "game_action": "Outpost gameplay rotation",
+   "trigger": "MusicSelector after a rest",
+   "playback": "As MUS_SURFACE_A",
+   "loop": false,
+   "variations": 1,
+   "model": "eleven_music_v2_5",
+   "flow_id": "izO4t6ilZxMzlux1XlEy",
+   "node_id": "XnrYkDxSruWvokeO4k5P",
+   "prompt": "Instrumental cinematic ambient chamber music in D major, around 70 BPM, hopeful and tender. A warm organ chorale leads, felt piano answers each phrase, restrained strings rise gently into a brief brighter passage in A major, then settle back to D for an unhurried soft ending, with a delicate analog arpeggio shimmering underneath. No drums, no vocals, no harsh highs; bass kept light and soft with no deep sub-bass.",
+   "selection_note": null,
+   "volume_db": -4.0,
+   "cooldown_s": 0.0,
+   "max_voices": 1,
+   "priority": 100,
+   "pitch_jitter": 0.0,
+   "catalog_variations": 1,
+   "status": [
+    "generated",
+    "technically checked",
+    "agent-selected"
+   ],
+   "user_approved": false,
+   "listening": "not auditioned by ear: no listening capability was available to the agent",
+   "licence": "ElevenLabs Creator (paid) output; see MUSIC/evidence/2026-11-15_usage_rights.md",
+   "files": [
+    {
+     "final_master": "MUSIC/final/music/MUS_SURFACE_D_01.ogg",
+     "shipping_copy": "Assets/Audio/Resources/Audio/Music/MUS_SURFACE_D_01.ogg",
+     "source": "MUSIC/auditions/MUS_SURFACE_D__take2__ybxiksZTLi3XKNNLUpSE.mp3",
+     "generation_id": "ybxiksZTLi3XKNNLUpSE",
+     "duration_s": 99.679,
+     "lufs": -17.9,
+     "true_peak_db": -3.9,
+     "editing": [
+      "highpass=f=35:poles=2",
+      "trim lead 0.00s tail 0.32s",
+      "fade in 30 ms, fade out 1.5 s",
+      "gain -3.30 dB (from I -14.7 LUFS, S max -11.9, TP -0.6)",
+      "encode Ogg Vorbis q8"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "MUS_SURFACE_E",
+   "category": "music",
+   "description": "'Solitude': lonely solo felt piano, distant string harmonics, warm turn at the end (E minor)",
+   "game_action": "Outpost gameplay rotation",
+   "trigger": "MusicSelector after a rest",
+   "playback": "As MUS_SURFACE_A",
+   "loop": false,
+   "variations": 1,
+   "model": "eleven_music_v2_5",
+   "flow_id": "izO4t6ilZxMzlux1XlEy",
+   "node_id": "9JLsxM4cyofOGe3zh0aO",
+   "prompt": "Instrumental cinematic ambient chamber music in B minor, around 66 BPM, lonely and reflective. Solo felt piano with sparse, intimate phrases and long decays, distant soft string harmonics and a faint warm organ pad, an airy analog shimmer; near the end the harmony turns warmly to D major before a very quiet close. No drums, no vocals, no harsh highs; bass kept light and soft with no deep sub-bass.",
+   "selection_note": null,
+   "volume_db": -4.0,
+   "cooldown_s": 0.0,
+   "max_voices": 1,
+   "priority": 100,
+   "pitch_jitter": 0.0,
+   "catalog_variations": 1,
+   "status": [
+    "generated",
+    "technically checked",
+    "agent-selected"
+   ],
+   "user_approved": false,
+   "listening": "not auditioned by ear: no listening capability was available to the agent",
+   "licence": "ElevenLabs Creator (paid) output; see MUSIC/evidence/2026-11-15_usage_rights.md",
+   "files": [
+    {
+     "final_master": "MUSIC/final/music/MUS_SURFACE_E_01.ogg",
+     "shipping_copy": "Assets/Audio/Resources/Audio/Music/MUS_SURFACE_E_01.ogg",
+     "source": "MUSIC/auditions/MUS_SURFACE_E__take1__gWrZDFh1m05iV0ow7rl3.mp3",
+     "generation_id": "gWrZDFh1m05iV0ow7rl3",
+     "duration_s": 86.279,
+     "lufs": -22.1,
+     "true_peak_db": -1.5,
+     "editing": [
+      "highpass=f=35:poles=2",
+      "trim lead 0.00s tail 3.72s",
+      "fade in 30 ms, fade out 1.5 s",
+      "gain +0.40 dB (from I -22.6 LUFS, S max -19.8, TP -1.9)",
+      "encode Ogg Vorbis q8"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "MUS_TENSION",
+   "category": "music",
+   "description": "'Thin Air': low organ drone, wavering strings, muted piano, never climaxes (D)",
+   "game_action": "Sustained life-support shortage",
+   "trigger": "Colony economy lifeSupportShort for >= 6 s",
+   "playback": "4 s crossfade in; repeats after 3-6 s while short; leaves after 12 s recovered with a 6 s fade; 45 s lockout",
+   "loop": false,
+   "variations": 1,
+   "model": "eleven_music_v2_5",
+   "flow_id": "izO4t6ilZxMzlux1XlEy",
+   "node_id": "udSqFv046ANkWzFMGTtc",
+   "prompt": "Instrumental restrained tension ambient cue in D minor, around 70 BPM, uneasy but calm. Low sustained organ drone, slow wavering string swells, sparse muted felt-piano notes and a soft slowly pulsing analog synth, a gradual quiet build that never climaxes, ending soft and unresolved. No drums, no ticking, no vocals, no harsh highs; bass kept light and soft with no deep sub-bass.",
+   "selection_note": null,
+   "volume_db": -4.0,
+   "cooldown_s": 0.0,
+   "max_voices": 1,
+   "priority": 100,
+   "pitch_jitter": 0.0,
+   "catalog_variations": 1,
+   "status": [
+    "generated",
+    "technically checked",
+    "agent-selected"
+   ],
+   "user_approved": false,
+   "listening": "not auditioned by ear: no listening capability was available to the agent",
+   "licence": "ElevenLabs Creator (paid) output; see MUSIC/evidence/2026-11-15_usage_rights.md",
+   "files": [
+    {
+     "final_master": "MUSIC/final/music/MUS_TENSION_01.ogg",
+     "shipping_copy": "Assets/Audio/Resources/Audio/Music/MUS_TENSION_01.ogg",
+     "source": "MUSIC/auditions/MUS_TENSION__take1__cxDDzHqPOmhftjON4k86.mp3",
+     "generation_id": "cxDDzHqPOmhftjON4k86",
+     "duration_s": 79.59,
+     "lufs": -20.2,
+     "true_peak_db": -1.5,
+     "editing": [
+      "highpass=f=35:poles=2",
+      "trim lead 0.00s tail 0.41s",
+      "fade in 30 ms, fade out 1.5 s",
+      "gain +0.20 dB (from I -20.5 LUFS, S max -16.5, TP -1.7)",
+      "encode Ogg Vorbis q8"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "SFX_UI_CONFIRM",
+   "category": "sfx",
+   "description": "Soft glassy felt-piano chime",
+   "game_action": "Any menu button without its own cue",
+   "trigger": "PixelButton click/submit (GameAudio.UiPress)",
+   "playback": "One-shot, suppressed when the action plays a specific cue in the same frame",
+   "loop": false,
+   "variations": 3,
+   "model": "eleven_text_to_sound_v2",
+   "flow_id": "3RwACgrCocQq0VVYBAEM",
+   "node_id": "ccqJy4XFsK8ka9fMRj5J",
+   "prompt": "Soft warm interface confirm tone, one gentle glassy chime with a felt-piano attack, short clean decay, close and dry",
+   "selection_note": null,
+   "volume_db": -15.0,
+   "cooldown_s": 0.05,
+   "max_voices": 2,
+   "priority": 40,
+   "pitch_jitter": 0.0,
+   "catalog_variations": 3,
+   "status": [
+    "generated",
+    "technically checked",
+    "agent-selected"
+   ],
+   "user_approved": false,
+   "listening": "not auditioned by ear: no listening capability was available to the agent",
+   "licence": "ElevenLabs Creator (paid) output; see MUSIC/evidence/2026-11-15_usage_rights.md",
+   "files": [
+    {
+     "final_master": "MUSIC/final/sfx/SFX_UI_CONFIRM_01.wav",
+     "shipping_copy": "Assets/Audio/Resources/Audio/Sfx/SFX_UI_CONFIRM_01.wav",
+     "source": "MUSIC/auditions/SFX_UI_CONFIRM__take3__o8IgL11k6TzGzeFIlZpH.mp3",
+     "generation_id": "o8IgL11k6TzGzeFIlZpH",
+     "duration_s": 0.6,
+     "lufs": -16.9,
+     "true_peak_db": -6.8,
+     "editing": [
+      "trim lead 0.000s tail 0.000s",
+      "fade in 3 ms, fade out 0.12 s",
+      "gain -1.69 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+      "16-bit PCM WAV 44.1 kHz"
+     ]
+    },
+    {
+     "final_master": "MUSIC/final/sfx/SFX_UI_CONFIRM_02.wav",
+     "shipping_copy": "Assets/Audio/Resources/Audio/Sfx/SFX_UI_CONFIRM_02.wav",
+     "source": "MUSIC/auditions/SFX_UI_CONFIRM__take2__xcXPVljqyPhfjcjoxguk.mp3",
+     "generation_id": "xcXPVljqyPhfjcjoxguk",
+     "duration_s": 0.6,
+     "lufs": -16.6,
+     "true_peak_db": -2.4,
+     "editing": [
+      "trim lead 0.000s tail 0.000s",
+      "fade in 3 ms, fade out 0.12 s",
+      "gain +1.44 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+      "16-bit PCM WAV 44.1 kHz"
+     ]
+    },
+    {
+     "final_master": "MUSIC/final/sfx/SFX_UI_CONFIRM_03.wav",
+     "shipping_copy": "Assets/Audio/Resources/Audio/Sfx/SFX_UI_CONFIRM_03.wav",
+     "source": "MUSIC/auditions/SFX_UI_CONFIRM__take1__Tf0nPpFQpW49V4q0aXL7.mp3",
+     "generation_id": "Tf0nPpFQpW49V4q0aXL7",
+     "duration_s": 0.6,
+     "lufs": -16.3,
+     "true_peak_db": -1.0,
+     "editing": [
+      "trim lead 0.000s tail 0.000s",
+      "fade in 3 ms, fade out 0.12 s",
+      "gain +5.77 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+      "16-bit PCM WAV 44.1 kHz"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "SFX_UI_BACK",
+   "category": "sfx",
+   "description": "Soft descending two-note blip",
+   "game_action": "Close/back/cancel",
+   "trigger": "MainMenu Close*, pause Esc-back, BuilderMode cancel, UpgradeBubbles Esc",
+   "playback": "One-shot",
+   "loop": false,
+   "variations": 2,
+   "model": "eleven_text_to_sound_v2",
+   "flow_id": "3RwACgrCocQq0VVYBAEM",
+   "node_id": "zHdaHpDbLkBTxItrBZ4J",
+   "prompt": "Soft warm interface back tone, gentle descending two-note glassy blip with a felt attack, short, close and dry",
+   "selection_note": null,
+   "volume_db": -15.0,
+   "cooldown_s": 0.05,
+   "max_voices": 2,
+   "priority": 40,
+   "pitch_jitter": 0.0,
+   "catalog_variations": 2,
+   "status": [
+    "generated",
+    "technically checked",
+    "agent-selected"
+   ],
+   "user_approved": false,
+   "listening": "not auditioned by ear: no listening capability was available to the agent",
+   "licence": "ElevenLabs Creator (paid) output; see MUSIC/evidence/2026-11-15_usage_rights.md",
+   "files": [
+    {
+     "final_master": "MUSIC/final/sfx/SFX_UI_BACK_01.wav",
+     "shipping_copy": "Assets/Audio/Resources/Audio/Sfx/SFX_UI_BACK_01.wav",
+     "source": "MUSIC/auditions/SFX_UI_BACK__take2__BjKLvbqjSAD78e74uzuE.mp3",
+     "generation_id": "BjKLvbqjSAD78e74uzuE",
+     "duration_s": 0.6,
+     "lufs": -18.0,
+     "true_peak_db": -9.4,
+     "editing": [
+      "trim lead 0.000s tail 0.000s",
+      "fade in 3 ms, fade out 0.12 s",
+      "gain -7.10 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+      "16-bit PCM WAV 44.1 kHz"
+     ]
+    },
+    {
+     "final_master": "MUSIC/final/sfx/SFX_UI_BACK_02.wav",
+     "shipping_copy": "Assets/Audio/Resources/Audio/Sfx/SFX_UI_BACK_02.wav",
+     "source": "MUSIC/auditions/SFX_UI_BACK__take3__Mc37L0jKldCNrHzM59bp.mp3",
+     "generation_id": "Mc37L0jKldCNrHzM59bp",
+     "duration_s": 0.6,
+     "lufs": -16.8,
+     "true_peak_db": -5.9,
+     "editing": [
+      "trim lead 0.000s tail 0.000s",
+      "fade in 3 ms, fade out 0.12 s",
+      "gain -5.44 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+      "16-bit PCM WAV 44.1 kHz"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "SFX_UI_SELECT",
+   "category": "sfx",
+   "description": "Tiny muted tap",
+   "game_action": "Selections and slider steps",
+   "trigger": "Builder slot pick, bubble open/toggle, PixelSlider value step",
+   "playback": "One-shot, 70 ms cooldown stops drag spam",
+   "loop": false,
+   "variations": 2,
+   "model": "eleven_text_to_sound_v2",
+   "flow_id": "3RwACgrCocQq0VVYBAEM",
+   "node_id": "xt3T1fqPZG0hwcrZN7Ny",
+   "prompt": "Tiny soft interface tick, muted wooden glass tap, very short, close and dry",
+   "selection_note": null,
+   "volume_db": -18.0,
+   "cooldown_s": 0.07,
+   "max_voices": 2,
+   "priority": 30,
+   "pitch_jitter": 0.0,
+   "catalog_variations": 2,
+   "status": [
+    "generated",
+    "technically checked",
+    "agent-selected"
+   ],
+   "user_approved": false,
+   "listening": "not auditioned by ear: no listening capability was available to the agent",
+   "licence": "ElevenLabs Creator (paid) output; see MUSIC/evidence/2026-11-15_usage_rights.md",
+   "files": [
+    {
+     "final_master": "MUSIC/final/sfx/SFX_UI_SELECT_01.wav",
+     "shipping_copy": "Assets/Audio/Resources/Audio/Sfx/SFX_UI_SELECT_01.wav",
+     "source": "MUSIC/auditions/SFX_UI_SELECT__take2__vNpi3kSBdckC5mmvfJOJ.mp3",
+     "generation_id": "vNpi3kSBdckC5mmvfJOJ",
+     "duration_s": 0.298,
+     "lufs": -70.0,
+     "true_peak_db": -1.0,
+     "editing": [
+      "trim lead 0.000s tail 0.182s",
+      "fade in 3 ms, fade out 0.04 s",
+      "gain +5.84 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+      "16-bit PCM WAV 44.1 kHz"
+     ]
+    },
+    {
+     "final_master": "MUSIC/final/sfx/SFX_UI_SELECT_02.wav",
+     "shipping_copy": "Assets/Audio/Resources/Audio/Sfx/SFX_UI_SELECT_02.wav",
+     "source": "MUSIC/auditions/SFX_UI_SELECT__take4__tUPrTDiGbFbU9y3iE8i1.mp3",
+     "generation_id": "tUPrTDiGbFbU9y3iE8i1",
+     "duration_s": 0.209,
+     "lufs": -70.0,
+     "true_peak_db": -1.0,
+     "editing": [
+      "trim lead 0.022s tail 0.249s",
+      "fade in 3 ms, fade out 0.04 s",
+      "gain +7.46 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+      "16-bit PCM WAV 44.1 kHz"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "SFX_UI_PANEL_OPEN",
+   "category": "sfx",
+   "description": "Airy upward swish",
+   "game_action": "Panels opening",
+   "trigger": "Options, crew pick, Builder menu, pause, Marlonis dialogue",
+   "playback": "One-shot",
+   "loop": false,
+   "variations": 2,
+   "model": "eleven_text_to_sound_v2",
+   "flow_id": "3RwACgrCocQq0VVYBAEM",
+   "node_id": "VjfoEpJpu5DfpfeR0ejZ",
+   "prompt": "Soft airy interface panel opening, gentle upward breathy swish with a faint warm chime, short and dry",
+   "selection_note": null,
+   "volume_db": -16.0,
+   "cooldown_s": 0.12,
+   "max_voices": 1,
+   "priority": 40,
+   "pitch_jitter": 0.0,
+   "catalog_variations": 2,
+   "status": [
+    "generated",
+    "technically checked",
+    "agent-selected"
+   ],
+   "user_approved": false,
+   "listening": "not auditioned by ear: no listening capability was available to the agent",
+   "licence": "ElevenLabs Creator (paid) output; see MUSIC/evidence/2026-11-15_usage_rights.md",
+   "files": [
+    {
+     "final_master": "MUSIC/final/sfx/SFX_UI_PANEL_OPEN_01.wav",
+     "shipping_copy": "Assets/Audio/Resources/Audio/Sfx/SFX_UI_PANEL_OPEN_01.wav",
+     "source": "MUSIC/auditions/SFX_UI_PANEL_OPEN__take4__dHQdgK4kUiZEcyiX4wi5.mp3",
+     "generation_id": "dHQdgK4kUiZEcyiX4wi5",
+     "duration_s": 0.824,
+     "lufs": -12.2,
+     "true_peak_db": -1.0,
+     "editing": [
+      "highpass=f=120:poles=2",
+      "lowpass=f=9000:poles=2",
+      "trim lead 0.000s tail 0.056s",
+      "fade in 3 ms, fade out 0.04 s",
+      "gain +13.20 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+      "16-bit PCM WAV 44.1 kHz"
+     ]
+    },
+    {
+     "final_master": "MUSIC/final/sfx/SFX_UI_PANEL_OPEN_02.wav",
+     "shipping_copy": "Assets/Audio/Resources/Audio/Sfx/SFX_UI_PANEL_OPEN_02.wav",
+     "source": "MUSIC/auditions/SFX_UI_PANEL_OPEN__take3__SyCW5JgAWavT3rITk5dg.mp3",
+     "generation_id": "SyCW5JgAWavT3rITk5dg",
+     "duration_s": 0.815,
+     "lufs": -15.5,
+     "true_peak_db": -0.9,
+     "editing": [
+      "highpass=f=120:poles=2",
+      "lowpass=f=9000:poles=2",
+      "trim lead 0.003s tail 0.061s",
+      "fade in 3 ms, fade out 0.04 s",
+      "gain +7.15 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+      "16-bit PCM WAV 44.1 kHz"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "SFX_UI_PANEL_CLOSE",
+   "category": "sfx",
+   "description": "Airy downward swish",
+   "game_action": "Panels closing",
+   "trigger": "Builder menu close, resume, Marlonis dialogue close",
+   "playback": "One-shot",
+   "loop": false,
+   "variations": 2,
+   "model": "eleven_text_to_sound_v2",
+   "flow_id": "3RwACgrCocQq0VVYBAEM",
+   "node_id": "avydSuWgIY2EVeYxXwUE",
+   "prompt": "Soft airy interface panel closing, gentle downward breathy swish with a muted low tone, short and dry",
+   "selection_note": null,
+   "volume_db": -16.0,
+   "cooldown_s": 0.12,
+   "max_voices": 1,
+   "priority": 40,
+   "pitch_jitter": 0.0,
+   "catalog_variations": 2,
+   "status": [
+    "generated",
+    "technically checked",
+    "agent-selected"
+   ],
+   "user_approved": false,
+   "listening": "not auditioned by ear: no listening capability was available to the agent",
+   "licence": "ElevenLabs Creator (paid) output; see MUSIC/evidence/2026-11-15_usage_rights.md",
+   "files": [
+    {
+     "final_master": "MUSIC/final/sfx/SFX_UI_PANEL_CLOSE_01.wav",
+     "shipping_copy": "Assets/Audio/Resources/Audio/Sfx/SFX_UI_PANEL_CLOSE_01.wav",
+     "source": "MUSIC/auditions/SFX_UI_PANEL_CLOSE__take3__s7afa6oVYCtfyGJeD7eW.mp3",
+     "generation_id": "s7afa6oVYCtfyGJeD7eW",
+     "duration_s": 0.647,
+     "lufs": -14.6,
+     "true_peak_db": -1.0,
+     "editing": [
+      "highpass=f=120:poles=2",
+      "trim lead 0.014s tail 0.140s",
+      "fade in 3 ms, fade out 0.04 s",
+      "gain +6.97 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+      "16-bit PCM WAV 44.1 kHz"
+     ]
+    },
+    {
+     "final_master": "MUSIC/final/sfx/SFX_UI_PANEL_CLOSE_02.wav",
+     "shipping_copy": "Assets/Audio/Resources/Audio/Sfx/SFX_UI_PANEL_CLOSE_02.wav",
+     "source": "MUSIC/auditions/SFX_UI_PANEL_CLOSE__take4__zfinbQTdEqDAZgFElk7p.mp3",
+     "generation_id": "zfinbQTdEqDAZgFElk7p",
+     "duration_s": 0.574,
+     "lufs": -15.4,
+     "true_peak_db": -0.9,
+     "editing": [
+      "highpass=f=120:poles=2",
+      "trim lead 0.000s tail 0.226s",
+      "fade in 3 ms, fade out 0.04 s",
+      "gain +6.77 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+      "16-bit PCM WAV 44.1 kHz"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "SFX_UI_DENIED",
+   "category": "sfx",
+   "description": "Soft low two-tone blip",
+   "game_action": "Unavailable action",
+   "trigger": "Placement refused, unaffordable/locked upgrade bubble",
+   "playback": "One-shot, 300 ms cooldown; the red on-screen reason stays visible",
+   "loop": false,
+   "variations": 2,
+   "model": "eleven_text_to_sound_v2",
+   "flow_id": "3RwACgrCocQq0VVYBAEM",
+   "node_id": "z8gVJhrMQIoFimlpn1Yl",
+   "prompt": "Soft low muted two-tone error blip from a computer console, gentle and dull, not harsh, short and dry",
+   "selection_note": null,
+   "volume_db": -14.0,
+   "cooldown_s": 0.3,
+   "max_voices": 1,
+   "priority": 60,
+   "pitch_jitter": 0.0,
+   "catalog_variations": 2,
+   "status": [
+    "generated",
+    "technically checked",
+    "agent-selected"
+   ],
+   "user_approved": false,
+   "listening": "not auditioned by ear: no listening capability was available to the agent",
+   "licence": "ElevenLabs Creator (paid) output; see MUSIC/evidence/2026-11-15_usage_rights.md",
+   "files": [
+    {
+     "final_master": "MUSIC/final/sfx/SFX_UI_DENIED_01.wav",
+     "shipping_copy": "Assets/Audio/Resources/Audio/Sfx/SFX_UI_DENIED_01.wav",
+     "source": "MUSIC/auditions/SFX_UI_DENIED__take2__cIkOfOoVjGcY3iSM0cA1.mp3",
+     "generation_id": "cIkOfOoVjGcY3iSM0cA1",
+     "duration_s": 0.6,
+     "lufs": -17.9,
+     "true_peak_db": -7.2,
+     "editing": [
+      "highpass=f=60:poles=2",
+      "trim lead 0.000s tail 0.000s",
+      "fade in 3 ms, fade out 0.04 s",
+      "gain +7.08 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+      "16-bit PCM WAV 44.1 kHz"
+     ]
+    },
+    {
+     "final_master": "MUSIC/final/sfx/SFX_UI_DENIED_02.wav",
+     "shipping_copy": "Assets/Audio/Resources/Audio/Sfx/SFX_UI_DENIED_02.wav",
+     "source": "MUSIC/auditions/SFX_UI_DENIED__take3__NjXZwIyiqLxZZCfaMuAq.mp3",
+     "generation_id": "NjXZwIyiqLxZZCfaMuAq",
+     "duration_s": 0.6,
+     "lufs": -18.3,
+     "true_peak_db": -4.7,
+     "editing": [
+      "highpass=f=60:poles=2",
+      "trim lead 0.000s tail 0.000s",
+      "fade in 3 ms, fade out 0.04 s",
+      "gain +13.20 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+      "16-bit PCM WAV 44.1 kHz"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "SFX_LAUNCH_WHOOSH",
+   "category": "sfx",
+   "description": "Rising airy whoosh with shimmer",
+   "game_action": "Start -> 1.45 s fly-to-Mars",
+   "trigger": "GameAudio.Launch when Reduce Motion is off",
+   "playback": "One-shot; skipped with Reduce Motion",
+   "loop": false,
+   "variations": 1,
+   "model": "eleven_text_to_sound_v2",
+   "flow_id": "3RwACgrCocQq0VVYBAEM",
+   "node_id": "HfCH1U4FPCiMItIl0Z3h",
+   "prompt": "Smooth rising airy whoosh with a soft shimmering synth swell, gentle and spacious, fading out at the end",
+   "selection_note": null,
+   "volume_db": -9.0,
+   "cooldown_s": 1.0,
+   "max_voices": 1,
+   "priority": 80,
+   "pitch_jitter": 0.0,
+   "catalog_variations": 1,
+   "status": [
+    "generated",
+    "technically checked",
+    "agent-selected"
+   ],
+   "user_approved": false,
+   "listening": "not auditioned by ear: no listening capability was available to the agent",
+   "licence": "ElevenLabs Creator (paid) output; see MUSIC/evidence/2026-11-15_usage_rights.md",
+   "files": [
+    {
+     "final_master": "MUSIC/final/sfx/SFX_LAUNCH_WHOOSH_01.wav",
+     "shipping_copy": "Assets/Audio/Resources/Audio/Sfx/SFX_LAUNCH_WHOOSH_01.wav",
+     "source": "MUSIC/auditions/SFX_LAUNCH_WHOOSH__take1__wb5Y2EhKWhXvCeK0eszv.mp3",
+     "generation_id": "wb5Y2EhKWhXvCeK0eszv",
+     "duration_s": 1.6,
+     "lufs": -15.6,
+     "true_peak_db": -3.0,
+     "editing": [
+      "highpass=f=40:poles=2",
+      "trim lead 0.000s tail 0.000s",
+      "fade in 3 ms, fade out 0.04 s",
+      "gain -3.37 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+      "16-bit PCM WAV 44.1 kHz"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "SFX_ROCKET_DESCENT",
+   "category": "sfx",
+   "description": "Muffled retro-thruster roar easing down, cut to 1.9 s",
+   "game_action": "Rocket descent over the Landing Pad",
+   "trigger": "Building.LandFromAbove start (motion path only)",
+   "playback": "One-shot aligned to the 1.8 s quadratic ease-out",
+   "loop": false,
+   "variations": 1,
+   "model": "eleven_text_to_sound_v2",
+   "flow_id": "3RwACgrCocQq0VVYBAEM",
+   "node_id": "yjcjXFw7vfZL5EJ44iR0",
+   "prompt": "Rocket retro thrusters firing during a slow descent, muffled deep rumbling roar that steadily eases down, heard through thin distant air",
+   "selection_note": "cut to 1.9 s so the roar dies as the 1.8 s landing ends and SFX_ROCKET_TOUCHDOWN starts",
+   "volume_db": -7.0,
+   "cooldown_s": 1.0,
+   "max_voices": 1,
+   "priority": 85,
+   "pitch_jitter": 0.0,
+   "catalog_variations": 1,
+   "status": [
+    "generated",
+    "technically checked",
+    "agent-selected"
+   ],
+   "user_approved": false,
+   "listening": "not auditioned by ear: no listening capability was available to the agent",
+   "licence": "ElevenLabs Creator (paid) output; see MUSIC/evidence/2026-11-15_usage_rights.md",
+   "files": [
+    {
+     "final_master": "MUSIC/final/sfx/SFX_ROCKET_DESCENT_01.wav",
+     "shipping_copy": "Assets/Audio/Resources/Audio/Sfx/SFX_ROCKET_DESCENT_01.wav",
+     "source": "MUSIC/auditions/SFX_ROCKET_DESCENT__take2__iEvdRc1gcku5ihAp4B1s.mp3",
+     "generation_id": "iEvdRc1gcku5ihAp4B1s",
+     "duration_s": 1.9,
+     "lufs": -17.2,
+     "true_peak_db": -6.8,
+     "editing": [
+      "highpass=f=40:poles=2",
+      "trim lead 0.000s tail 0.000s",
+      "cut to 1.9 s",
+      "fade in 3 ms, fade out 0.3 s",
+      "gain -7.34 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+      "16-bit PCM WAV 44.1 kHz"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "SFX_ROCKET_TOUCHDOWN",
+   "category": "sfx",
+   "description": "Deep metal thud then venting hiss",
+   "game_action": "Rocket touchdown",
+   "trigger": "Building.LandFromAbove end (both motion and Reduce Motion paths)",
+   "playback": "One-shot",
+   "loop": false,
+   "variations": 1,
+   "model": "eleven_text_to_sound_v2",
+   "flow_id": "3RwACgrCocQq0VVYBAEM",
+   "node_id": "9deHJU9qSZnvIOcUs6bh",
+   "prompt": "Heavy spacecraft landing legs touching down on gravel, deep muffled metal thud, then pressurised steam venting hiss fading out",
+   "selection_note": null,
+   "volume_db": -7.0,
+   "cooldown_s": 1.0,
+   "max_voices": 1,
+   "priority": 85,
+   "pitch_jitter": 0.0,
+   "catalog_variations": 1,
+   "status": [
+    "generated",
+    "technically checked",
+    "agent-selected"
+   ],
+   "user_approved": false,
+   "listening": "not auditioned by ear: no listening capability was available to the agent",
+   "licence": "ElevenLabs Creator (paid) output; see MUSIC/evidence/2026-11-15_usage_rights.md",
+   "files": [
+    {
+     "final_master": "MUSIC/final/sfx/SFX_ROCKET_TOUCHDOWN_01.wav",
+     "shipping_copy": "Assets/Audio/Resources/Audio/Sfx/SFX_ROCKET_TOUCHDOWN_01.wav",
+     "source": "MUSIC/auditions/SFX_ROCKET_TOUCHDOWN__take3__wEhHzFID91ie1VBnBxzc.mp3",
+     "generation_id": "wEhHzFID91ie1VBnBxzc",
+     "duration_s": 2.942,
+     "lufs": -20.8,
+     "true_peak_db": -6.8,
+     "editing": [
+      "highpass=f=40:poles=2",
+      "trim lead 0.000s tail 0.058s",
+      "fade in 3 ms, fade out 0.4 s",
+      "gain -6.41 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+      "16-bit PCM WAV 44.1 kHz"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "SFX_HATCH",
+   "category": "sfx",
+   "description": "Pneumatic hiss and latch",
+   "game_action": "Crew leaving/entering the rocket",
+   "trigger": "Crew.Exit / Crew.Enter at the door fade",
+   "playback": "One-shot, 1 s cooldown = one hatch per trip",
+   "loop": false,
+   "variations": 2,
+   "model": "eleven_text_to_sound_v2",
+   "flow_id": "3RwACgrCocQq0VVYBAEM",
+   "node_id": "8hXg7aXI8aZEcT7eiddq",
+   "prompt": "Spacecraft airlock hatch opening, soft pneumatic hiss with a light metallic latch clunk, muffled",
+   "selection_note": null,
+   "volume_db": -15.0,
+   "cooldown_s": 1.0,
+   "max_voices": 1,
+   "priority": 45,
+   "pitch_jitter": 0.0,
+   "catalog_variations": 2,
+   "status": [
+    "generated",
+    "technically checked",
+    "agent-selected"
+   ],
+   "user_approved": false,
+   "listening": "not auditioned by ear: no listening capability was available to the agent",
+   "licence": "ElevenLabs Creator (paid) output; see MUSIC/evidence/2026-11-15_usage_rights.md",
+   "files": [
+    {
+     "final_master": "MUSIC/final/sfx/SFX_HATCH_01.wav",
+     "shipping_copy": "Assets/Audio/Resources/Audio/Sfx/SFX_HATCH_01.wav",
+     "source": "MUSIC/auditions/SFX_HATCH__take1__50XLfSPB4ZIekcGXKMKA.mp3",
+     "generation_id": "50XLfSPB4ZIekcGXKMKA",
+     "duration_s": 1.198,
+     "lufs": -15.6,
+     "true_peak_db": -1.0,
+     "editing": [
+      "lowpass=f=9000:poles=2",
+      "trim lead 0.000s tail 0.002s",
+      "fade in 3 ms, fade out 0.04 s",
+      "gain -1.27 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+      "16-bit PCM WAV 44.1 kHz"
+     ]
+    },
+    {
+     "final_master": "MUSIC/final/sfx/SFX_HATCH_02.wav",
+     "shipping_copy": "Assets/Audio/Resources/Audio/Sfx/SFX_HATCH_02.wav",
+     "source": "MUSIC/auditions/SFX_HATCH__take3__uSt5u3XhjV2UX1FziaV3.mp3",
+     "generation_id": "uSt5u3XhjV2UX1FziaV3",
+     "duration_s": 1.072,
+     "lufs": -16.9,
+     "true_peak_db": -1.0,
+     "editing": [
+      "lowpass=f=9000:poles=2",
+      "trim lead 0.071s tail 0.058s",
+      "fade in 3 ms, fade out 0.04 s",
+      "gain -0.92 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+      "16-bit PCM WAV 44.1 kHz"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "SFX_BUILD_PLACE",
+   "category": "sfx",
+   "description": "Soft metal frame clunk with servo whir",
+   "game_action": "Blueprint placed (paid)",
+   "trigger": "BuilderMode.Place when Colony.TryPlace succeeds",
+   "playback": "One-shot, 3 variations, slight pitch variation, 80 ms cooldown for Shift-placing",
+   "loop": false,
+   "variations": 3,
+   "model": "eleven_text_to_sound_v2",
+   "flow_id": "3RwACgrCocQq0VVYBAEM",
+   "node_id": "rpLLV2iTNbYW3WOWM7UH",
+   "prompt": "Light metal frame set down on gravel, soft solid clunk with a short servo whir, muffled and dry",
+   "selection_note": null,
+   "volume_db": -11.0,
+   "cooldown_s": 0.08,
+   "max_voices": 2,
+   "priority": 60,
+   "pitch_jitter": 0.04,
+   "catalog_variations": 3,
+   "status": [
+    "generated",
+    "technically checked",
+    "agent-selected"
+   ],
+   "user_approved": false,
+   "listening": "not auditioned by ear: no listening capability was available to the agent",
+   "licence": "ElevenLabs Creator (paid) output; see MUSIC/evidence/2026-11-15_usage_rights.md",
+   "files": [
+    {
+     "final_master": "MUSIC/final/sfx/SFX_BUILD_PLACE_01.wav",
+     "shipping_copy": "Assets/Audio/Resources/Audio/Sfx/SFX_BUILD_PLACE_01.wav",
+     "source": "MUSIC/auditions/SFX_BUILD_PLACE__take1__Ut34EJFJ39HnXpJqXKLG.mp3",
+     "generation_id": "Ut34EJFJ39HnXpJqXKLG",
+     "duration_s": 0.621,
+     "lufs": -22.5,
+     "true_peak_db": -1.0,
+     "editing": [
+      "highpass=f=50:poles=2",
+      "trim lead 0.046s tail 0.133s",
+      "fade in 3 ms, fade out 0.04 s",
+      "gain +10.94 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+      "16-bit PCM WAV 44.1 kHz"
+     ]
+    },
+    {
+     "final_master": "MUSIC/final/sfx/SFX_BUILD_PLACE_02.wav",
+     "shipping_copy": "Assets/Audio/Resources/Audio/Sfx/SFX_BUILD_PLACE_02.wav",
+     "source": "MUSIC/auditions/SFX_BUILD_PLACE__take3__HVkJGYCAyaYI2XfPaQ0v.mp3",
+     "generation_id": "HVkJGYCAyaYI2XfPaQ0v",
+     "duration_s": 0.256,
+     "lufs": -70.0,
+     "true_peak_db": -1.0,
+     "editing": [
+      "highpass=f=50:poles=2",
+      "trim lead 0.301s tail 0.243s",
+      "fade in 3 ms, fade out 0.04 s",
+      "gain +15.98 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+      "16-bit PCM WAV 44.1 kHz"
+     ]
+    },
+    {
+     "final_master": "MUSIC/final/sfx/SFX_BUILD_PLACE_03.wav",
+     "shipping_copy": "Assets/Audio/Resources/Audio/Sfx/SFX_BUILD_PLACE_03.wav",
+     "source": "MUSIC/auditions/SFX_BUILD_PLACE__take4__Lr8bjNz188zwSQ4ROlua.mp3",
+     "generation_id": "Lr8bjNz188zwSQ4ROlua",
+     "duration_s": 0.348,
+     "lufs": -70.0,
+     "true_peak_db": -1.0,
+     "editing": [
+      "highpass=f=50:poles=2",
+      "trim lead 0.003s tail 0.449s",
+      "fade in 3 ms, fade out 0.04 s",
+      "gain +22.23 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+      "16-bit PCM WAV 44.1 kHz"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "SFX_CONSTRUCT_LOOP",
+   "category": "sfx",
+   "description": "Muffled rhythmic tapping and driver",
+   "game_action": "Crew building",
+   "trigger": "Crew.Work build phase",
+   "playback": "Crossfaded loop owned by Crew; stops at completion, pauses with the pause menu",
+   "loop": true,
+   "variations": 1,
+   "model": "eleven_text_to_sound_v2",
+   "flow_id": "3RwACgrCocQq0VVYBAEM",
+   "node_id": "5hR8UOuMul4Qc8TreLDJ",
+   "prompt": "Gentle construction work, soft rhythmic tapping on metal panels and a quiet electric screwdriver, muffled, steady, no voices",
+   "selection_note": null,
+   "volume_db": -19.0,
+   "cooldown_s": 0.0,
+   "max_voices": 1,
+   "priority": 35,
+   "pitch_jitter": 0.0,
+   "catalog_variations": 1,
+   "status": [
+    "generated",
+    "technically checked",
+    "agent-selected"
+   ],
+   "user_approved": false,
+   "listening": "not auditioned by ear: no listening capability was available to the agent",
+   "licence": "ElevenLabs Creator (paid) output; see MUSIC/evidence/2026-11-15_usage_rights.md",
+   "files": [
+    {
+     "final_master": "MUSIC/final/sfx/SFX_CONSTRUCT_LOOP_01.wav",
+     "shipping_copy": "Assets/Audio/Resources/Audio/Sfx/SFX_CONSTRUCT_LOOP_01.wav",
+     "source": "MUSIC/auditions/SFX_CONSTRUCT_LOOP__take1__mHFM1kF94JvPxVwEU4DO.mp3",
+     "generation_id": "mHFM1kF94JvPxVwEU4DO",
+     "duration_s": 4.0,
+     "lufs": -21.4,
+     "true_peak_db": -1.0,
+     "editing": [
+      "highpass=f=60:poles=2",
+      "gain +23.39 dB (RMS -> -24 dBFS, peak cap -1 dBFS); no trim/fade, engine crossfades",
+      "16-bit PCM WAV 44.1 kHz"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "SFX_BUILD_COMPLETE",
+   "category": "sfx",
+   "description": "Two warm rising chimes with seal hiss",
+   "game_action": "Construction or upgrade finished",
+   "trigger": "Crew.Work after job.FinishBuild",
+   "playback": "One-shot; never on scene setup or refresh",
+   "loop": false,
+   "variations": 2,
+   "model": "eleven_text_to_sound_v2",
+   "flow_id": "3RwACgrCocQq0VVYBAEM",
+   "node_id": "JXAO1K5RLDlHIfaA1sIY",
+   "prompt": "Warm satisfying completion chime, two soft rising bell-like felt piano notes with a gentle pneumatic seal hiss",
+   "selection_note": null,
+   "volume_db": -11.0,
+   "cooldown_s": 0.5,
+   "max_voices": 1,
+   "priority": 70,
+   "pitch_jitter": 0.0,
+   "catalog_variations": 2,
+   "status": [
+    "generated",
+    "technically checked",
+    "agent-selected"
+   ],
+   "user_approved": false,
+   "listening": "not auditioned by ear: no listening capability was available to the agent",
+   "licence": "ElevenLabs Creator (paid) output; see MUSIC/evidence/2026-11-15_usage_rights.md",
+   "files": [
+    {
+     "final_master": "MUSIC/final/sfx/SFX_BUILD_COMPLETE_01.wav",
+     "shipping_copy": "Assets/Audio/Resources/Audio/Sfx/SFX_BUILD_COMPLETE_01.wav",
+     "source": "MUSIC/auditions/SFX_BUILD_COMPLETE__take4__PnsMvZxjcUVAEhXlyY5w.mp3",
+     "generation_id": "PnsMvZxjcUVAEhXlyY5w",
+     "duration_s": 1.6,
+     "lufs": -18.8,
+     "true_peak_db": -3.3,
+     "editing": [
+      "lowpass=f=10000:poles=2",
+      "trim lead 0.000s tail 0.000s",
+      "fade in 3 ms, fade out 0.25 s",
+      "gain -3.23 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+      "16-bit PCM WAV 44.1 kHz"
+     ]
+    },
+    {
+     "final_master": "MUSIC/final/sfx/SFX_BUILD_COMPLETE_02.wav",
+     "shipping_copy": "Assets/Audio/Resources/Audio/Sfx/SFX_BUILD_COMPLETE_02.wav",
+     "source": "MUSIC/auditions/SFX_BUILD_COMPLETE__take1__fmmsBUkdU8dkPuxc9rtT.mp3",
+     "generation_id": "fmmsBUkdU8dkPuxc9rtT",
+     "duration_s": 1.6,
+     "lufs": -16.9,
+     "true_peak_db": -0.9,
+     "editing": [
+      "lowpass=f=10000:poles=2",
+      "trim lead 0.000s tail 0.000s",
+      "fade in 3 ms, fade out 0.25 s",
+      "gain +0.59 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+      "16-bit PCM WAV 44.1 kHz"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "SFX_UPGRADE_PURCHASE",
+   "category": "sfx",
+   "description": "Soft upward power-up with glassy click",
+   "game_action": "Upgrade bought",
+   "trigger": "UpgradeBubbles when TryUpgrade succeeds",
+   "playback": "One-shot (completion cue follows when the crew finishes)",
+   "loop": false,
+   "variations": 2,
+   "model": "eleven_text_to_sound_v2",
+   "flow_id": "3RwACgrCocQq0VVYBAEM",
+   "node_id": "KzDzl4GL3Vwg30MkmECm",
+   "prompt": "Soft upward synth power-up sweep ending in a gentle glassy click, short, warm and positive",
+   "selection_note": null,
+   "volume_db": -11.0,
+   "cooldown_s": 0.15,
+   "max_voices": 1,
+   "priority": 65,
+   "pitch_jitter": 0.0,
+   "catalog_variations": 2,
+   "status": [
+    "generated",
+    "technically checked",
+    "agent-selected"
+   ],
+   "user_approved": false,
+   "listening": "not auditioned by ear: no listening capability was available to the agent",
+   "licence": "ElevenLabs Creator (paid) output; see MUSIC/evidence/2026-11-15_usage_rights.md",
+   "files": [
+    {
+     "final_master": "MUSIC/final/sfx/SFX_UPGRADE_PURCHASE_01.wav",
+     "shipping_copy": "Assets/Audio/Resources/Audio/Sfx/SFX_UPGRADE_PURCHASE_01.wav",
+     "source": "MUSIC/auditions/SFX_UPGRADE_PURCHASE__take2__gqIEXs7G0CmkYUNqMqq6.mp3",
+     "generation_id": "gqIEXs7G0CmkYUNqMqq6",
+     "duration_s": 1.0,
+     "lufs": -11.9,
+     "true_peak_db": -2.9,
+     "editing": [
+      "lowpass=f=7000:poles=2",
+      "trim lead 0.000s tail 0.000s",
+      "fade in 3 ms, fade out 0.2 s",
+      "gain -3.30 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+      "16-bit PCM WAV 44.1 kHz"
+     ]
+    },
+    {
+     "final_master": "MUSIC/final/sfx/SFX_UPGRADE_PURCHASE_02.wav",
+     "shipping_copy": "Assets/Audio/Resources/Audio/Sfx/SFX_UPGRADE_PURCHASE_02.wav",
+     "source": "MUSIC/auditions/SFX_UPGRADE_PURCHASE__take1__NUHMLdes5QZ0UsH71BXZ.mp3",
+     "generation_id": "NUHMLdes5QZ0UsH71BXZ",
+     "duration_s": 1.0,
+     "lufs": -13.2,
+     "true_peak_db": -5.9,
+     "editing": [
+      "lowpass=f=7000:poles=2",
+      "trim lead 0.000s tail 0.000s",
+      "fade in 3 ms, fade out 0.2 s",
+      "gain -4.95 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+      "16-bit PCM WAV 44.1 kHz"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "SFX_GUIDE_NOTIFY",
+   "category": "sfx",
+   "description": "Two soft rising radio beeps",
+   "game_action": "Marlonis message waiting",
+   "trigger": "MissionGuide.Start (1.5 s after the badge appears)",
+   "playback": "One-shot",
+   "loop": false,
+   "variations": 1,
+   "model": "eleven_text_to_sound_v2",
+   "flow_id": "3RwACgrCocQq0VVYBAEM",
+   "node_id": "OXbrEkQRKsO3j9ryCnEV",
+   "prompt": "Gentle radio comms chirp, two soft rising beeps with a faint warm static crackle, short",
+   "selection_note": null,
+   "volume_db": -13.0,
+   "cooldown_s": 2.0,
+   "max_voices": 1,
+   "priority": 55,
+   "pitch_jitter": 0.0,
+   "catalog_variations": 1,
+   "status": [
+    "generated",
+    "technically checked",
+    "agent-selected"
+   ],
+   "user_approved": false,
+   "listening": "not auditioned by ear: no listening capability was available to the agent",
+   "licence": "ElevenLabs Creator (paid) output; see MUSIC/evidence/2026-11-15_usage_rights.md",
+   "files": [
+    {
+     "final_master": "MUSIC/final/sfx/SFX_GUIDE_NOTIFY_01.wav",
+     "shipping_copy": "Assets/Audio/Resources/Audio/Sfx/SFX_GUIDE_NOTIFY_01.wav",
+     "source": "MUSIC/auditions/SFX_GUIDE_NOTIFY__take2__3YjVOa5DaddOwnVfCpDW.mp3",
+     "generation_id": "3YjVOa5DaddOwnVfCpDW",
+     "duration_s": 1.0,
+     "lufs": -12.3,
+     "true_peak_db": -1.4,
+     "editing": [
+      "lowpass=f=9000:poles=2",
+      "trim lead 0.000s tail 0.000s",
+      "fade in 3 ms, fade out 0.04 s",
+      "gain +8.55 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+      "16-bit PCM WAV 44.1 kHz"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "SFX_GUIDE_NEXT",
+   "category": "sfx",
+   "description": "Single soft radio blip",
+   "game_action": "Marlonis dialogue line advance",
+   "trigger": "MissionGuide.Advance",
+   "playback": "One-shot",
+   "loop": false,
+   "variations": 2,
+   "model": "eleven_text_to_sound_v2",
+   "flow_id": "3RwACgrCocQq0VVYBAEM",
+   "node_id": "Dfs1ejdxaszEf0Yi7DQE",
+   "prompt": "Very short soft radio blip, a single quiet beep with faint static, close",
+   "selection_note": null,
+   "volume_db": -17.0,
+   "cooldown_s": 0.08,
+   "max_voices": 1,
+   "priority": 40,
+   "pitch_jitter": 0.0,
+   "catalog_variations": 2,
+   "status": [
+    "generated",
+    "technically checked",
+    "agent-selected"
+   ],
+   "user_approved": false,
+   "listening": "not auditioned by ear: no listening capability was available to the agent",
+   "licence": "ElevenLabs Creator (paid) output; see MUSIC/evidence/2026-11-15_usage_rights.md",
+   "files": [
+    {
+     "final_master": "MUSIC/final/sfx/SFX_GUIDE_NEXT_01.wav",
+     "shipping_copy": "Assets/Audio/Resources/Audio/Sfx/SFX_GUIDE_NEXT_01.wav",
+     "source": "MUSIC/auditions/SFX_GUIDE_NEXT__take1__ca5Kqs5MsiMguqqFn1JY.mp3",
+     "generation_id": "ca5Kqs5MsiMguqqFn1JY",
+     "duration_s": 0.48,
+     "lufs": -15.1,
+     "true_peak_db": -1.0,
+     "editing": [
+      "trim lead 0.000s tail 0.000s",
+      "fade in 3 ms, fade out 0.04 s",
+      "gain +10.69 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+      "16-bit PCM WAV 44.1 kHz"
+     ]
+    },
+    {
+     "final_master": "MUSIC/final/sfx/SFX_GUIDE_NEXT_02.wav",
+     "shipping_copy": "Assets/Audio/Resources/Audio/Sfx/SFX_GUIDE_NEXT_02.wav",
+     "source": "MUSIC/auditions/SFX_GUIDE_NEXT__take4__J76pliSXdkULXtUmuP2o.mp3",
+     "generation_id": "J76pliSXdkULXtUmuP2o",
+     "duration_s": 0.266,
+     "lufs": -70.0,
+     "true_peak_db": -1.0,
+     "editing": [
+      "trim lead 0.000s tail 0.214s",
+      "fade in 3 ms, fade out 0.04 s",
+      "gain +7.34 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+      "16-bit PCM WAV 44.1 kHz"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "SFX_ALERT_SHORTAGE",
+   "category": "sfx",
+   "description": "Calm two-tone caution alarm",
+   "game_action": "Oxygen/Food/Water ran out",
+   "trigger": "OutpostAudio: lifeSupportShort false->true",
+   "playback": "One-shot; repeats every 30 s while short; 12 s cooldown",
+   "loop": false,
+   "variations": 1,
+   "model": "eleven_text_to_sound_v2",
+   "flow_id": "3RwACgrCocQq0VVYBAEM",
+   "node_id": "KdKBAUa1jX8Uk7REYyKs",
+   "prompt": "Calm spacecraft caution alarm, two soft descending mid-pitched tones repeated twice, clear but not piercing",
+   "selection_note": null,
+   "volume_db": -9.0,
+   "cooldown_s": 12.0,
+   "max_voices": 1,
+   "priority": 95,
+   "pitch_jitter": 0.0,
+   "catalog_variations": 1,
+   "status": [
+    "generated",
+    "technically checked",
+    "agent-selected"
+   ],
+   "user_approved": false,
+   "listening": "not auditioned by ear: no listening capability was available to the agent",
+   "licence": "ElevenLabs Creator (paid) output; see MUSIC/evidence/2026-11-15_usage_rights.md",
+   "files": [
+    {
+     "final_master": "MUSIC/final/sfx/SFX_ALERT_SHORTAGE_01.wav",
+     "shipping_copy": "Assets/Audio/Resources/Audio/Sfx/SFX_ALERT_SHORTAGE_01.wav",
+     "source": "MUSIC/auditions/SFX_ALERT_SHORTAGE__take4__yflwpw2oCviII2aXPWnk.mp3",
+     "generation_id": "yflwpw2oCviII2aXPWnk",
+     "duration_s": 2.0,
+     "lufs": -15.9,
+     "true_peak_db": -9.4,
+     "editing": [
+      "trim lead 0.000s tail 0.000s",
+      "fade in 3 ms, fade out 0.2 s",
+      "gain -3.32 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+      "16-bit PCM WAV 44.1 kHz"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "SFX_ALERT_RECOVERED",
+   "category": "sfx",
+   "description": "Two soft ascending all-clear chimes",
+   "game_action": "Life support restored",
+   "trigger": "OutpostAudio: short->ok after >= 1.5 s short",
+   "playback": "One-shot, 6 s cooldown",
+   "loop": false,
+   "variations": 1,
+   "model": "eleven_text_to_sound_v2",
+   "flow_id": "3RwACgrCocQq0VVYBAEM",
+   "node_id": "O0VmBSVoeUQI1H3UqS1N",
+   "prompt": "Calm all-clear tone, two soft ascending warm chime notes, reassuring, short",
+   "selection_note": null,
+   "volume_db": -11.0,
+   "cooldown_s": 6.0,
+   "max_voices": 1,
+   "priority": 90,
+   "pitch_jitter": 0.0,
+   "catalog_variations": 1,
+   "status": [
+    "generated",
+    "technically checked",
+    "agent-selected"
+   ],
+   "user_approved": false,
+   "listening": "not auditioned by ear: no listening capability was available to the agent",
+   "licence": "ElevenLabs Creator (paid) output; see MUSIC/evidence/2026-11-15_usage_rights.md",
+   "files": [
+    {
+     "final_master": "MUSIC/final/sfx/SFX_ALERT_RECOVERED_01.wav",
+     "shipping_copy": "Assets/Audio/Resources/Audio/Sfx/SFX_ALERT_RECOVERED_01.wav",
+     "source": "MUSIC/auditions/SFX_ALERT_RECOVERED__take4__xTXnOMnxWRTlFuCmjlY7.mp3",
+     "generation_id": "xTXnOMnxWRTlFuCmjlY7",
+     "duration_s": 1.36,
+     "lufs": -19.1,
+     "true_peak_db": -6.0,
+     "editing": [
+      "trim lead 0.000s tail 0.000s",
+      "fade in 3 ms, fade out 0.2 s",
+      "gain -0.99 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+      "16-bit PCM WAV 44.1 kHz"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "SFX_ALERT_STALL",
+   "category": "sfx",
+   "description": "Soft electrical power-down",
+   "game_action": "Building stalls (red tint)",
+   "trigger": "OutpostAudio: a building stalled for 1 s (grouped, re-arms after 3 s running)",
+   "playback": "One-shot, 8 s cooldown, held back within 4 s of a shortage alert",
+   "loop": false,
+   "variations": 2,
+   "model": "eleven_text_to_sound_v2",
+   "flow_id": "3RwACgrCocQq0VVYBAEM",
+   "node_id": "4lMJpWsdun0z7CdawNvl",
+   "prompt": "Machine powering down, soft descending electrical hum with a muted click, short",
+   "selection_note": null,
+   "volume_db": -13.0,
+   "cooldown_s": 8.0,
+   "max_voices": 1,
+   "priority": 75,
+   "pitch_jitter": 0.0,
+   "catalog_variations": 2,
+   "status": [
+    "generated",
+    "technically checked",
+    "agent-selected"
+   ],
+   "user_approved": false,
+   "listening": "not auditioned by ear: no listening capability was available to the agent",
+   "licence": "ElevenLabs Creator (paid) output; see MUSIC/evidence/2026-11-15_usage_rights.md",
+   "files": [
+    {
+     "final_master": "MUSIC/final/sfx/SFX_ALERT_STALL_01.wav",
+     "shipping_copy": "Assets/Audio/Resources/Audio/Sfx/SFX_ALERT_STALL_01.wav",
+     "source": "MUSIC/auditions/SFX_ALERT_STALL__take4__vtoI12Pto8dg8nWC7g4a.mp3",
+     "generation_id": "vtoI12Pto8dg8nWC7g4a",
+     "duration_s": 1.2,
+     "lufs": -17.7,
+     "true_peak_db": -7.2,
+     "editing": [
+      "highpass=f=120:poles=2",
+      "trim lead 0.000s tail 0.000s",
+      "fade in 3 ms, fade out 0.2 s",
+      "gain +3.31 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+      "16-bit PCM WAV 44.1 kHz"
+     ]
+    },
+    {
+     "final_master": "MUSIC/final/sfx/SFX_ALERT_STALL_02.wav",
+     "shipping_copy": "Assets/Audio/Resources/Audio/Sfx/SFX_ALERT_STALL_02.wav",
+     "source": "MUSIC/auditions/SFX_ALERT_STALL__take1__Noa8XS48ljBtvFxb1mPA.mp3",
+     "generation_id": "Noa8XS48ljBtvFxb1mPA",
+     "duration_s": 1.2,
+     "lufs": -14.1,
+     "true_peak_db": -2.0,
+     "editing": [
+      "highpass=f=120:poles=2",
+      "trim lead 0.000s tail 0.000s",
+      "fade in 3 ms, fade out 0.2 s",
+      "gain +9.24 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+      "16-bit PCM WAV 44.1 kHz"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "SFX_ALERT_FITNESS",
+   "category": "sfx",
+   "description": "Gentle low two-note monitor chime",
+   "game_action": "Crew fitness enters the lowest gauge segment",
+   "trigger": "OutpostAudio: fitness < 0.2 (re-arms above 0.3)",
+   "playback": "One-shot, 30 s cooldown",
+   "loop": false,
+   "variations": 1,
+   "model": "eleven_text_to_sound_v2",
+   "flow_id": "3RwACgrCocQq0VVYBAEM",
+   "node_id": "qHsVYvEy9lJ0GEAeFlwH",
+   "prompt": "Gentle low two-note medical monitor chime, soft and warm, slightly concerned, short",
+   "selection_note": null,
+   "volume_db": -12.0,
+   "cooldown_s": 30.0,
+   "max_voices": 1,
+   "priority": 80,
+   "pitch_jitter": 0.0,
+   "catalog_variations": 1,
+   "status": [
+    "generated",
+    "technically checked",
+    "agent-selected"
+   ],
+   "user_approved": false,
+   "listening": "not auditioned by ear: no listening capability was available to the agent",
+   "licence": "ElevenLabs Creator (paid) output; see MUSIC/evidence/2026-11-15_usage_rights.md",
+   "files": [
+    {
+     "final_master": "MUSIC/final/sfx/SFX_ALERT_FITNESS_01.wav",
+     "shipping_copy": "Assets/Audio/Resources/Audio/Sfx/SFX_ALERT_FITNESS_01.wav",
+     "source": "MUSIC/auditions/SFX_ALERT_FITNESS__take4__T3ybeL2l29EYWExdEpg2.mp3",
+     "generation_id": "T3ybeL2l29EYWExdEpg2",
+     "duration_s": 1.36,
+     "lufs": -18.6,
+     "true_peak_db": -8.8,
+     "editing": [
+      "trim lead 0.000s tail 0.000s",
+      "fade in 3 ms, fade out 0.2 s",
+      "gain +3.20 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+      "16-bit PCM WAV 44.1 kHz"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "SFX_FOOTSTEP",
+   "category": "sfx",
+   "description": "Soft boot on dusty gravel",
+   "game_action": "Crew walking",
+   "trigger": "Crew.Walk, every second bob step",
+   "playback": "One-shot, very quiet, 4 variations, max 2 voices",
+   "loop": false,
+   "variations": 4,
+   "model": "eleven_text_to_sound_v2",
+   "flow_id": "3RwACgrCocQq0VVYBAEM",
+   "node_id": "ocReQAmpsTXSsOKfKArc",
+   "prompt": "Single soft footstep of a heavy boot on fine dusty gravel, muffled, close",
+   "selection_note": null,
+   "volume_db": -27.0,
+   "cooldown_s": 0.12,
+   "max_voices": 2,
+   "priority": 10,
+   "pitch_jitter": 0.06,
+   "catalog_variations": 4,
+   "status": [
+    "generated",
+    "technically checked",
+    "agent-selected"
+   ],
+   "user_approved": false,
+   "listening": "not auditioned by ear: no listening capability was available to the agent",
+   "licence": "ElevenLabs Creator (paid) output; see MUSIC/evidence/2026-11-15_usage_rights.md",
+   "files": [
+    {
+     "final_master": "MUSIC/final/sfx/SFX_FOOTSTEP_01.wav",
+     "shipping_copy": "Assets/Audio/Resources/Audio/Sfx/SFX_FOOTSTEP_01.wav",
+     "source": "MUSIC/auditions/SFX_FOOTSTEP__take1__2LKqvjCLgHkuITYgAxeV.mp3",
+     "generation_id": "2LKqvjCLgHkuITYgAxeV",
+     "duration_s": 0.48,
+     "lufs": -24.2,
+     "true_peak_db": -1.0,
+     "editing": [
+      "highpass=f=80:poles=2",
+      "trim lead 0.000s tail 0.000s",
+      "fade in 3 ms, fade out 0.04 s",
+      "gain +16.17 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+      "16-bit PCM WAV 44.1 kHz"
+     ]
+    },
+    {
+     "final_master": "MUSIC/final/sfx/SFX_FOOTSTEP_02.wav",
+     "shipping_copy": "Assets/Audio/Resources/Audio/Sfx/SFX_FOOTSTEP_02.wav",
+     "source": "MUSIC/auditions/SFX_FOOTSTEP__take2__IxuxQGetGIRC2EslXRzg.mp3",
+     "generation_id": "IxuxQGetGIRC2EslXRzg",
+     "duration_s": 0.435,
+     "lufs": -18.8,
+     "true_peak_db": -0.9,
+     "editing": [
+      "highpass=f=80:poles=2",
+      "trim lead 0.000s tail 0.045s",
+      "fade in 3 ms, fade out 0.04 s",
+      "gain +20.28 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+      "16-bit PCM WAV 44.1 kHz"
+     ]
+    },
+    {
+     "final_master": "MUSIC/final/sfx/SFX_FOOTSTEP_03.wav",
+     "shipping_copy": "Assets/Audio/Resources/Audio/Sfx/SFX_FOOTSTEP_03.wav",
+     "source": "MUSIC/auditions/SFX_FOOTSTEP__take3__X70l7CnRvT7phlbZBvVD.mp3",
+     "generation_id": "X70l7CnRvT7phlbZBvVD",
+     "duration_s": 0.448,
+     "lufs": -16.9,
+     "true_peak_db": -1.0,
+     "editing": [
+      "highpass=f=80:poles=2",
+      "trim lead 0.000s tail 0.032s",
+      "fade in 3 ms, fade out 0.04 s",
+      "gain +21.08 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+      "16-bit PCM WAV 44.1 kHz"
+     ]
+    },
+    {
+     "final_master": "MUSIC/final/sfx/SFX_FOOTSTEP_04.wav",
+     "shipping_copy": "Assets/Audio/Resources/Audio/Sfx/SFX_FOOTSTEP_04.wav",
+     "source": "MUSIC/auditions/SFX_FOOTSTEP__take4__FLfcyuV0pQ7Serd6WVFx.mp3",
+     "generation_id": "FLfcyuV0pQ7Serd6WVFx",
+     "duration_s": 0.455,
+     "lufs": -18.5,
+     "true_peak_db": -0.9,
+     "editing": [
+      "highpass=f=80:poles=2",
+      "trim lead 0.000s tail 0.025s",
+      "fade in 3 ms, fade out 0.04 s",
+      "gain +23.48 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+      "16-bit PCM WAV 44.1 kHz"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "SFX_GYM_LOOP",
+   "category": "sfx",
+   "description": "Muffled suit rustle and light thumps",
+   "game_action": "Crew training in a Gym",
+   "trigger": "Crew.Work gym phase",
+   "playback": "Crossfaded loop owned by Crew; pauses with the pause menu",
+   "loop": true,
+   "variations": 1,
+   "model": "eleven_text_to_sound_v2",
+   "flow_id": "3RwACgrCocQq0VVYBAEM",
+   "node_id": "3dGAgbX0lM626rRr6TSa",
+   "prompt": "Soft rhythmic exercise in a spacesuit, gentle fabric rustle and light boot thumps on dirt in a steady slow rhythm, muffled, no voices",
+   "selection_note": null,
+   "volume_db": -22.0,
+   "cooldown_s": 0.0,
+   "max_voices": 1,
+   "priority": 20,
+   "pitch_jitter": 0.0,
+   "catalog_variations": 1,
+   "status": [
+    "generated",
+    "technically checked",
+    "agent-selected"
+   ],
+   "user_approved": false,
+   "listening": "not auditioned by ear: no listening capability was available to the agent",
+   "licence": "ElevenLabs Creator (paid) output; see MUSIC/evidence/2026-11-15_usage_rights.md",
+   "files": [
+    {
+     "final_master": "MUSIC/final/sfx/SFX_GYM_LOOP_01.wav",
+     "shipping_copy": "Assets/Audio/Resources/Audio/Sfx/SFX_GYM_LOOP_01.wav",
+     "source": "MUSIC/auditions/SFX_GYM_LOOP__take3__CtHZDkQm1uMBb4sUdNEd.mp3",
+     "generation_id": "CtHZDkQm1uMBb4sUdNEd",
+     "duration_s": 4.0,
+     "lufs": -24.2,
+     "true_peak_db": -1.0,
+     "editing": [
+      "highpass=f=60:poles=2",
+      "gain +22.31 dB (RMS -> -24 dBFS, peak cap -1 dBFS); no trim/fade, engine crossfades",
+      "16-bit PCM WAV 44.1 kHz"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "AMB_MARS_WIND",
+   "category": "ambience",
+   "description": "Gusty thin wind and dust hiss (high-passed)",
+   "game_action": "Outpost surface bed",
+   "trigger": "OutpostAudio.Start -> GameAudio.EnterOutpost",
+   "playback": "Crossfaded loop (2.5 s overlap), 3 s fade-in, ducked while paused, fades on scene exit",
+   "loop": true,
+   "variations": 1,
+   "model": "eleven_text_to_sound_v2",
+   "flow_id": "3RwACgrCocQq0VVYBAEM",
+   "node_id": "mzMg0T2EjjhyWjV42agf",
+   "prompt": "Thin dry desert wind over open rocky ground, soft low steady rumble with gentle airy gusts and fine dust hiss, distant and calm, no birds, no insects, no voices",
+   "selection_note": "both prompt attempts produced sub-60 Hz-dominant wind; 100 Hz high-pass keeps the audible gusts and dust hiss",
+   "volume_db": -15.0,
+   "cooldown_s": 0.0,
+   "max_voices": 1,
+   "priority": 100,
+   "pitch_jitter": 0.0,
+   "catalog_variations": 1,
+   "status": [
+    "generated",
+    "technically checked",
+    "agent-selected"
+   ],
+   "user_approved": false,
+   "listening": "not auditioned by ear: no listening capability was available to the agent",
+   "licence": "ElevenLabs Creator (paid) output; see MUSIC/evidence/2026-11-15_usage_rights.md",
+   "files": [
+    {
+     "final_master": "MUSIC/final/ambience/AMB_MARS_WIND_01.wav",
+     "shipping_copy": "Assets/Audio/Resources/Audio/Ambience/AMB_MARS_WIND_01.wav",
+     "source": "MUSIC/auditions/AMB_MARS_WIND__take2__oLe2QgFibSbaUTSWiSzX.mp3",
+     "generation_id": "oLe2QgFibSbaUTSWiSzX",
+     "duration_s": 30.0,
+     "lufs": -22.2,
+     "true_peak_db": -2.5,
+     "editing": [
+      "highpass=f=100:poles=2",
+      "gain +18.96 dB (RMS -> -26 dBFS, peak cap -1 dBFS); no trim/fade, engine crossfades",
+      "16-bit PCM WAV 44.1 kHz"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "AMB_COLONY_HUM",
+   "category": "ambience",
+   "description": "Quiet machinery drone, fans, pump",
+   "game_action": "Outpost machinery bed",
+   "trigger": "OutpostAudio: level = (commissioned buildings - 1) / 6",
+   "playback": "Crossfaded loop; level glides over 2 s",
+   "loop": true,
+   "variations": 1,
+   "model": "eleven_text_to_sound_v2",
+   "flow_id": "3RwACgrCocQq0VVYBAEM",
+   "node_id": "tAB5rAWzC0G86Fnl5Rz3",
+   "prompt": "Quiet steady colony machinery hum, soft electrical drone with distant ventilation fans and faint pump cycling, muffled and calm",
+   "selection_note": null,
+   "volume_db": -20.0,
+   "cooldown_s": 0.0,
+   "max_voices": 1,
+   "priority": 100,
+   "pitch_jitter": 0.0,
+   "catalog_variations": 1,
+   "status": [
+    "generated",
+    "technically checked",
+    "agent-selected"
+   ],
+   "user_approved": false,
+   "listening": "not auditioned by ear: no listening capability was available to the agent",
+   "licence": "ElevenLabs Creator (paid) output; see MUSIC/evidence/2026-11-15_usage_rights.md",
+   "files": [
+    {
+     "final_master": "MUSIC/final/ambience/AMB_COLONY_HUM_01.wav",
+     "shipping_copy": "Assets/Audio/Resources/Audio/Ambience/AMB_COLONY_HUM_01.wav",
+     "source": "MUSIC/auditions/AMB_COLONY_HUM__take3__erlikz9nZqxkwUxyIabk.mp3",
+     "generation_id": "erlikz9nZqxkwUxyIabk",
+     "duration_s": 20.0,
+     "lufs": -22.7,
+     "true_peak_db": -9.4,
+     "editing": [
+      "highpass=f=60:poles=2",
+      "gain +20.19 dB (RMS -> -24 dBFS, peak cap -1 dBFS); no trim/fade, engine crossfades",
+      "16-bit PCM WAV 44.1 kHz"
+     ]
+    }
+   ]
+  }
+ ],
+ "not_selected_takes": {
+  "status": [
+   "generated",
+   "technically checked",
+   "not selected"
+  ],
+  "files": [
+   "MUSIC/auditions/AMB_COLONY_HUM__take1__epi0YztZXE48LCRFdF6R.mp3",
+   "MUSIC/auditions/AMB_COLONY_HUM__take2__PgcN3T7VLvYCys8X22j0.mp3",
+   "MUSIC/auditions/AMB_MARS_WIND_V2__take1__i1grypbjhWGMz2TMYDoe.mp3",
+   "MUSIC/auditions/AMB_MARS_WIND_V2__take2__yY6NeL9LVFf3fLy19n7d.mp3",
+   "MUSIC/auditions/AMB_MARS_WIND_V2__take3__oQGFV60NoGOmmOpMkRhy.mp3",
+   "MUSIC/auditions/AMB_MARS_WIND__take1__fPbq723TgyqN1ufGf8Za.mp3",
+   "MUSIC/auditions/AMB_MARS_WIND__take3__OICPQP7I2F75IUPLqoXI.mp3",
+   "MUSIC/auditions/MUS_ARRIVAL__take2__tjhm8xWAMQPibrRKc0XD.mp3",
+   "MUSIC/auditions/MUS_SURFACE_A_REFTEST__take1__dglOoRWuNU8UDBSDlmT5.mp3",
+   "MUSIC/auditions/MUS_SURFACE_A__take2__Tw1ktLtlfabtT7Z82Qwh.mp3",
+   "MUSIC/auditions/MUS_SURFACE_B__take2__b14ytLAjSndXjEdxtSOO.mp3",
+   "MUSIC/auditions/MUS_SURFACE_C__take1__4aM4brYyQEhnSh0Ebgjx.mp3",
+   "MUSIC/auditions/MUS_SURFACE_D__take1__NRRDYwAon9a4MUFuUoKJ.mp3",
+   "MUSIC/auditions/MUS_SURFACE_E__take2__Gdx86tUtRi3miqkDV3j5.mp3",
+   "MUSIC/auditions/MUS_TENSION__take2__cCFfJRKHgC8UQKrfyKEn.mp3",
+   "MUSIC/auditions/MUS_TITLE__take2__gUg5w4zFG1idDkXIdYPC.mp3",
+   "MUSIC/auditions/SFX_ALERT_FITNESS__take1__fDTTt5isJ2spyneyoMxX.mp3",
+   "MUSIC/auditions/SFX_ALERT_FITNESS__take2__MWx27F1sy7LEuciYS9BH.mp3",
+   "MUSIC/auditions/SFX_ALERT_FITNESS__take3__aPQpTyGo2ygm4OghAIYP.mp3",
+   "MUSIC/auditions/SFX_ALERT_RECOVERED__take1__AWtMfuGEyLyhs1VgXNRA.mp3",
+   "MUSIC/auditions/SFX_ALERT_RECOVERED__take2__0QpsdHQiM506Sn0Vve49.mp3",
+   "MUSIC/auditions/SFX_ALERT_RECOVERED__take3__DnBYzB1GL6GeEGS5gpoR.mp3",
+   "MUSIC/auditions/SFX_ALERT_SHORTAGE__take1__GL4LOhkV1C3iUpMNQuwU.mp3",
+   "MUSIC/auditions/SFX_ALERT_SHORTAGE__take2__RLlG58znzu7Nv0uu23qU.mp3",
+   "MUSIC/auditions/SFX_ALERT_SHORTAGE__take3__lscCeTjv58yfgvWiJZUW.mp3",
+   "MUSIC/auditions/SFX_ALERT_STALL__take2__p8zH49gY86bJz3fG3X85.mp3",
+   "MUSIC/auditions/SFX_ALERT_STALL__take3__y8Dhvebhq9a5hvR0AeqI.mp3",
+   "MUSIC/auditions/SFX_BUILD_COMPLETE__take2__qKW8cZOXDboP1I9wZrpM.mp3",
+   "MUSIC/auditions/SFX_BUILD_COMPLETE__take3__iRypCK82pkTa21h8Busg.mp3",
+   "MUSIC/auditions/SFX_BUILD_PLACE__take2__2OHrK0r5Mh3ZeXae2rsH.mp3",
+   "MUSIC/auditions/SFX_CONSTRUCT_LOOP__take2__Pb02JAjg6PbejgKPz3rM.mp3",
+   "MUSIC/auditions/SFX_CONSTRUCT_LOOP__take3__jkrutAMbGf6QpNyL5MCE.mp3",
+   "MUSIC/auditions/SFX_CONSTRUCT_LOOP__take4__gvu1At9v4O8Kw7c0Brww.mp3",
+   "MUSIC/auditions/SFX_GUIDE_NEXT__take2__iSdB0YXgrnwmokyE7Nhd.mp3",
+   "MUSIC/auditions/SFX_GUIDE_NEXT__take3__TNZlCel3Ogeg7V3MppLC.mp3",
+   "MUSIC/auditions/SFX_GUIDE_NOTIFY__take1__bPQhDWluS7cAmZuoS7kA.mp3",
+   "MUSIC/auditions/SFX_GUIDE_NOTIFY__take3__ohyKY0wVVV1eQbT7OOoL.mp3",
+   "MUSIC/auditions/SFX_GUIDE_NOTIFY__take4__niqo7Gjewgvra0LQ3nIu.mp3",
+   "MUSIC/auditions/SFX_GYM_LOOP__take1__pdnzlUdZgKxwc7uJJaIy.mp3",
+   "MUSIC/auditions/SFX_GYM_LOOP__take2__FHuSXrMgz5y5fW90uBzY.mp3",
+   "MUSIC/auditions/SFX_HATCH__take2__Tm1obpCP0M5Y8cT8YtN6.mp3",
+   "MUSIC/auditions/SFX_HATCH__take4__4ixQFpYM655vupvb811A.mp3",
+   "MUSIC/auditions/SFX_LAUNCH_WHOOSH__take2__UaAyY9nFwgrCeAODVsmE.mp3",
+   "MUSIC/auditions/SFX_LAUNCH_WHOOSH__take3__qVwVGGZzGXSoUfumRKNG.mp3",
+   "MUSIC/auditions/SFX_LAUNCH_WHOOSH__take4__yfnjYdbT20Bm6nfTGVN1.mp3",
+   "MUSIC/auditions/SFX_ROCKET_DESCENT__take1__WSyy9au4MVhvaHgPcIaY.mp3",
+   "MUSIC/auditions/SFX_ROCKET_DESCENT__take3__oWjoMHygtruTSfhDOhHD.mp3",
+   "MUSIC/auditions/SFX_ROCKET_DESCENT__take4__rBTaVL5gaRR5ZoEJGiqf.mp3",
+   "MUSIC/auditions/SFX_ROCKET_TOUCHDOWN__take1__yJbmRhfbEU1yZfTtmpEF.mp3",
+   "MUSIC/auditions/SFX_ROCKET_TOUCHDOWN__take2__evoPTcGrMBcZ80FPTba7.mp3",
+   "MUSIC/auditions/SFX_ROCKET_TOUCHDOWN__take4__4MpmnjwwEy3gcVUD7x2T.mp3",
+   "MUSIC/auditions/SFX_UI_BACK__take1__tO2cJlCWqV7PHdQk6FGs.mp3",
+   "MUSIC/auditions/SFX_UI_BACK__take4__a5lQS0L3aqs1yyLSmdZ6.mp3",
+   "MUSIC/auditions/SFX_UI_CONFIRM__take4__urh6BePW4NiLN1CBgLdn.mp3",
+   "MUSIC/auditions/SFX_UI_DENIED__take1__uwomFPIcdHKLRo4eEbyf.mp3",
+   "MUSIC/auditions/SFX_UI_DENIED__take4__Mq6SYDn7m0Yd3jnqR8fJ.mp3",
+   "MUSIC/auditions/SFX_UI_PANEL_CLOSE__take1__jOtQfxbc8M13Apq6ELIq.mp3",
+   "MUSIC/auditions/SFX_UI_PANEL_CLOSE__take2__T9gzyu6fo06Qn6aOv6OL.mp3",
+   "MUSIC/auditions/SFX_UI_PANEL_OPEN__take1__0ccFI04a1e3u2Xrq5JWG.mp3",
+   "MUSIC/auditions/SFX_UI_PANEL_OPEN__take2__ewNSZwWKMM9OD41t8MG4.mp3",
+   "MUSIC/auditions/SFX_UI_SELECT__take1__Obj8oH9EV2ZJ1KbvOenG.mp3",
+   "MUSIC/auditions/SFX_UI_SELECT__take3__aLvHn0jmr71wdc4oeqRC.mp3",
+   "MUSIC/auditions/SFX_UPGRADE_PURCHASE__take3__elFjoLqsuUUqE5OAMFsp.mp3",
+   "MUSIC/auditions/SFX_UPGRADE_PURCHASE__take4__3fQQRtt5CntTMfcAsosh.mp3"
+  ]
+ }
 }

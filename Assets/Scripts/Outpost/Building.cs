@@ -1,4 +1,5 @@
 using System.Collections;
+using RedFrontier.Audio;
 using RedFrontier.Mars;
 using UnityEngine;
 
@@ -55,6 +56,7 @@ namespace RedFrontier.Outpost
                 float viewTop = camera.ViewportToWorldPoint(new Vector3(0.5f, 1f, depth)).y;
                 float distance = Mathf.Max(0f, viewTop - sr.bounds.min.y) + 0.5f;
                 landing = true;
+                GameAudio.Play(Sfx.RocketDescent); // 1.9 s roar, timed to the 1.8 s ease-out
                 transform.position = touchdown + Vector3.up * distance;
 
                 for (float elapsed = 0f; elapsed < LandingSeconds; elapsed += Time.deltaTime)
@@ -68,6 +70,7 @@ namespace RedFrontier.Outpost
 
             transform.position = touchdown;
             landing = false;
+            GameAudio.Play(Sfx.RocketTouchdown); // also the only landing cue when Reduce Motion skips the descent
             animStart = Time.time - (frames.Length + 1) * FrameSeconds;
             sr.sprite = frames[frames.Length - 1];
         }

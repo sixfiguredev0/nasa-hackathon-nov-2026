@@ -1,0 +1,833 @@
+{
+ "MUS_TITLE": [
+  {
+   "file": "final/music/MUS_TITLE_01.ogg",
+   "source": "auditions/MUS_TITLE__take1__wtpQSg9bMdLCII5nTke6.mp3",
+   "edits": [
+    "highpass=f=35:poles=2",
+    "trim lead 0.35s tail 1.89s",
+    "fade in 30 ms, fade out 1.5 s",
+    "gain -4.00 dB (from I -14.0 LUFS, S max -11.9, TP -1.0)",
+    "encode Ogg Vorbis q8"
+   ],
+   "duration_s": 97.761,
+   "lufs": -18.0,
+   "true_peak_db": -4.9,
+   "smax": -15.9,
+   "export": "Assets/Audio/Resources/Audio/Music/MUS_TITLE_01.ogg"
+  }
+ ],
+ "MUS_ARRIVAL": [
+  {
+   "file": "final/music/MUS_ARRIVAL_01.ogg",
+   "source": "auditions/MUS_ARRIVAL__take1__MYmE8R8MvqHesPcxyEjA.mp3",
+   "edits": [
+    "highpass=f=35:poles=2",
+    "trim lead 0.34s tail 0.00s",
+    "fade in 30 ms, fade out 1.5 s",
+    "gain -1.80 dB (from I -16.2 LUFS, S max -14.6, TP -1.6)",
+    "encode Ogg Vorbis q8"
+   ],
+   "duration_s": 23.66,
+   "lufs": -17.9,
+   "true_peak_db": -3.4,
+   "smax": -16.4,
+   "export": "Assets/Audio/Resources/Audio/Music/MUS_ARRIVAL_01.ogg"
+  }
+ ],
+ "MUS_SURFACE_A": [
+  {
+   "file": "final/music/MUS_SURFACE_A_01.ogg",
+   "source": "auditions/MUS_SURFACE_A__take1__EuFvpO5qDI8vXTKVTBEb.mp3",
+   "edits": [
+    "highpass=f=35:poles=2",
+    "trim lead 0.79s tail 0.99s",
+    "fade in 30 ms, fade out 1.5 s",
+    "gain -2.00 dB (from I -16.0 LUFS, S max -13.3, TP -0.7)",
+    "encode Ogg Vorbis q8"
+   ],
+   "duration_s": 93.218,
+   "lufs": -18.0,
+   "true_peak_db": -2.7,
+   "smax": -15.3,
+   "export": "Assets/Audio/Resources/Audio/Music/MUS_SURFACE_A_01.ogg"
+  }
+ ],
+ "MUS_SURFACE_B": [
+  {
+   "file": "final/music/MUS_SURFACE_B_01.ogg",
+   "source": "auditions/MUS_SURFACE_B__take1__P4XlRSDEWmyOrkz8x6gc.mp3",
+   "edits": [
+    "highpass=f=45:poles=2",
+    "trim lead 0.00s tail 0.00s",
+    "fade in 30 ms, fade out 1.5 s",
+    "gain -3.80 dB (from I -14.2 LUFS, S max -11.7, TP -0.3)",
+    "encode Ogg Vorbis q8"
+   ],
+   "duration_s": 100.0,
+   "lufs": -18.0,
+   "true_peak_db": -4.1,
+   "smax": -15.5,
+   "export": "Assets/Audio/Resources/Audio/Music/MUS_SURFACE_B_01.ogg"
+  }
+ ],
+ "MUS_SURFACE_C": [
+  {
+   "file": "final/music/MUS_SURFACE_C_01.ogg",
+   "source": "auditions/MUS_SURFACE_C__take2__RGa81eOTXgTRdrbcED6y.mp3",
+   "edits": [
+    "highpass=f=35:poles=2",
+    "trim lead 0.70s tail 1.15s",
+    "fade in 30 ms, fade out 1.5 s",
+    "gain -0.10 dB (from I -20.5 LUFS, S max -14.5, TP -1.4)",
+    "encode Ogg Vorbis q8"
+   ],
+   "duration_s": 88.156,
+   "lufs": -20.5,
+   "true_peak_db": -1.4,
+   "smax": -14.5,
+   "export": "Assets/Audio/Resources/Audio/Music/MUS_SURFACE_C_01.ogg"
+  }
+ ],
+ "MUS_SURFACE_D": [
+  {
+   "file": "final/music/MUS_SURFACE_D_01.ogg",
+   "source": "auditions/MUS_SURFACE_D__take2__ybxiksZTLi3XKNNLUpSE.mp3",
+   "edits": [
+    "highpass=f=35:poles=2",
+    "trim lead 0.00s tail 0.32s",
+    "fade in 30 ms, fade out 1.5 s",
+    "gain -3.30 dB (from I -14.7 LUFS, S max -11.9, TP -0.6)",
+    "encode Ogg Vorbis q8"
+   ],
+   "duration_s": 99.679,
+   "lufs": -17.9,
+   "true_peak_db": -3.9,
+   "smax": -15.2,
+   "export": "Assets/Audio/Resources/Audio/Music/MUS_SURFACE_D_01.ogg"
+  }
+ ],
+ "MUS_SURFACE_E": [
+  {
+   "file": "final/music/MUS_SURFACE_E_01.ogg",
+   "source": "auditions/MUS_SURFACE_E__take1__gWrZDFh1m05iV0ow7rl3.mp3",
+   "edits": [
+    "highpass=f=35:poles=2",
+    "trim lead 0.00s tail 3.72s",
+    "fade in 30 ms, fade out 1.5 s",
+    "gain +0.40 dB (from I -22.6 LUFS, S max -19.8, TP -1.9)",
+    "encode Ogg Vorbis q8"
+   ],
+   "duration_s": 86.279,
+   "lufs": -22.1,
+   "true_peak_db": -1.5,
+   "smax": -19.4,
+   "export": "Assets/Audio/Resources/Audio/Music/MUS_SURFACE_E_01.ogg"
+  }
+ ],
+ "MUS_TENSION": [
+  {
+   "file": "final/music/MUS_TENSION_01.ogg",
+   "source": "auditions/MUS_TENSION__take1__cxDDzHqPOmhftjON4k86.mp3",
+   "edits": [
+    "highpass=f=35:poles=2",
+    "trim lead 0.00s tail 0.41s",
+    "fade in 30 ms, fade out 1.5 s",
+    "gain +0.20 dB (from I -20.5 LUFS, S max -16.5, TP -1.7)",
+    "encode Ogg Vorbis q8"
+   ],
+   "duration_s": 79.59,
+   "lufs": -20.2,
+   "true_peak_db": -1.5,
+   "smax": -16.3,
+   "export": "Assets/Audio/Resources/Audio/Music/MUS_TENSION_01.ogg"
+  }
+ ],
+ "SFX_UI_CONFIRM": [
+  {
+   "file": "final/sfx/SFX_UI_CONFIRM_01.wav",
+   "source": "auditions/SFX_UI_CONFIRM__take3__o8IgL11k6TzGzeFIlZpH.mp3",
+   "edits": [
+    "trim lead 0.000s tail 0.000s",
+    "fade in 3 ms, fade out 0.12 s",
+    "gain -1.69 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+    "16-bit PCM WAV 44.1 kHz"
+   ],
+   "duration_s": 0.6,
+   "lufs": -16.9,
+   "true_peak_db": -6.8,
+   "smax": -120.7,
+   "export": "Assets/Audio/Resources/Audio/Sfx/SFX_UI_CONFIRM_01.wav"
+  },
+  {
+   "file": "final/sfx/SFX_UI_CONFIRM_02.wav",
+   "source": "auditions/SFX_UI_CONFIRM__take2__xcXPVljqyPhfjcjoxguk.mp3",
+   "edits": [
+    "trim lead 0.000s tail 0.000s",
+    "fade in 3 ms, fade out 0.12 s",
+    "gain +1.44 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+    "16-bit PCM WAV 44.1 kHz"
+   ],
+   "duration_s": 0.6,
+   "lufs": -16.6,
+   "true_peak_db": -2.4,
+   "smax": -120.7,
+   "export": "Assets/Audio/Resources/Audio/Sfx/SFX_UI_CONFIRM_02.wav"
+  },
+  {
+   "file": "final/sfx/SFX_UI_CONFIRM_03.wav",
+   "source": "auditions/SFX_UI_CONFIRM__take1__Tf0nPpFQpW49V4q0aXL7.mp3",
+   "edits": [
+    "trim lead 0.000s tail 0.000s",
+    "fade in 3 ms, fade out 0.12 s",
+    "gain +5.77 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+    "16-bit PCM WAV 44.1 kHz"
+   ],
+   "duration_s": 0.6,
+   "lufs": -16.3,
+   "true_peak_db": -1.0,
+   "smax": -120.7,
+   "export": "Assets/Audio/Resources/Audio/Sfx/SFX_UI_CONFIRM_03.wav"
+  }
+ ],
+ "SFX_UI_BACK": [
+  {
+   "file": "final/sfx/SFX_UI_BACK_01.wav",
+   "source": "auditions/SFX_UI_BACK__take2__BjKLvbqjSAD78e74uzuE.mp3",
+   "edits": [
+    "trim lead 0.000s tail 0.000s",
+    "fade in 3 ms, fade out 0.12 s",
+    "gain -7.10 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+    "16-bit PCM WAV 44.1 kHz"
+   ],
+   "duration_s": 0.6,
+   "lufs": -18.0,
+   "true_peak_db": -9.4,
+   "smax": -120.7,
+   "export": "Assets/Audio/Resources/Audio/Sfx/SFX_UI_BACK_01.wav"
+  },
+  {
+   "file": "final/sfx/SFX_UI_BACK_02.wav",
+   "source": "auditions/SFX_UI_BACK__take3__Mc37L0jKldCNrHzM59bp.mp3",
+   "edits": [
+    "trim lead 0.000s tail 0.000s",
+    "fade in 3 ms, fade out 0.12 s",
+    "gain -5.44 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+    "16-bit PCM WAV 44.1 kHz"
+   ],
+   "duration_s": 0.6,
+   "lufs": -16.8,
+   "true_peak_db": -5.9,
+   "smax": -120.7,
+   "export": "Assets/Audio/Resources/Audio/Sfx/SFX_UI_BACK_02.wav"
+  }
+ ],
+ "SFX_UI_SELECT": [
+  {
+   "file": "final/sfx/SFX_UI_SELECT_01.wav",
+   "source": "auditions/SFX_UI_SELECT__take2__vNpi3kSBdckC5mmvfJOJ.mp3",
+   "edits": [
+    "trim lead 0.000s tail 0.182s",
+    "fade in 3 ms, fade out 0.04 s",
+    "gain +5.84 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+    "16-bit PCM WAV 44.1 kHz"
+   ],
+   "duration_s": 0.298,
+   "lufs": -70.0,
+   "true_peak_db": -1.0,
+   "smax": -120.7,
+   "export": "Assets/Audio/Resources/Audio/Sfx/SFX_UI_SELECT_01.wav"
+  },
+  {
+   "file": "final/sfx/SFX_UI_SELECT_02.wav",
+   "source": "auditions/SFX_UI_SELECT__take4__tUPrTDiGbFbU9y3iE8i1.mp3",
+   "edits": [
+    "trim lead 0.022s tail 0.249s",
+    "fade in 3 ms, fade out 0.04 s",
+    "gain +7.46 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+    "16-bit PCM WAV 44.1 kHz"
+   ],
+   "duration_s": 0.209,
+   "lufs": -70.0,
+   "true_peak_db": -1.0,
+   "smax": -120.7,
+   "export": "Assets/Audio/Resources/Audio/Sfx/SFX_UI_SELECT_02.wav"
+  }
+ ],
+ "SFX_UI_PANEL_OPEN": [
+  {
+   "file": "final/sfx/SFX_UI_PANEL_OPEN_01.wav",
+   "source": "auditions/SFX_UI_PANEL_OPEN__take4__dHQdgK4kUiZEcyiX4wi5.mp3",
+   "edits": [
+    "highpass=f=120:poles=2",
+    "lowpass=f=9000:poles=2",
+    "trim lead 0.000s tail 0.056s",
+    "fade in 3 ms, fade out 0.04 s",
+    "gain +13.20 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+    "16-bit PCM WAV 44.1 kHz"
+   ],
+   "duration_s": 0.824,
+   "lufs": -12.2,
+   "true_peak_db": -1.0,
+   "smax": -120.7,
+   "export": "Assets/Audio/Resources/Audio/Sfx/SFX_UI_PANEL_OPEN_01.wav"
+  },
+  {
+   "file": "final/sfx/SFX_UI_PANEL_OPEN_02.wav",
+   "source": "auditions/SFX_UI_PANEL_OPEN__take3__SyCW5JgAWavT3rITk5dg.mp3",
+   "edits": [
+    "highpass=f=120:poles=2",
+    "lowpass=f=9000:poles=2",
+    "trim lead 0.003s tail 0.061s",
+    "fade in 3 ms, fade out 0.04 s",
+    "gain +7.15 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+    "16-bit PCM WAV 44.1 kHz"
+   ],
+   "duration_s": 0.815,
+   "lufs": -15.5,
+   "true_peak_db": -0.9,
+   "smax": -120.7,
+   "export": "Assets/Audio/Resources/Audio/Sfx/SFX_UI_PANEL_OPEN_02.wav"
+  }
+ ],
+ "SFX_UI_PANEL_CLOSE": [
+  {
+   "file": "final/sfx/SFX_UI_PANEL_CLOSE_01.wav",
+   "source": "auditions/SFX_UI_PANEL_CLOSE__take3__s7afa6oVYCtfyGJeD7eW.mp3",
+   "edits": [
+    "highpass=f=120:poles=2",
+    "trim lead 0.014s tail 0.140s",
+    "fade in 3 ms, fade out 0.04 s",
+    "gain +6.97 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+    "16-bit PCM WAV 44.1 kHz"
+   ],
+   "duration_s": 0.647,
+   "lufs": -14.6,
+   "true_peak_db": -1.0,
+   "smax": -120.7,
+   "export": "Assets/Audio/Resources/Audio/Sfx/SFX_UI_PANEL_CLOSE_01.wav"
+  },
+  {
+   "file": "final/sfx/SFX_UI_PANEL_CLOSE_02.wav",
+   "source": "auditions/SFX_UI_PANEL_CLOSE__take4__zfinbQTdEqDAZgFElk7p.mp3",
+   "edits": [
+    "highpass=f=120:poles=2",
+    "trim lead 0.000s tail 0.226s",
+    "fade in 3 ms, fade out 0.04 s",
+    "gain +6.77 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+    "16-bit PCM WAV 44.1 kHz"
+   ],
+   "duration_s": 0.574,
+   "lufs": -15.4,
+   "true_peak_db": -0.9,
+   "smax": -120.7,
+   "export": "Assets/Audio/Resources/Audio/Sfx/SFX_UI_PANEL_CLOSE_02.wav"
+  }
+ ],
+ "SFX_UI_DENIED": [
+  {
+   "file": "final/sfx/SFX_UI_DENIED_01.wav",
+   "source": "auditions/SFX_UI_DENIED__take2__cIkOfOoVjGcY3iSM0cA1.mp3",
+   "edits": [
+    "highpass=f=60:poles=2",
+    "trim lead 0.000s tail 0.000s",
+    "fade in 3 ms, fade out 0.04 s",
+    "gain +7.08 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+    "16-bit PCM WAV 44.1 kHz"
+   ],
+   "duration_s": 0.6,
+   "lufs": -17.9,
+   "true_peak_db": -7.2,
+   "smax": -120.7,
+   "export": "Assets/Audio/Resources/Audio/Sfx/SFX_UI_DENIED_01.wav"
+  },
+  {
+   "file": "final/sfx/SFX_UI_DENIED_02.wav",
+   "source": "auditions/SFX_UI_DENIED__take3__NjXZwIyiqLxZZCfaMuAq.mp3",
+   "edits": [
+    "highpass=f=60:poles=2",
+    "trim lead 0.000s tail 0.000s",
+    "fade in 3 ms, fade out 0.04 s",
+    "gain +13.20 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+    "16-bit PCM WAV 44.1 kHz"
+   ],
+   "duration_s": 0.6,
+   "lufs": -18.3,
+   "true_peak_db": -4.7,
+   "smax": -120.7,
+   "export": "Assets/Audio/Resources/Audio/Sfx/SFX_UI_DENIED_02.wav"
+  }
+ ],
+ "SFX_LAUNCH_WHOOSH": [
+  {
+   "file": "final/sfx/SFX_LAUNCH_WHOOSH_01.wav",
+   "source": "auditions/SFX_LAUNCH_WHOOSH__take1__wb5Y2EhKWhXvCeK0eszv.mp3",
+   "edits": [
+    "highpass=f=40:poles=2",
+    "trim lead 0.000s tail 0.000s",
+    "fade in 3 ms, fade out 0.04 s",
+    "gain -3.37 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+    "16-bit PCM WAV 44.1 kHz"
+   ],
+   "duration_s": 1.6,
+   "lufs": -15.6,
+   "true_peak_db": -3.0,
+   "smax": -120.7,
+   "export": "Assets/Audio/Resources/Audio/Sfx/SFX_LAUNCH_WHOOSH_01.wav"
+  }
+ ],
+ "SFX_ROCKET_DESCENT": [
+  {
+   "file": "final/sfx/SFX_ROCKET_DESCENT_01.wav",
+   "source": "auditions/SFX_ROCKET_DESCENT__take2__iEvdRc1gcku5ihAp4B1s.mp3",
+   "edits": [
+    "highpass=f=40:poles=2",
+    "trim lead 0.000s tail 0.000s",
+    "cut to 1.9 s",
+    "fade in 3 ms, fade out 0.3 s",
+    "gain -7.34 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+    "16-bit PCM WAV 44.1 kHz"
+   ],
+   "duration_s": 1.9,
+   "lufs": -17.2,
+   "true_peak_db": -6.8,
+   "smax": -120.7,
+   "export": "Assets/Audio/Resources/Audio/Sfx/SFX_ROCKET_DESCENT_01.wav"
+  }
+ ],
+ "SFX_ROCKET_TOUCHDOWN": [
+  {
+   "file": "final/sfx/SFX_ROCKET_TOUCHDOWN_01.wav",
+   "source": "auditions/SFX_ROCKET_TOUCHDOWN__take3__wEhHzFID91ie1VBnBxzc.mp3",
+   "edits": [
+    "highpass=f=40:poles=2",
+    "trim lead 0.000s tail 0.058s",
+    "fade in 3 ms, fade out 0.4 s",
+    "gain -6.41 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+    "16-bit PCM WAV 44.1 kHz"
+   ],
+   "duration_s": 2.942,
+   "lufs": -20.8,
+   "true_peak_db": -6.8,
+   "smax": -120.7,
+   "export": "Assets/Audio/Resources/Audio/Sfx/SFX_ROCKET_TOUCHDOWN_01.wav"
+  }
+ ],
+ "SFX_HATCH": [
+  {
+   "file": "final/sfx/SFX_HATCH_01.wav",
+   "source": "auditions/SFX_HATCH__take1__50XLfSPB4ZIekcGXKMKA.mp3",
+   "edits": [
+    "lowpass=f=9000:poles=2",
+    "trim lead 0.000s tail 0.002s",
+    "fade in 3 ms, fade out 0.04 s",
+    "gain -1.27 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+    "16-bit PCM WAV 44.1 kHz"
+   ],
+   "duration_s": 1.198,
+   "lufs": -15.6,
+   "true_peak_db": -1.0,
+   "smax": -120.7,
+   "export": "Assets/Audio/Resources/Audio/Sfx/SFX_HATCH_01.wav"
+  },
+  {
+   "file": "final/sfx/SFX_HATCH_02.wav",
+   "source": "auditions/SFX_HATCH__take3__uSt5u3XhjV2UX1FziaV3.mp3",
+   "edits": [
+    "lowpass=f=9000:poles=2",
+    "trim lead 0.071s tail 0.058s",
+    "fade in 3 ms, fade out 0.04 s",
+    "gain -0.92 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+    "16-bit PCM WAV 44.1 kHz"
+   ],
+   "duration_s": 1.072,
+   "lufs": -16.9,
+   "true_peak_db": -1.0,
+   "smax": -120.7,
+   "export": "Assets/Audio/Resources/Audio/Sfx/SFX_HATCH_02.wav"
+  }
+ ],
+ "SFX_BUILD_PLACE": [
+  {
+   "file": "final/sfx/SFX_BUILD_PLACE_01.wav",
+   "source": "auditions/SFX_BUILD_PLACE__take1__Ut34EJFJ39HnXpJqXKLG.mp3",
+   "edits": [
+    "highpass=f=50:poles=2",
+    "trim lead 0.046s tail 0.133s",
+    "fade in 3 ms, fade out 0.04 s",
+    "gain +10.94 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+    "16-bit PCM WAV 44.1 kHz"
+   ],
+   "duration_s": 0.621,
+   "lufs": -22.5,
+   "true_peak_db": -1.0,
+   "smax": -120.7,
+   "export": "Assets/Audio/Resources/Audio/Sfx/SFX_BUILD_PLACE_01.wav"
+  },
+  {
+   "file": "final/sfx/SFX_BUILD_PLACE_02.wav",
+   "source": "auditions/SFX_BUILD_PLACE__take3__HVkJGYCAyaYI2XfPaQ0v.mp3",
+   "edits": [
+    "highpass=f=50:poles=2",
+    "trim lead 0.301s tail 0.243s",
+    "fade in 3 ms, fade out 0.04 s",
+    "gain +15.98 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+    "16-bit PCM WAV 44.1 kHz"
+   ],
+   "duration_s": 0.256,
+   "lufs": -70.0,
+   "true_peak_db": -1.0,
+   "smax": -120.7,
+   "export": "Assets/Audio/Resources/Audio/Sfx/SFX_BUILD_PLACE_02.wav"
+  },
+  {
+   "file": "final/sfx/SFX_BUILD_PLACE_03.wav",
+   "source": "auditions/SFX_BUILD_PLACE__take4__Lr8bjNz188zwSQ4ROlua.mp3",
+   "edits": [
+    "highpass=f=50:poles=2",
+    "trim lead 0.003s tail 0.449s",
+    "fade in 3 ms, fade out 0.04 s",
+    "gain +22.23 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+    "16-bit PCM WAV 44.1 kHz"
+   ],
+   "duration_s": 0.348,
+   "lufs": -70.0,
+   "true_peak_db": -1.0,
+   "smax": -120.7,
+   "export": "Assets/Audio/Resources/Audio/Sfx/SFX_BUILD_PLACE_03.wav"
+  }
+ ],
+ "SFX_CONSTRUCT_LOOP": [
+  {
+   "file": "final/sfx/SFX_CONSTRUCT_LOOP_01.wav",
+   "source": "auditions/SFX_CONSTRUCT_LOOP__take1__mHFM1kF94JvPxVwEU4DO.mp3",
+   "edits": [
+    "highpass=f=60:poles=2",
+    "gain +23.39 dB (RMS -> -24 dBFS, peak cap -1 dBFS); no trim/fade, engine crossfades",
+    "16-bit PCM WAV 44.1 kHz"
+   ],
+   "duration_s": 4.0,
+   "lufs": -21.4,
+   "true_peak_db": -1.0,
+   "smax": -21.1,
+   "export": "Assets/Audio/Resources/Audio/Sfx/SFX_CONSTRUCT_LOOP_01.wav"
+  }
+ ],
+ "SFX_BUILD_COMPLETE": [
+  {
+   "file": "final/sfx/SFX_BUILD_COMPLETE_01.wav",
+   "source": "auditions/SFX_BUILD_COMPLETE__take4__PnsMvZxjcUVAEhXlyY5w.mp3",
+   "edits": [
+    "lowpass=f=10000:poles=2",
+    "trim lead 0.000s tail 0.000s",
+    "fade in 3 ms, fade out 0.25 s",
+    "gain -3.23 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+    "16-bit PCM WAV 44.1 kHz"
+   ],
+   "duration_s": 1.6,
+   "lufs": -18.8,
+   "true_peak_db": -3.3,
+   "smax": -120.7,
+   "export": "Assets/Audio/Resources/Audio/Sfx/SFX_BUILD_COMPLETE_01.wav"
+  },
+  {
+   "file": "final/sfx/SFX_BUILD_COMPLETE_02.wav",
+   "source": "auditions/SFX_BUILD_COMPLETE__take1__fmmsBUkdU8dkPuxc9rtT.mp3",
+   "edits": [
+    "lowpass=f=10000:poles=2",
+    "trim lead 0.000s tail 0.000s",
+    "fade in 3 ms, fade out 0.25 s",
+    "gain +0.59 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+    "16-bit PCM WAV 44.1 kHz"
+   ],
+   "duration_s": 1.6,
+   "lufs": -16.9,
+   "true_peak_db": -0.9,
+   "smax": -120.7,
+   "export": "Assets/Audio/Resources/Audio/Sfx/SFX_BUILD_COMPLETE_02.wav"
+  }
+ ],
+ "SFX_UPGRADE_PURCHASE": [
+  {
+   "file": "final/sfx/SFX_UPGRADE_PURCHASE_01.wav",
+   "source": "auditions/SFX_UPGRADE_PURCHASE__take2__gqIEXs7G0CmkYUNqMqq6.mp3",
+   "edits": [
+    "lowpass=f=7000:poles=2",
+    "trim lead 0.000s tail 0.000s",
+    "fade in 3 ms, fade out 0.2 s",
+    "gain -3.30 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+    "16-bit PCM WAV 44.1 kHz"
+   ],
+   "duration_s": 1.0,
+   "lufs": -11.9,
+   "true_peak_db": -2.9,
+   "smax": -120.7,
+   "export": "Assets/Audio/Resources/Audio/Sfx/SFX_UPGRADE_PURCHASE_01.wav"
+  },
+  {
+   "file": "final/sfx/SFX_UPGRADE_PURCHASE_02.wav",
+   "source": "auditions/SFX_UPGRADE_PURCHASE__take1__NUHMLdes5QZ0UsH71BXZ.mp3",
+   "edits": [
+    "lowpass=f=7000:poles=2",
+    "trim lead 0.000s tail 0.000s",
+    "fade in 3 ms, fade out 0.2 s",
+    "gain -4.95 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+    "16-bit PCM WAV 44.1 kHz"
+   ],
+   "duration_s": 1.0,
+   "lufs": -13.2,
+   "true_peak_db": -5.9,
+   "smax": -120.7,
+   "export": "Assets/Audio/Resources/Audio/Sfx/SFX_UPGRADE_PURCHASE_02.wav"
+  }
+ ],
+ "SFX_GUIDE_NOTIFY": [
+  {
+   "file": "final/sfx/SFX_GUIDE_NOTIFY_01.wav",
+   "source": "auditions/SFX_GUIDE_NOTIFY__take2__3YjVOa5DaddOwnVfCpDW.mp3",
+   "edits": [
+    "lowpass=f=9000:poles=2",
+    "trim lead 0.000s tail 0.000s",
+    "fade in 3 ms, fade out 0.04 s",
+    "gain +8.55 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+    "16-bit PCM WAV 44.1 kHz"
+   ],
+   "duration_s": 1.0,
+   "lufs": -12.3,
+   "true_peak_db": -1.4,
+   "smax": -120.7,
+   "export": "Assets/Audio/Resources/Audio/Sfx/SFX_GUIDE_NOTIFY_01.wav"
+  }
+ ],
+ "SFX_GUIDE_NEXT": [
+  {
+   "file": "final/sfx/SFX_GUIDE_NEXT_01.wav",
+   "source": "auditions/SFX_GUIDE_NEXT__take1__ca5Kqs5MsiMguqqFn1JY.mp3",
+   "edits": [
+    "trim lead 0.000s tail 0.000s",
+    "fade in 3 ms, fade out 0.04 s",
+    "gain +10.69 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+    "16-bit PCM WAV 44.1 kHz"
+   ],
+   "duration_s": 0.48,
+   "lufs": -15.1,
+   "true_peak_db": -1.0,
+   "smax": -120.7,
+   "export": "Assets/Audio/Resources/Audio/Sfx/SFX_GUIDE_NEXT_01.wav"
+  },
+  {
+   "file": "final/sfx/SFX_GUIDE_NEXT_02.wav",
+   "source": "auditions/SFX_GUIDE_NEXT__take4__J76pliSXdkULXtUmuP2o.mp3",
+   "edits": [
+    "trim lead 0.000s tail 0.214s",
+    "fade in 3 ms, fade out 0.04 s",
+    "gain +7.34 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+    "16-bit PCM WAV 44.1 kHz"
+   ],
+   "duration_s": 0.266,
+   "lufs": -70.0,
+   "true_peak_db": -1.0,
+   "smax": -120.7,
+   "export": "Assets/Audio/Resources/Audio/Sfx/SFX_GUIDE_NEXT_02.wav"
+  }
+ ],
+ "SFX_ALERT_SHORTAGE": [
+  {
+   "file": "final/sfx/SFX_ALERT_SHORTAGE_01.wav",
+   "source": "auditions/SFX_ALERT_SHORTAGE__take4__yflwpw2oCviII2aXPWnk.mp3",
+   "edits": [
+    "trim lead 0.000s tail 0.000s",
+    "fade in 3 ms, fade out 0.2 s",
+    "gain -3.32 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+    "16-bit PCM WAV 44.1 kHz"
+   ],
+   "duration_s": 2.0,
+   "lufs": -15.9,
+   "true_peak_db": -9.4,
+   "smax": -120.7,
+   "export": "Assets/Audio/Resources/Audio/Sfx/SFX_ALERT_SHORTAGE_01.wav"
+  }
+ ],
+ "SFX_ALERT_RECOVERED": [
+  {
+   "file": "final/sfx/SFX_ALERT_RECOVERED_01.wav",
+   "source": "auditions/SFX_ALERT_RECOVERED__take4__xTXnOMnxWRTlFuCmjlY7.mp3",
+   "edits": [
+    "trim lead 0.000s tail 0.000s",
+    "fade in 3 ms, fade out 0.2 s",
+    "gain -0.99 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+    "16-bit PCM WAV 44.1 kHz"
+   ],
+   "duration_s": 1.36,
+   "lufs": -19.1,
+   "true_peak_db": -6.0,
+   "smax": -120.7,
+   "export": "Assets/Audio/Resources/Audio/Sfx/SFX_ALERT_RECOVERED_01.wav"
+  }
+ ],
+ "SFX_ALERT_STALL": [
+  {
+   "file": "final/sfx/SFX_ALERT_STALL_01.wav",
+   "source": "auditions/SFX_ALERT_STALL__take4__vtoI12Pto8dg8nWC7g4a.mp3",
+   "edits": [
+    "highpass=f=120:poles=2",
+    "trim lead 0.000s tail 0.000s",
+    "fade in 3 ms, fade out 0.2 s",
+    "gain +3.31 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+    "16-bit PCM WAV 44.1 kHz"
+   ],
+   "duration_s": 1.2,
+   "lufs": -17.7,
+   "true_peak_db": -7.2,
+   "smax": -120.7,
+   "export": "Assets/Audio/Resources/Audio/Sfx/SFX_ALERT_STALL_01.wav"
+  },
+  {
+   "file": "final/sfx/SFX_ALERT_STALL_02.wav",
+   "source": "auditions/SFX_ALERT_STALL__take1__Noa8XS48ljBtvFxb1mPA.mp3",
+   "edits": [
+    "highpass=f=120:poles=2",
+    "trim lead 0.000s tail 0.000s",
+    "fade in 3 ms, fade out 0.2 s",
+    "gain +9.24 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+    "16-bit PCM WAV 44.1 kHz"
+   ],
+   "duration_s": 1.2,
+   "lufs": -14.1,
+   "true_peak_db": -2.0,
+   "smax": -120.7,
+   "export": "Assets/Audio/Resources/Audio/Sfx/SFX_ALERT_STALL_02.wav"
+  }
+ ],
+ "SFX_ALERT_FITNESS": [
+  {
+   "file": "final/sfx/SFX_ALERT_FITNESS_01.wav",
+   "source": "auditions/SFX_ALERT_FITNESS__take4__T3ybeL2l29EYWExdEpg2.mp3",
+   "edits": [
+    "trim lead 0.000s tail 0.000s",
+    "fade in 3 ms, fade out 0.2 s",
+    "gain +3.20 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+    "16-bit PCM WAV 44.1 kHz"
+   ],
+   "duration_s": 1.36,
+   "lufs": -18.6,
+   "true_peak_db": -8.8,
+   "smax": -120.7,
+   "export": "Assets/Audio/Resources/Audio/Sfx/SFX_ALERT_FITNESS_01.wav"
+  }
+ ],
+ "SFX_FOOTSTEP": [
+  {
+   "file": "final/sfx/SFX_FOOTSTEP_01.wav",
+   "source": "auditions/SFX_FOOTSTEP__take1__2LKqvjCLgHkuITYgAxeV.mp3",
+   "edits": [
+    "highpass=f=80:poles=2",
+    "trim lead 0.000s tail 0.000s",
+    "fade in 3 ms, fade out 0.04 s",
+    "gain +16.17 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+    "16-bit PCM WAV 44.1 kHz"
+   ],
+   "duration_s": 0.48,
+   "lufs": -24.2,
+   "true_peak_db": -1.0,
+   "smax": -120.7,
+   "export": "Assets/Audio/Resources/Audio/Sfx/SFX_FOOTSTEP_01.wav"
+  },
+  {
+   "file": "final/sfx/SFX_FOOTSTEP_02.wav",
+   "source": "auditions/SFX_FOOTSTEP__take2__IxuxQGetGIRC2EslXRzg.mp3",
+   "edits": [
+    "highpass=f=80:poles=2",
+    "trim lead 0.000s tail 0.045s",
+    "fade in 3 ms, fade out 0.04 s",
+    "gain +20.28 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+    "16-bit PCM WAV 44.1 kHz"
+   ],
+   "duration_s": 0.435,
+   "lufs": -18.8,
+   "true_peak_db": -0.9,
+   "smax": -120.7,
+   "export": "Assets/Audio/Resources/Audio/Sfx/SFX_FOOTSTEP_02.wav"
+  },
+  {
+   "file": "final/sfx/SFX_FOOTSTEP_03.wav",
+   "source": "auditions/SFX_FOOTSTEP__take3__X70l7CnRvT7phlbZBvVD.mp3",
+   "edits": [
+    "highpass=f=80:poles=2",
+    "trim lead 0.000s tail 0.032s",
+    "fade in 3 ms, fade out 0.04 s",
+    "gain +21.08 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+    "16-bit PCM WAV 44.1 kHz"
+   ],
+   "duration_s": 0.448,
+   "lufs": -16.9,
+   "true_peak_db": -1.0,
+   "smax": -120.7,
+   "export": "Assets/Audio/Resources/Audio/Sfx/SFX_FOOTSTEP_03.wav"
+  },
+  {
+   "file": "final/sfx/SFX_FOOTSTEP_04.wav",
+   "source": "auditions/SFX_FOOTSTEP__take4__FLfcyuV0pQ7Serd6WVFx.mp3",
+   "edits": [
+    "highpass=f=80:poles=2",
+    "trim lead 0.000s tail 0.025s",
+    "fade in 3 ms, fade out 0.04 s",
+    "gain +23.48 dB (loudest 300 ms RMS -> -16 dBFS, peak cap -1 dBFS)",
+    "16-bit PCM WAV 44.1 kHz"
+   ],
+   "duration_s": 0.455,
+   "lufs": -18.5,
+   "true_peak_db": -0.9,
+   "smax": -120.7,
+   "export": "Assets/Audio/Resources/Audio/Sfx/SFX_FOOTSTEP_04.wav"
+  }
+ ],
+ "SFX_GYM_LOOP": [
+  {
+   "file": "final/sfx/SFX_GYM_LOOP_01.wav",
+   "source": "auditions/SFX_GYM_LOOP__take3__CtHZDkQm1uMBb4sUdNEd.mp3",
+   "edits": [
+    "highpass=f=60:poles=2",
+    "gain +22.31 dB (RMS -> -24 dBFS, peak cap -1 dBFS); no trim/fade, engine crossfades",
+    "16-bit PCM WAV 44.1 kHz"
+   ],
+   "duration_s": 4.0,
+   "lufs": -24.2,
+   "true_peak_db": -1.0,
+   "smax": -23.7,
+   "export": "Assets/Audio/Resources/Audio/Sfx/SFX_GYM_LOOP_01.wav"
+  }
+ ],
+ "AMB_COLONY_HUM": [
+  {
+   "file": "final/ambience/AMB_COLONY_HUM_01.wav",
+   "source": "auditions/AMB_COLONY_HUM__take3__erlikz9nZqxkwUxyIabk.mp3",
+   "edits": [
+    "highpass=f=60:poles=2",
+    "gain +20.19 dB (RMS -> -24 dBFS, peak cap -1 dBFS); no trim/fade, engine crossfades",
+    "16-bit PCM WAV 44.1 kHz"
+   ],
+   "duration_s": 20.0,
+   "lufs": -22.7,
+   "true_peak_db": -9.4,
+   "smax": -22.4,
+   "export": "Assets/Audio/Resources/Audio/Ambience/AMB_COLONY_HUM_01.wav"
+  }
+ ],
+ "AMB_MARS_WIND": [
+  {
+   "file": "final/ambience/AMB_MARS_WIND_01.wav",
+   "source": "auditions/AMB_MARS_WIND__take2__oLe2QgFibSbaUTSWiSzX.mp3",
+   "edits": [
+    "highpass=f=100:poles=2",
+    "gain +18.96 dB (RMS -> -26 dBFS, peak cap -1 dBFS); no trim/fade, engine crossfades",
+    "16-bit PCM WAV 44.1 kHz"
+   ],
+   "duration_s": 30.0,
+   "lufs": -22.2,
+   "true_peak_db": -2.5,
+   "smax": -19.2,
+   "export": "Assets/Audio/Resources/Audio/Ambience/AMB_MARS_WIND_01.wav"
+  }
+ ]
+}

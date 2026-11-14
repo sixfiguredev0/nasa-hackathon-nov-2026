@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using RedFrontier.Audio;
 using RedFrontier.Outpost;
 using static FrontierUi;
 
@@ -46,6 +47,7 @@ public sealed class MainMenu : MonoBehaviour
     private PixelLabel optionsHeading, volumeValue;
     private PixelButton motion, fullscreen, resolution, optionsBack;
     private PixelSlider volume;
+    private AudioMixRow mix;
     private readonly List<Vector2Int> resolutions = new List<Vector2Int>();
     private int resolutionIndex;
     private bool fullscreenOn;
@@ -97,6 +99,7 @@ public sealed class MainMenu : MonoBehaviour
         events.firstSelectedGameObject = start.gameObject;
         start.Select();
         ApplyLayout(IsNarrow);
+        GameAudio.EnterTitle();
     }
 
     private void BuildOptions()
@@ -122,6 +125,7 @@ public sealed class MainMenu : MonoBehaviour
         Place(caption.Rect, new Vector2(1, 58), 0, 0, 1, 24);
         Place(volumeValue.Rect, new Vector2(1, 58), 0, 0, 1, 24);
         Place((RectTransform)volume.transform, new Vector2(1, 58), 0, 30, 1, 28);
+        mix = new AudioMixRow(optionsPanel);
 
         fullscreen = FrontierUi.Button("Fullscreen", optionsPanel, false);
         resolution = FrontierUi.Button("Resolution", optionsPanel, false);
@@ -162,7 +166,7 @@ public sealed class MainMenu : MonoBehaviour
         Place(instructions.Rect, controlsSize, 0, 32, 1, 96);
 
         optionsBack = FrontierUi.Button("Back", optionsPanel, false);
-        Chain(motion, volume, fullscreen, resolution, optionsBack);
+        Chain(motion, volume, mix.Sliders[0], mix.Sliders[1], mix.Sliders[2], fullscreen, resolution, optionsBack);
     }
 
     // Start opens this: pick the astronaut who lands with the rocket, then the outpost loads.
@@ -262,7 +266,7 @@ public sealed class MainMenu : MonoBehaviour
 
         float panelWidth = narrow ? 450 : 560;
         LayoutPanel(optionsPanel, optionsHeading, panelWidth,
-            (motion.transform, RowHeight), (volumeRow, 58f), (fullscreen.transform, RowHeight),
+            (motion.transform, RowHeight), (volumeRow, 58f), (mix.Root, AudioMixRow.Height), (fullscreen.transform, RowHeight),
             (resolution.transform, RowHeight), (controlsSection, 128f), (optionsBack.transform, RowHeight));
         LayoutCrewPick(panelWidth);
 
@@ -354,12 +358,15 @@ public sealed class MainMenu : MonoBehaviour
         if (launching)
             return;
         SetMenuInteractable(false);
+        mix.Refresh();
         SetOptionsVisible(true);
         motion.Select();
+        GameAudio.Play(Sfx.UiPanelOpen);
     }
 
     private void CloseOptions()
     {
+        GameAudio.Play(Sfx.UiBack);
         SetOptionsVisible(false);
         SetMenuInteractable(true);
         options.Select();
@@ -372,10 +379,12 @@ public sealed class MainMenu : MonoBehaviour
         SetMenuInteractable(false);
         SetCrewPickVisible(true);
         pickFemale.Select();
+        GameAudio.Play(Sfx.UiPanelOpen);
     }
 
     private void CloseCrewPick()
     {
+        GameAudio.Play(Sfx.UiBack);
         SetCrewPickVisible(false);
         SetMenuInteractable(true);
         start.Select();
@@ -462,6 +471,7 @@ public sealed class MainMenu : MonoBehaviour
 
         launchError.gameObject.SetActive(false);
         launching = true;
+        GameAudio.Launch(reduced); // whoosh follows the 1.45 s flight; Reduce Motion skips it, arrival music plays either way
         start.HoldPressed = true;
         SetMenuInteractable(false);
         fade.raycastTarget = true;

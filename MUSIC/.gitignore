@@ -15,3 +15,5 @@ final/**/*.flac
 *.reapeaks
 *.pkf
 *.asd
+# Python bytecode from the production scripts
+__pycache__/
