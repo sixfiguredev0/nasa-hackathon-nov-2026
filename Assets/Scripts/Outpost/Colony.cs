@@ -16,6 +16,7 @@ namespace RedFrontier.Outpost
         public readonly List<Building> buildings = new List<Building>();
         public static Colony Instance { get; private set; }
 
+        readonly ResourceTopBar resourceTopBar = new ResourceTopBar();
         bool ready;
 
         void Awake() => Instance = this;
@@ -67,19 +68,8 @@ namespace RedFrontier.Outpost
         void OnGUI()
         {
             if (!ready) return;
-            float s = OutpostGUI.Scale, w = 150 * s, h = 22 * s, pad = 6 * s;
-            for (int i = 0; i < ColonyEconomy.ResCount; i++)
-            {
-                var r = (Res)i;
-                var rect = new Rect(pad + i * (w + pad), pad, w, h);
-                OutpostGUI.Panel(rect, new Color(0f, 0f, 0f, 0.6f));
-                OutpostGUI.Panel(new Rect(rect.x, rect.y, 4 * s, h), OutpostGUI.ResColor(r));
-                float n = economy.net[i];
-                string rate = n == 0 ? "" : string.Format("  <color={0}>{1:+0.0;-0.0}/s</color>", n > 0 ? "#8f8" : "#f88", n);
-                GUI.Label(new Rect(rect.x + 8 * s, rect.y, w - 8 * s, h),
-                    string.Format("{0} {1:0}/{2:0}{3}", r, economy.stock[i], economy.cap[i], rate),
-                    OutpostGUI.Text(11 * s, TextAnchor.MiddleLeft, Color.white));
-            }
+            resourceTopBar.Draw(economy);
+            float s = OutpostGUI.Scale, pad = 6 * s;
             GUI.Label(new Rect(pad, Screen.height - 24 * s, 600 * s, 20 * s), "Right-click a building to see its upgrade path",
                 OutpostGUI.Text(11 * s, TextAnchor.MiddleLeft, new Color(1f, 1f, 1f, 0.7f)));
         }
