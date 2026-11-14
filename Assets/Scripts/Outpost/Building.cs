@@ -1,3 +1,4 @@
+using System.Collections;
 using RedFrontier.Mars;
 using UnityEngine;
 
@@ -13,6 +14,7 @@ namespace RedFrontier.Outpost
     {
         static readonly Color StalledTint = new Color(1f, 0.55f, 0.55f), BlueprintTint = new Color(0.7f, 0.9f, 1f, 0.45f);
         const float FrameSeconds = 0.1f;
+        const float LandingSeconds = 1.8f;
 
         public BuildingState state;
         public Vector2Int footprint;
@@ -22,7 +24,7 @@ namespace RedFrontier.Outpost
         string shownNode;
         Sprite[] frames;
         float animStart;
-        bool awaitingCrew;
+        bool awaitingCrew, landing;
 
         public SpriteRenderer Renderer => sr;
         public bool UnderConstruction { get; private set; }
@@ -32,7 +34,7 @@ namespace RedFrontier.Outpost
         public Vector3 TopRight => new Vector3(sr.bounds.max.x, sr.bounds.max.y, 0f);
 
         /// <summary>True while a multi-frame sheet is still playing (the rocket landing).</summary>
-        public bool Animating => frames != null && Time.time - animStart < frames.Length * FrameSeconds;
+        public bool Animating => landing || (frames != null && frames.Length > 1 && Time.time - animStart < frames.Length * FrameSeconds);
 
         public void Init(BuildingState s, RectInt c, bool construct = false)
         {
@@ -44,6 +46,32 @@ namespace RedFrontier.Outpost
             if (construct) { UnderConstruction = true; shownNode = null; } // Update asks the crew to come build it
         }
 
+        internal IEnumerator LandFromAbove(Camera camera)
+        {
+            Vector3 touchdown = transform.position;
+            if (!FrontierUi.ReduceMotion && camera != null)
+            {
+                float depth = camera.WorldToViewportPoint(touchdown).z;
+                float viewTop = camera.ViewportToWorldPoint(new Vector3(0.5f, 1f, depth)).y;
+                float distance = Mathf.Max(0f, viewTop - sr.bounds.min.y) + 0.5f;
+                landing = true;
+                transform.position = touchdown + Vector3.up * distance;
+
+                for (float elapsed = 0f; elapsed < LandingSeconds; elapsed += Time.deltaTime)
+                {
+                    float remaining = 1f - elapsed / LandingSeconds;
+                    float offset = Mathf.Round(distance * remaining * remaining * MarsMapGenerator.Ppu) / MarsMapGenerator.Ppu;
+                    transform.position = touchdown + Vector3.up * offset;
+                    yield return null;
+                }
+            }
+
+            transform.position = touchdown;
+            landing = false;
+            animStart = Time.time - (frames.Length + 1) * FrameSeconds;
+            sr.sprite = frames[frames.Length - 1];
+        }
+
         void Update()
         {
             if (state == null) return;
@@ -52,7 +80,7 @@ namespace RedFrontier.Outpost
                 if (Crew.Instance != null && Crew.Instance.RequestBuild(this)) awaitingCrew = true;
                 else FinishBuild();
             }
-            // shortcut: sheets play once and hold the last frame (fits the rocket landing); add loop flags if looping art arrives
+            // Sheets play once and hold the last frame.
             if (frames.Length > 1)
                 sr.sprite = frames[Mathf.Min(frames.Length - 1, (int)((Time.time - animStart) / FrameSeconds))];
             sr.color = UnderConstruction ? BlueprintTint : state.stalled ? StalledTint : Color.white;

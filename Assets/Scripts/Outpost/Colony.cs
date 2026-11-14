@@ -44,6 +44,7 @@ namespace RedFrontier.Outpost
             var c = zi >= 0 ? map.placement.zones[zi].cells.center : BuildArea.center;
             var fp = rocketDef.footprint;
             var rocket = Spawn(rocketDef, new RectInt(Mathf.RoundToInt(c.x - fp.x / 2f), Mathf.RoundToInt(c.y - fp.y / 2f), fp.x, fp.y), false);
+            yield return rocket.LandFromAbove(Camera.main);
             gameObject.AddComponent<Crew>().Init(rocket);
             economy.crew = Crew.Picked.Length;
             if (GetComponent<BuilderMode>() == null) gameObject.AddComponent<BuilderMode>();
