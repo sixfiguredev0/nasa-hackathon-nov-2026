@@ -1,6 +1,6 @@
 # Coding Foxes — NASA Space Apps Challenge 2026
 
-Team instruction set for 14–15 November 2026. Challenge and stack are **kickoff decisions**. This is a new repository, separate from the old Amusnet/Unity project.
+Team instruction set for 14–15 November 2026. Challenge and stack are **kickoff decisions**.
 
 ## Start here
 - AI agents and teammates: [AGENTS.md](AGENTS.md) is authoritative.
