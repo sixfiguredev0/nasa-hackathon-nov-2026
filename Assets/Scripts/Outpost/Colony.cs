@@ -69,6 +69,7 @@ namespace RedFrontier.Outpost
         {
             if (!ready) return;
             resourceTopBar.Draw(economy);
+            resourceTopBar.DrawBuildPreview();
             float s = OutpostGUI.Scale, pad = 6 * s;
             GUI.Label(new Rect(pad, Screen.height - 24 * s, 600 * s, 20 * s), "Right-click a building to see its upgrade path",
                 OutpostGUI.Text(11 * s, TextAnchor.MiddleLeft, new Color(1f, 1f, 1f, 0.7f)));
