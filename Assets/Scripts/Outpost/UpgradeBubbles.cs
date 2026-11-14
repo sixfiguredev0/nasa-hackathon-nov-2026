@@ -4,8 +4,9 @@ using UnityEngine;
 namespace RedFrontier.Outpost
 {
     /// <summary>
-    /// Right-click a building (a click, not a camera drag) to show its whole upgrade tree as bubbles.
-    /// Left-click a yellow bubble to buy it. Right-click again, left-click empty space or Esc closes.
+    /// Right-click a building (a click, not a camera drag) to show two round buttons beside it:
+    /// up arrow opens the upgrade tree as bubbles (left-click a yellow bubble to buy it), "i" shows building info.
+    /// Right-click again, left-click empty space or Esc closes.
     /// </summary>
     public class UpgradeBubbles : MonoBehaviour
     {
@@ -14,31 +15,27 @@ namespace RedFrontier.Outpost
         [Tooltip("Max mouse travel (px) for a right-click; more is a camera drag")]
         public float clickSlop = 6f;
 
+        enum Mode { Buttons, Tree, Info }
+
         Building open;
+        Mode mode;
         Vector2 downPos;
-        bool rightClickStartedOnUi;
         readonly Dictionary<string, Vector2> cell = new Dictionary<string, Vector2>(); // x = depth, y = row
         readonly Dictionary<string, Vector2> pos = new Dictionary<string, Vector2>();
-
-        internal void ShowBuilding(Building building) => open = building;
 
         void Update()
         {
             if (colony == null) colony = Colony.Instance;
             if (cam == null) cam = Camera.main;
             if (colony == null || cam == null) return;
-            var mouse = (Vector2)Input.mousePosition;
-            bool overBuildUi = colony.IsOverBuildUi(new Vector2(mouse.x, Screen.height - mouse.y));
-            if (Input.GetMouseButtonDown(1))
+            if (Input.GetMouseButtonDown(1)) downPos = Input.mousePosition;
+            if (Input.GetMouseButtonUp(1) && ((Vector2)Input.mousePosition - downPos).magnitude <= clickSlop)
             {
-                downPos = mouse;
-                rightClickStartedOnUi = overBuildUi;
-            }
-            if (Input.GetMouseButtonUp(1) && !rightClickStartedOnUi && !overBuildUi
-                && (mouse - downPos).magnitude <= clickSlop)
-            {
+                var mouse = new Vector2(Input.mousePosition.x, Screen.height - Input.mousePosition.y);
+                if (BuilderMode.PointerOverUI(mouse)) return;
                 var b = colony.BuildingAt(cam.ScreenToWorldPoint(Input.mousePosition));
                 open = b == open ? null : b;
+                mode = Mode.Buttons;
             }
             if (Input.GetKeyDown(KeyCode.Escape)) open = null;
         }
@@ -46,17 +43,77 @@ namespace RedFrontier.Outpost
         void OnGUI()
         {
             if (colony == null || cam == null) return;
-            bool overBuildUi = colony.IsOverBuildUi(Event.current.mousePosition);
-            if (open == null)
-            {
-                if (!overBuildUi) HoverHint();
-                return;
-            }
+            if (BuilderMode.Placing || BuilderMode.PointerOverUI(Event.current.mousePosition)) return;
+            if (open == null) { HoverHint(); return; }
 
-            float s = OutpostGUI.Scale, r = 26 * s, colGap = 74 * s, rowGap = 62 * s;
+            float s = OutpostGUI.Scale;
             var st = open.state;
-            var def = st.def;
             var eco = colony.economy;
+            var mouse = Event.current.mousePosition;
+
+            // two buttons right of the building's top corner, info offset down-right like the sketch
+            float br = 15 * s;
+            var corner = OutpostGUI.WorldToGui(cam, open.TopRight);
+            var upPos = new Vector2(Mathf.Min(corner.x + br + 8 * s, Screen.width - 2.6f * br), Mathf.Max(corner.y + br, br + 50 * s));
+            var infoPos = upPos + new Vector2(0.6f * br, 2.6f * br);
+            bool canUpgrade = false;
+            foreach (var c in st.Node.next) canUpgrade |= eco.Status(st, c) == NodeStatus.Available;
+            bool upHot = (mouse - upPos).magnitude <= br, infoHot = (mouse - infoPos).magnitude <= br;
+
+            string hoveredNode = null;
+            if (mode == Mode.Tree) DrawTree(st, eco, mouse, s, out hoveredNode);
+
+            RoundButton(upPos, br, upHot, mode == Mode.Tree, canUpgrade, s);
+            UpArrow(upPos, br);
+            RoundButton(infoPos, br, infoHot, mode == Mode.Info, false, s);
+            GUI.Label(new Rect(infoPos.x - br, infoPos.y - br, br * 2, br * 2), "<b>i</b>",
+                OutpostGUI.Text(br * 1.3f, TextAnchor.MiddleCenter, Color.white));
+
+            if (mode == Mode.Info) Tooltip(st.Node, eco.Status(st, st.nodeId), infoPos + new Vector2(br, -br), s);
+            if (hoveredNode != null) Tooltip(st.def.nodes[hoveredNode], eco.Status(st, hoveredNode), mouse, s);
+            else if (upHot && mode != Mode.Tree) Hint(mouse, "Upgrades", s);
+            else if (infoHot && mode != Mode.Info) Hint(mouse, "Info", s);
+
+            var e = Event.current;
+            if (e.type == EventType.MouseDown && e.button == 0)
+            {
+                if (upHot) mode = mode == Mode.Tree ? Mode.Buttons : Mode.Tree;
+                else if (infoHot) mode = mode == Mode.Info ? Mode.Buttons : Mode.Info;
+                else if (hoveredNode != null) eco.TryUpgrade(st, hoveredNode);
+                else open = null;
+                e.Use();
+            }
+        }
+
+        static void RoundButton(Vector2 p, float r, bool hot, bool active, bool pulse, float s)
+        {
+            float rr = r * (hot ? 1.1f : 1f) * (pulse ? 1f + 0.06f * Mathf.Sin(Time.unscaledTime * 5f) : 1f);
+            OutpostGUI.Disc(p, rr + 2 * s, active ? new Color(0.95f, 0.7f, 0.15f) : Color.white);
+            OutpostGUI.Disc(p, rr, pulse ? new Color(0.75f, 0.5f, 0.1f) : new Color(0.1f, 0.1f, 0.13f));
+        }
+
+        static void UpArrow(Vector2 p, float r)
+        {
+            float w = 0.24f * r;
+            OutpostGUI.Panel(new Rect(p.x - w / 2, p.y - 0.1f * r, w, 0.6f * r), Color.white);
+            var tip = p + new Vector2(0, -0.5f * r);
+            OutpostGUI.Line(tip, p + new Vector2(-0.45f * r, -0.02f * r), w, Color.white);
+            OutpostGUI.Line(tip, p + new Vector2(0.45f * r, -0.02f * r), w, Color.white);
+        }
+
+        static void Hint(Vector2 m, string text, float s)
+        {
+            var style = OutpostGUI.Text(11 * s, TextAnchor.MiddleLeft, Color.white);
+            var size = style.CalcSize(new GUIContent(text));
+            var rect = new Rect(m.x + 14 * s, m.y + 14 * s, size.x + 12 * s, size.y + 6 * s);
+            OutpostGUI.Panel(rect, new Color(0f, 0f, 0f, 0.7f));
+            GUI.Label(new Rect(rect.x + 6 * s, rect.y + 3 * s, size.x, size.y), text, style);
+        }
+
+        void DrawTree(BuildingState st, ColonyEconomy eco, Vector2 mouse, float s, out string hovered)
+        {
+            float r = 26 * s, colGap = 74 * s, rowGap = 62 * s;
+            var def = st.def;
 
             cell.Clear();
             float leaves = 0;
@@ -86,13 +143,12 @@ namespace RedFrontier.Outpost
                     OutpostGUI.Line(pos[n.id], pos[c], 2 * s, col);
                 }
 
-            var mouse = Event.current.mousePosition;
-            string hovered = null;
+            hovered = null;
             foreach (var n in def.nodes.Values)
             {
                 var p = pos[n.id];
                 var status = eco.Status(st, n.id);
-                bool hot = !overBuildUi && (mouse - p).magnitude <= r;
+                bool hot = (mouse - p).magnitude <= r;
                 if (hot) hovered = n.id;
                 float rr = r * (status == NodeStatus.Available ? 1f + 0.06f * Mathf.Sin(Time.unscaledTime * 5f) : 1f) * (hot ? 1.08f : 1f);
                 if (status == NodeStatus.Current) OutpostGUI.Disc(p, rr + 5 * s, Color.white);
@@ -103,16 +159,6 @@ namespace RedFrontier.Outpost
                 if (n.rocketTier > 0)
                     GUI.Label(new Rect(p.x - rr, p.y + rr - 2 * s, rr * 2, 12 * s), "Lv " + n.rocketTier,
                         OutpostGUI.Text(8 * s, TextAnchor.UpperCenter, new Color(1f, 1f, 1f, 0.6f)));
-            }
-
-            if (hovered != null) Tooltip(def.nodes[hovered], eco.Status(st, hovered), mouse, s);
-
-            var e = Event.current;
-            if (!overBuildUi && e.type == EventType.MouseDown && e.button == 0)
-            {
-                if (hovered != null) eco.TryUpgrade(st, hovered);
-                else open = null;
-                e.Use();
             }
         }
 
@@ -145,7 +191,7 @@ namespace RedFrontier.Outpost
             }
         }
 
-        string StatusLine(UpgradeNode n, NodeStatus s)
+        static string StatusLine(UpgradeNode n, NodeStatus s)
         {
             switch (s)
             {
@@ -159,14 +205,17 @@ namespace RedFrontier.Outpost
             }
         }
 
-        void Tooltip(UpgradeNode n, NodeStatus status, Vector2 mouse, float s)
+        /// <summary>Node card. <paramref name="cost"/> overrides the node's own cost (Builder Mode's scaled place cost).</summary>
+        public static void Tooltip(UpgradeNode n, NodeStatus status, Vector2 mouse, float s, Amount[] cost = null)
         {
+            cost = cost ?? n.cost;
             var lines = new List<string> { "<b>" + n.name + "</b>" + (n.level > 0 ? "  (level " + n.level + ")" : ""), n.blurb };
             var makes = new List<Amount>(); var uses = new List<Amount>();
             foreach (var a in n.rates) (a.value >= 0 ? makes : uses).Add(a);
-            if (n.cost.Length > 0 && status != NodeStatus.Owned && status != NodeStatus.Current) lines.Add("Cost: " + OutpostGUI.List(n.cost));
+            if (cost.Length > 0 && status != NodeStatus.Owned && status != NodeStatus.Current) lines.Add("Cost: " + OutpostGUI.List(cost));
             if (makes.Count > 0) lines.Add("<color=#8f8>Makes: " + OutpostGUI.List(makes.ToArray(), "/s") + "</color>");
             if (uses.Count > 0) lines.Add("<color=#f99>Uses: " + OutpostGUI.List(uses.ToArray(), "/s") + "</color>");
+            if (n.train > 0) lines.Add("<color=#fc8>Trains crew: +" + (n.train * 100).ToString("0.#") + "% fitness/s</color>");
             if (n.storage.Length > 0) lines.Add("<color=#9cf>Stores: +" + OutpostGUI.List(n.storage) + "</color>");
             lines.Add(StatusLine(n, status));
 
@@ -187,8 +236,9 @@ namespace RedFrontier.Outpost
             float s = OutpostGUI.Scale;
             var st = b.state;
             string text = "<b>" + st.def.name + "</b>: " + st.Node.name;
-            if (st.Node.isPlot) text += "\nRight-click to build";
-            else if (st.stalled) text += "\n<color=#f88>Stopped: needs " + st.missing + "</color>";
+            if (b.UnderConstruction) text += "\n<color=#9cf>Blueprint: waiting for the crew to build it</color>";
+            else text += "\n<color=#aaa>Right-click for upgrades</color>";
+            if (st.stalled) text += "\n<color=#f88>Stopped: needs " + st.missing + "</color>";
             var style = OutpostGUI.Text(11 * s, TextAnchor.UpperLeft, Color.white);
             var size = style.CalcSize(new GUIContent(text));
             var m = Event.current.mousePosition;
