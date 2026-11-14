@@ -26,7 +26,7 @@ namespace RedFrontier.Outpost
         private GUIStyle text;
         private int lastFrame = -1;
 
-        public float Bottom { get; private set; } = 56f;
+        public Rect Bounds { get; private set; }
 
         public void Draw(ColonyEconomy economy)
         {
@@ -53,7 +53,7 @@ namespace RedFrontier.Outpost
             var panel = new Rect(Mathf.Round((Screen.width - panelWidth) / 2f), 12f,
                 panelWidth, Mathf.Round(height * verticalScale));
 
-            Bottom = panel.yMax;
+            Bounds = panel;
             GUI.DrawTexture(panel, resourceBarArt);
             // These dimensions match the recessed compartments and tracks painted into the sprite.
             for (int i = 0; i < Names.Length; i++)
