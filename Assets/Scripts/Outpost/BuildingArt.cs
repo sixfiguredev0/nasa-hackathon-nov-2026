@@ -4,28 +4,51 @@ using UnityEngine;
 namespace RedFrontier.Outpost
 {
     /// <summary>
-    /// Sprite per upgrade node. Real art wins: Resources/Buildings/&lt;node id&gt; (16 PPU, pivot at the footprint centre).
+    /// Animation frames per upgrade node. Real art wins: Resources/Buildings/&lt;node id&gt;, else Resources/Buildings/&lt;BuildingKind&gt;.
+    /// A sheet is a horizontal strip of square frames (16 PPU); its pivot (the footprint centre) comes from <see cref="ArtPivots"/>.
     /// Otherwise a generated pixel-art placeholder sized to the zone footprint on the 24x12 oblique lattice.
     /// </summary>
     public static class BuildingArt
     {
         const int CellW = 24, CellH = 12, Pad = 2, MaxStructure = 110;
-        static readonly Dictionary<string, Sprite> cache = new Dictionary<string, Sprite>();
+        static readonly Dictionary<string, Sprite[]> cache = new Dictionary<string, Sprite[]>();
 
-        public static Sprite Get(BuildingDef def, UpgradeNode node, Vector2Int footprint)
+        /// <summary>Pixel inside one frame (from the bottom-left) that sits on the footprint centre.</summary>
+        static readonly Dictionary<string, Vector2> ArtPivots = new Dictionary<string, Vector2>
         {
-            if (cache.TryGetValue(node.id, out var s) && s != null) return s;
-            s = Resources.Load<Sprite>("Buildings/" + node.id);
-            if (s == null) s = Placeholder(def.kind, node, footprint);
+            { "Rocket", new Vector2(64, 21) }, // centre of the base on the last (landed) frame
+        };
+
+        public static Sprite[] Get(BuildingDef def, UpgradeNode node, Vector2Int footprint)
+        {
+            if (cache.TryGetValue(node.id, out var s) && s != null && s[0] != null) return s;
+            s = Sheet("Buildings/", node.id) ?? Sheet("Buildings/", def.kind.ToString())
+                ?? new[] { Placeholder(def.kind, node, footprint) };
             cache[node.id] = s;
             return s;
+        }
+
+        /// <summary>Slices Resources/&lt;folder&gt;&lt;name&gt; into square frames; null when the texture is missing.</summary>
+        public static Sprite[] Sheet(string folder, string name, Vector2? pivotPx = null)
+        {
+            var tex = Resources.Load<Texture2D>(folder + name);
+            if (tex == null) return null;
+            int fw = tex.height, n = Mathf.Max(1, tex.width / fw);
+            var pv = pivotPx ?? (ArtPivots.TryGetValue(name, out var p) ? p : new Vector2(fw / 2f, fw / 2f));
+            var frames = new Sprite[n];
+            for (int i = 0; i < n; i++)
+            {
+                frames[i] = Sprite.Create(tex, new Rect(i * fw, 0, fw, fw), new Vector2(pv.x / fw, pv.y / fw), 16f, 0, SpriteMeshType.FullRect);
+                frames[i].name = name + "_" + i;
+            }
+            return frames;
         }
 
         // ---- placeholder drawing ----
 
         static readonly Color32 Clear = new Color32(0, 0, 0, 0), Ink = new Color32(40, 22, 24, 255),
-            PadCol = new Color32(150, 128, 112, 255), WhiteCol = new Color32(232, 232, 236, 255), Red = new Color32(205, 64, 52, 255),
-            Grey = new Color32(120, 120, 130, 255), DarkGrey = new Color32(62, 62, 72, 255), Blue = new Color32(44, 74, 150, 255),
+            PadCol = new Color32(150, 128, 112, 255), WhiteCol = new Color32(232, 232, 236, 255),
+            DarkGrey = new Color32(62, 62, 72, 255), Blue = new Color32(44, 74, 150, 255),
             LightBlue = new Color32(100, 150, 215, 255), Yellow = new Color32(240, 200, 60, 255), Orange = new Color32(220, 120, 50, 255),
             Green = new Color32(64, 170, 72, 255), Brown = new Color32(140, 92, 58, 255);
 
@@ -86,23 +109,11 @@ namespace RedFrontier.Outpost
                 for (int x = 0; x < fp.x * CellW; x++)
                 {
                     bool edge = y == 0 || y == footH - 1 || x == 0 || x == fp.x * CellW - 1;
-                    if (node.isPlot)
-                    {
-                        if (edge && ((x + y) / 3) % 2 == 0) cv.Set(Pad + x + y, Pad + y, new Color32(255, 240, 220, 200));
-                        else if (!edge) cv.Set(Pad + x + y, Pad + y, new Color32(255, 240, 220, 28));
-                    }
-                    else cv.Set(Pad + x + y, Pad + y, edge ? Tint(PadCol, 0.8f) : PadCol);
+                    cv.Set(Pad + x + y, Pad + y, edge ? Tint(PadCol, 0.8f) : PadCol);
                 }
 
-            if (node.isPlot)
-            {
-                var plus = new Color32(255, 240, 220, 200);
-                cv.Box(cx - 4, cy, 9, 1, plus);
-                cv.Box(cx, cy - 4, 1, 9, plus);
-            }
-            else Draw(cv, kind, L, branch, cx, cy, fp);
-
-            if (!node.isPlot) Outline(cv);
+            Draw(cv, kind, L, branch, cx, cy, fp);
+            Outline(cv);
 
             int top = cv.h - 1;
             while (top > 0 && RowEmpty(cv, top)) top--;
@@ -140,24 +151,6 @@ namespace RedFrontier.Outpost
         {
             switch (kind)
             {
-                case BuildingKind.Rocket:
-                {
-                    int bw = 8 + 2 * L, bh = 26 + 14 * L, x0 = cx - bw / 2, y0 = cy - 4, nh = 6 + 3 * L;
-                    cv.Box(x0 - 5, y0 - 4, 2, 9, Grey);
-                    cv.Box(x0 + bw + 3, y0 - 4, 2, 9, Grey);
-                    for (int t = 0; t < 10; t++)
-                    {
-                        int fw = (10 - t) / 2 + 1;
-                        cv.Box(x0 - fw, y0 + t, fw, 1, Red);
-                        cv.Box(x0 + bw, y0 + t, fw, 1, Red);
-                    }
-                    cv.Box(x0, y0, bw, bh, WhiteCol);
-                    cv.Spike(cx, y0 + bh, bw, nh, Red);
-                    cv.Ellipse(cx, y0 + bh - 9, 3, 3, LightBlue);
-                    if (L >= 2) cv.Box(x0, y0 + bh / 2, bw, 3, Red);
-                    if (L >= 3) cv.Ellipse(cx, y0 + bh - 20, 3, 3, LightBlue);
-                    break;
-                }
                 case BuildingKind.Solar:
                 {
                     int rows = Mathf.Min(1 + L, fp.y * 2), pw = fp.x * CellW - 12, ph = branch == 'a' ? 6 : 4;
@@ -239,6 +232,21 @@ namespace RedFrontier.Outpost
                     cv.Box(cx - 3, y0, 6, 7, DarkGrey);
                     if (branch == 'a') { cv.Box(x0 - 6, y0, 2, bh + 8, new Color32(150, 90, 190, 255)); cv.Box(x0 - 6, y0 + bh + 6, 8, 2, new Color32(150, 90, 190, 255)); }
                     if (branch == 'b') { cv.Box(x0 - 14, y0 - 2, 9, 5, Yellow); cv.Box(x0 - 13, y0 - 4, 2, 2, DarkGrey); cv.Box(x0 - 8, y0 - 4, 2, 2, DarkGrey); }
+                    break;
+                }
+                case BuildingKind.Gym:
+                {
+                    // low hall with a dumbbell sign; 3a adds a weight rack, 3b a pool dome
+                    int shift = branch == 'b' ? 8 : 0, bw = 22 + 3 * L, bh = 9 + 2 * L, x0 = cx - bw / 2 - shift, y0 = cy - 5;
+                    cv.Box(x0, y0, bw, bh, new Color32(200, 120, 110, 255));
+                    cv.Box(x0, y0 + bh - 2, bw, 2, WhiteCol);
+                    cv.Box(cx - 3 - shift, y0, 6, 6, DarkGrey);
+                    int sx = x0 + bw / 2, sy = y0 + bh + 3;
+                    cv.Box(sx - 5, sy, 10, 1, DarkGrey);
+                    cv.Box(sx - 6, sy - 2, 2, 5, DarkGrey);
+                    cv.Box(sx + 4, sy - 2, 2, 5, DarkGrey);
+                    if (branch == 'a') for (int k = 0; k < 3; k++) cv.Box(x0 + bw + 2, y0 + k * 4, 6, 2, DarkGrey);
+                    if (branch == 'b') cv.Ellipse(x0 + bw + 12, cy - 4, 11, 8, new Color32(120, 200, 240, 170), true);
                     break;
                 }
             }

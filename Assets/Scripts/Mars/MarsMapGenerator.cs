@@ -137,6 +137,15 @@ namespace RedFrontier.Mars
             return groundOrigin + new Vector3(g.x, g.y, 0f) / Ppu;
         }
 
+        /// <summary>Inverse of LatticeToWorld on the ground plane: lattice coordinates (i, j) under a world point.</summary>
+        public Vector2 WorldToLattice(Vector3 world)
+        {
+            if (Terrain == null) return Vector2.zero;
+            var g = (world - groundOrigin) * Ppu;
+            Terrain.GroundToLattice(g.x, g.y, out float i, out float j);
+            return new Vector2(i, j);
+        }
+
         /// <summary>Same as LatticeToWorld but lifted by the terrain height (for props outside the flattened outpost).</summary>
         public Vector3 SurfaceToWorld(float i, float j) => LatticeToWorld(i, j) + Vector3.up * (Terrain != null ? Mathf.Round(Terrain.HeightAtLattice(i, j)) / Ppu : 0f);
 
