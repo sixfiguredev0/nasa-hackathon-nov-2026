@@ -24,6 +24,7 @@ public sealed class MainMenu : MonoBehaviour
 #endif
 
     [SerializeField] private Texture2D logo;
+    [SerializeField] private Texture2D titleStarArt;
     [SerializeField] private Texture2D mars;
     [SerializeField] private Texture2D satelliteArt;
     [SerializeField] private Texture2D sky;
@@ -32,12 +33,12 @@ public sealed class MainMenu : MonoBehaviour
     private string gameplayScene = "SampleScene";
 
     private RectTransform canvas, layout, overlay;
-    private RawImage title, planet, satellite, stars, blackHole;
-    private Image star, fade, dim;
+    private RawImage title, titleStar, planet, satellite, stars, blackHole;
+    private Image fade, dim;
     private PixelButton start, options;
-    private PixelLabel launchError;
+    private PixelLabel launchArrow, launchError;
     private EventSystem events;
-    private Vector2 size, center;
+    private Vector2 size, center, logoSize;
     private float orbitWidth, motionTime;
     private bool narrow, reduced, launching;
 
@@ -67,13 +68,12 @@ public sealed class MainMenu : MonoBehaviour
         satellite = Art("Relay", layout, Crisp(satelliteArt));
         planet = Art("Mars", layout, mars);
         title = Art("Red Frontier", layout, logo);
-        star = Fill("Title star glow", title.transform, Color.clear);
-        Fill("Star glow center", star.transform, new Color32(255, 230, 191, 255))
-            .rectTransform.localScale = new Vector3(.4f, .4f, 1);
+        if (titleStarArt != null)
+            titleStar = Art("Title star", title.transform, titleStarArt);
 
-        start = FrontierUi.Button("Start Mission", layout, true, titleAction: true);
+        start = FrontierUi.Button("Start", layout, true, titleAction: true);
         options = FrontierUi.Button("Options", layout, false, titleAction: true);
-        var launchArrow = PixelLabel.Create("Launch arrow", start.face, ">", 4, Background, 1);
+        launchArrow = PixelLabel.Create("Launch arrow", start.face, ">", 4, Background, 1);
         launchArrow.Rect.offsetMax = new Vector2(-22, 0);
         launchError = PixelLabel.Create("Launch error", layout,
             "Game scene unavailable.\nCheck the Build Profile scene list.", 2, Cream, 0, true);
@@ -165,7 +165,7 @@ public sealed class MainMenu : MonoBehaviour
         Chain(motion, volume, fullscreen, resolution, optionsBack);
     }
 
-    // Start Mission opens this: pick the astronaut who lands with the rocket, then the outpost loads.
+    // Start opens this: pick the astronaut who lands with the rocket, then the outpost loads.
     private void BuildCrewPick()
     {
         crewPanel = PanelFrame("Crew panel", overlay);
@@ -203,6 +203,7 @@ public sealed class MainMenu : MonoBehaviour
 
     private void Update()
     {
+        if (launching) return;
         if (narrow != IsNarrow)
             ApplyLayout(IsNarrow);
         CoverSky(stars, sky);
@@ -240,21 +241,23 @@ public sealed class MainMenu : MonoBehaviour
         size = narrow ? new Vector2(500, 840) : new Vector2(1280, 720);
         Resize(canvas, size, layout, overlay);
 
-        // Align the visible art with the outside edges of the two action rows.
+        // Align both actions with the visible left edge of the wordmark.
         float left = narrow ? 50 : 88, width = narrow ? 400 : 452, top = narrow ? 32 : 128;
         float logoWidth = width / (LogoRight - LogoLeft);
         float logoHeight = logoWidth * logo.height / logo.width;
         Place(title.rectTransform, size, left - LogoLeft * logoWidth, top - LogoTop * logoHeight, logoWidth, logoHeight);
-        Place(star.rectTransform, new Vector2(logoWidth, logoHeight),
-            logoWidth * .717f - 7, logoHeight * .175f - 7, 14, 14);
+        logoSize = new Vector2(logoWidth, logoHeight);
 
         float logoEnd = top + (LogoBottom - LogoTop) * logoHeight;
-        float launchHeight = narrow ? 64 : 72, secondaryHeight = narrow ? 54 : 58;
-        const float gap = 16;
-        float startY = narrow ? size.y - 48 - launchHeight - gap - secondaryHeight : logoEnd + 40;
+        float launchWidth = narrow ? 260 : 270, optionsWidth = narrow ? 172 : 178;
+        float launchHeight = narrow ? 60 : 62, secondaryHeight = 44;
+        const float gap = 12;
+        float startY = narrow ? size.y - 48 - launchHeight - gap - secondaryHeight : logoEnd + 35;
         float secondaryY = startY + launchHeight + gap;
-        Place((RectTransform)start.transform, size, left, startY, width, launchHeight);
-        Place((RectTransform)options.transform, size, left, secondaryY, width, secondaryHeight);
+        float actionLeft = narrow ? (size.x - launchWidth) / 2 : left;
+        float optionsLeft = narrow ? (size.x - optionsWidth) / 2 : left;
+        Place((RectTransform)start.transform, size, actionLeft, startY, launchWidth, launchHeight);
+        Place((RectTransform)options.transform, size, optionsLeft, secondaryY, optionsWidth, secondaryHeight);
         Place(launchError.Rect, size, left, secondaryY + secondaryHeight + 4, width, 42);
 
         float panelWidth = narrow ? 450 : 560;
@@ -336,10 +339,14 @@ public sealed class MainMenu : MonoBehaviour
         else if (!near && relay > behind)
             satellite.transform.SetSiblingIndex(behind);
 
-        float pulse = reduced ? 0 : .65f * Mathf.Pow(.5f - .5f * Mathf.Cos(motionTime * tau / 6), 4);
-        var glow = new Color(1, .88f, .70f, pulse);
-        star.color = glow;
-        star.transform.GetChild(0).GetComponent<Image>().color = glow;
+        if (titleStar != null)
+        {
+            // Keep the star tethered to the orbit. During each cycle it lifts a few design pixels.
+            float lift = reduced ? 0f : Mathf.Round(4f * (1f - Mathf.Cos(motionTime * tau / 5f)));
+            // Crop bounds in the original 1774 × 887 wordmark artwork.
+            Place(titleStar.rectTransform, logoSize, logoSize.x * (1140f / 1774f),
+                logoSize.y * (20f / 887f) - lift, logoSize.x * (252f / 1774f), logoSize.y * (290f / 887f));
+        }
     }
 
     private void OpenOptions()
@@ -391,9 +398,7 @@ public sealed class MainMenu : MonoBehaviour
             CloseCrewPick(); // scene missing: Launch showed the error under the title buttons
             return;
         }
-        foreach (var card in new[] { pickFemale, pickMale, crewBack })
-            card.interactable = false;
-        (who == Astronaut.Female ? pickFemale : pickMale).HoldPressed = true;
+        SetCrewPickVisible(false);
     }
 
     private void SetOptionsVisible(bool visible)
@@ -463,18 +468,58 @@ public sealed class MainMenu : MonoBehaviour
         if (reduced)
             SceneManager.LoadSceneAsync(destination);
         else
-            StartCoroutine(FadeToMission(destination));
+            StartCoroutine(FlyToMars(destination));
     }
 
-    private IEnumerator FadeToMission(string destination)
+    private IEnumerator FlyToMars(string destination)
     {
-        for (float elapsed = 0; elapsed < .2f; elapsed += Time.unscaledDeltaTime)
+        const float arrowSeconds = .70f, approachSeconds = 1.45f;
+        Vector3 arrowWorld = launchArrow.Rect.TransformPoint(
+            new Vector3(launchArrow.Rect.rect.xMax - 7f, launchArrow.Rect.rect.center.y));
+        Vector3 local = layout.InverseTransformPoint(arrowWorld);
+        Vector2 origin = new Vector2((local.x / layout.rect.width + layout.pivot.x) * size.x,
+            (1f - local.y / layout.rect.height - layout.pivot.y) * size.y);
+        Vector2 entry = center + new Vector2(-size.x * .065f, -size.y * .105f);
+        Vector2 bend = new Vector2(Mathf.Lerp(origin.x, entry.x, .55f), Mathf.Min(origin.y, entry.y) - 12f);
+
+        var flyingArrow = PixelLabel.Create("Launch arrow in flight", layout, ">", 9, Cream, .5f, true);
+        var menuArt = title.gameObject.AddComponent<CanvasGroup>();
+        var navigation = new[] { start.group, options.group };
+        launchArrow.gameObject.SetActive(false);
+        float planetSize = planet.rectTransform.rect.width / layout.rect.width * size.x;
+        Vector2 viewportCenter = size / 2f;
+
+        for (float elapsed = 0f; elapsed < approachSeconds; elapsed += Time.unscaledDeltaTime)
         {
-            fade.color = new Color32(Background.r, Background.g, Background.b, (byte)(255 * elapsed / .2f));
+            float approach = Mathf.Clamp01((elapsed - .26f) / (approachSeconds - .26f));
+            float zoom = approach * approach;
+            float scale = Mathf.Lerp(1f, 4.2f, zoom);
+            Vector2 focus = Vector2.Lerp(entry, viewportCenter, Mathf.SmoothStep(0f, 1f, approach));
+            Vector2 imageCenter = focus + (center - entry) * scale;
+            float diameter = planetSize * scale;
+            Place(planet.rectTransform, size, imageCenter.x - diameter / 2f, imageCenter.y - diameter / 2f,
+                diameter, diameter);
+
+            float flight = Mathf.Clamp01(elapsed / arrowSeconds);
+            Vector2 arrow = Vector2.Lerp(Vector2.Lerp(origin, bend, flight), Vector2.Lerp(bend, focus, flight), flight);
+            float arrowSize = Mathf.Lerp(32f, 86f, Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(flight * 3f)));
+            Place(flyingArrow.Rect, size, Mathf.Round(arrow.x - arrowSize / 2f),
+                Mathf.Round(arrow.y - arrowSize / 2f), arrowSize, arrowSize);
+            flyingArrow.Color = new Color(Cream.r / 255f, Cream.g / 255f, Cream.b / 255f,
+                1f - Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(.75f, 1f, flight)));
+
+            float opacity = 1f - Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(.43f, .83f, elapsed));
+            menuArt.alpha = opacity;
+            foreach (var button in navigation) button.alpha = opacity;
+            satellite.color = new Color(1f, 1f, 1f, opacity);
+            blackHole.color = new Color(1f, 1f, 1f, .6f * opacity);
+            fade.color = new Color(Background.r / 255f, Background.g / 255f, Background.b / 255f,
+                Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(1.14f, approachSeconds, elapsed)));
             yield return null;
         }
+
         fade.color = Background;
-        SceneManager.LoadSceneAsync(destination);
+        MissionArrival.Load(destination);
     }
 
     // Binary alpha so the scaled-down relay has no soft fringe over the sky or Mars.

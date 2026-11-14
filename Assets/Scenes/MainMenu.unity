@@ -228,7 +228,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9404c39c5a244b3381ecffd59b9b74e6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  logo: {fileID: 2800000, guid: 283a7517f3a44f889d03a42bf457f145, type: 3}
+  logo: {fileID: 2800000, guid: f8b221a612a1418698c7f7d040c4492a, type: 3}
+  titleStarArt: {fileID: 2800000, guid: a75596aee29542169956bee2b941046f, type: 3}
   mars: {fileID: 2800000, guid: b033679302da4730b526f1685df5d60c, type: 3}
   satelliteArt: {fileID: 2800000, guid: 4b2f424e2c246a34282d6326bea48362, type: 3}
   sky: {fileID: 2800000, guid: a52d7e2d967e7d44aab55174f7507c0b, type: 3}
