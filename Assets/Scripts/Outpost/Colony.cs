@@ -23,6 +23,9 @@ namespace RedFrontier.Outpost
         public RectInt BuildArea { get; private set; }
         public bool Ready { get; private set; }
         internal readonly ResourceTopBar resourceTopBar = new ResourceTopBar();
+        Texture2D crewFitnessArt, crewFitnessSegments;
+        static readonly int[] CrewSegmentEdges = { 10, 19, 26, 32, 40, 48 };
+        GUIStyle crewFitnessLabel;
 
         void Awake() => Instance = this;
 
@@ -122,23 +125,69 @@ namespace RedFrontier.Outpost
         {
             if (!Ready) return;
             resourceTopBar.Draw(economy);
-            float s = OutpostGUI.Scale, w = 150 * s, h = 22 * s, pad = 6 * s;
-
-            // crew fitness bar under the resources
-            var fr = new Rect(pad, resourceTopBar.Bottom + pad, w * 1.6f, h * 0.85f);
-            OutpostGUI.Panel(fr, new Color(0f, 0f, 0f, 0.6f));
-            var fc = Color.Lerp(new Color(0.9f, 0.25f, 0.2f), new Color(0.35f, 0.85f, 0.4f), economy.fitness);
-            OutpostGUI.Panel(new Rect(fr.x, fr.yMax - 3 * s, fr.width * economy.fitness, 3 * s), fc);
-            string doing = economy.training != null ? "  <color=#8f8>training</color>" : "";
-            GUI.Label(new Rect(fr.x + 6 * s, fr.y, fr.width, fr.height - 2 * s),
-                string.Format("Crew fitness {0:0}%  (work speed {1:0}%){2}", economy.fitness * 100, economy.Efficiency * 100, doing),
-                OutpostGUI.Text(10 * s, TextAnchor.MiddleLeft, Color.white));
-            if (economy.lifeSupportShort)
-                GUI.Label(new Rect(fr.xMax + pad, fr.y, 500 * s, fr.height), "<b>OUT OF " + economy.shortOf.ToString().ToUpper() + "!</b> The crew is getting weak fast.",
-                    OutpostGUI.Text(11 * s, TextAnchor.MiddleLeft, new Color(1f, 0.4f, 0.35f)));
-
+            DrawCrewFitness();
+            float s = OutpostGUI.Scale, pad = 6 * s;
             GUI.Label(new Rect(pad, Screen.height - 24 * s, 600 * s, 20 * s), "B: Builder Mode    Right-click a building: upgrades",
                 OutpostGUI.Text(11 * s, TextAnchor.MiddleLeft, new Color(1f, 1f, 1f, 0.7f)));
+        }
+
+        void DrawCrewFitness()
+        {
+            if (Event.current.type != EventType.Repaint) return;
+            if (crewFitnessLabel == null)
+            {
+                crewFitnessArt = Resources.Load<Texture2D>("OutpostHud/Crew Fitness");
+                crewFitnessSegments = Resources.Load<Texture2D>("OutpostHud/Crew Fitness Segments");
+                crewFitnessLabel = new GUIStyle(GUI.skin.label)
+                {
+                    alignment = TextAnchor.MiddleLeft,
+                    clipping = TextClipping.Clip,
+                    padding = new RectOffset(),
+                    richText = true
+                };
+                crewFitnessLabel.normal.textColor = new Color32(248, 232, 215, 255);
+            }
+
+            const float width = 180f, height = 58f;
+            float scale = Mathf.Min(Mathf.Clamp(Screen.height / 720f, 1f, 1.5f), (Screen.width - 24f) / width);
+            Rect resourceBar = resourceTopBar.Bounds;
+            float panelWidth = Mathf.Round(width * scale);
+            // Keep the gauge level with the resource bar whenever both fit on the same row.
+            float x = Mathf.Round(16f * scale);
+            float gap = Mathf.Round(8f * scale);
+            float y = x + panelWidth + gap <= resourceBar.xMin ? resourceBar.yMin : resourceBar.yMax + gap;
+            var panel = new Rect(x, y, panelWidth, Mathf.Round(height * scale));
+            GUI.DrawTexture(panel, crewFitnessArt);
+
+            float fitness = economy.fitness;
+            Color originalColor = GUI.color;
+            int segmentCount = CrewSegmentEdges.Length - 1;
+            for (int i = 0; i < segmentCount; i++)
+            {
+                // Drain from the bottom. The current segment fades through its 20% range.
+                float lit = Mathf.Clamp01(fitness * segmentCount - i);
+                if (lit <= 0f) continue;
+                float top = CrewSegmentEdges[i];
+                float segmentHeight = CrewSegmentEdges[i + 1] - top;
+                var segment = new Rect(panel.x, panel.y + top * scale, panel.width, segmentHeight * scale);
+                var uv = new Rect(0f, 1f - (top + segmentHeight) / height, 1f, segmentHeight / height);
+                GUI.color = new Color(originalColor.r, originalColor.g, originalColor.b, originalColor.a * lit);
+                GUI.DrawTextureWithTexCoords(segment, crewFitnessSegments, uv);
+            }
+            GUI.color = originalColor;
+
+            const float labelX = 68f, labelWidth = 102f;
+            crewFitnessLabel.fontSize = Mathf.Max(1, Mathf.RoundToInt(12f * scale));
+            GUI.Label(new Rect(panel.x + labelX * scale, panel.y + 7f * scale, labelWidth * scale, 15f * scale),
+                $"<b>Fitness {fitness * 100f:0}%</b>", crewFitnessLabel);
+            crewFitnessLabel.fontSize = Mathf.Max(1, Mathf.RoundToInt(11f * scale));
+            GUI.Label(new Rect(panel.x + labelX * scale, panel.y + 22f * scale, labelWidth * scale, 13f * scale),
+                $"<color=#cfb9b8>Work speed {economy.Efficiency * 100f:0}%</color>", crewFitnessLabel);
+
+            string status = economy.lifeSupportShort ? $"<color=#ff978e>Out of {economy.shortOf.ToString().ToLowerInvariant()}</color>"
+                : economy.training != null && !economy.training.stalled ? "<color=#a0e6b7>Training</color>" : string.Empty;
+            GUI.Label(new Rect(panel.x + labelX * scale, panel.y + 35f * scale, labelWidth * scale, 13f * scale),
+                status, crewFitnessLabel);
         }
     }
 }
