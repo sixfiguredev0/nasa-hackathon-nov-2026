@@ -5,8 +5,8 @@
   "crewCount": 4,
   "startHealth": 100,
   "healthRecoveryPerSol": 5,
-  "radiationPerSol": 1,
-  "radiationDamagePerUnit": 2,
+  "radiationPerSol": 2,
+  "radiationDamagePerUnit": 3,
   "resources": [
     { "id": "power", "start": 15, "capacity": 24 },
     { "id": "air", "start": 12, "capacity": 20 },

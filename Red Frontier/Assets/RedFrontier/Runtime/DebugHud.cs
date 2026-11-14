@@ -130,14 +130,18 @@ namespace RedFrontier.Runtime
                 DrawStatus();
                 if (snap.phase == MissionPhase.Ended) DrawEnd();
                 if (pending != null) DrawEvent();
-                if (snap.phase != MissionPhase.Ended)
+                // Narrow panel: keep the main action near the top so it is reachable without scrolling.
+                bool ended = snap.phase == MissionPhase.Ended;
+                if (panelMode && !ended) DrawAdvance();
+                if (panelMode && ended) DrawRestart();
+                if (!ended)
                 {
                     DrawFacilities();
-                    DrawReport("Forecast for sol " + forecast.sol + " at current settings (events not included)", forecast);
-                    DrawAdvance();
+                    DrawReport("Forecast for sol " + forecast.sol + " at current settings (new events not included)", forecast);
+                    if (!panelMode) DrawAdvance();
                 }
                 if (last != null) DrawReport("Last resolved sol " + last.sol, last);
-                DrawRestart();
+                if (!panelMode || !ended) DrawRestart();
                 DrawHistory();
             }
             GUILayout.EndScrollView();
