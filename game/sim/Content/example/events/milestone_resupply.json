@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "id": "milestone_resupply",
+  "category": "logistics",
+  "severity": "info",
+  "trigger": { "sol": 7 },
+  "title": "Supply lander arrives",
+  "body": "A supply lander has touched down near the outpost.",
+  "scienceNote": "",
+  "dataBasis": "illustrative",
+  "sourceRef": "",
+  "choices": [
+    { "id": "unload_now", "label": "Unload it now", "preview": "Uses 2 power. Gain 5 air.",
+      "effects": [ { "type": "resource", "target": "power", "amount": -2 },
+                   { "type": "resource", "target": "air", "amount": 5 } ] },
+    { "id": "unload_later", "label": "Leave it for later", "preview": "Crew Health drops by 5.",
+      "effects": [ { "type": "health", "amount": -5 } ] }
+  ]
+}

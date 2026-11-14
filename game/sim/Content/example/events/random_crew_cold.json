@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "id": "random_crew_cold",
+  "category": "crew",
+  "severity": "info",
+  "trigger": { "minSol": 4, "weight": 2 },
+  "title": "A crew member feels unwell",
+  "body": "One astronaut needs rest.",
+  "scienceNote": "",
+  "dataBasis": "illustrative",
+  "sourceRef": "",
+  "choices": [
+    { "id": "rest", "label": "Let them rest", "preview": "Uses 1 power.",
+      "effects": [ { "type": "resource", "target": "power", "amount": -1 } ] },
+    { "id": "push_on", "label": "Keep working", "preview": "Crew Health drops by 5.",
+      "effects": [ { "type": "health", "amount": -5 } ] }
+  ]
+}

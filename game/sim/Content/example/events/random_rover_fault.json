@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "id": "random_rover_fault",
+  "category": "equipment",
+  "severity": "warning",
+  "trigger": { "minSol": 2, "maxSol": 6, "weight": 1, "once": true },
+  "title": "Rover fault",
+  "body": "The rover has stopped working.",
+  "scienceNote": "",
+  "dataBasis": "illustrative",
+  "sourceRef": "",
+  "choices": [
+    { "id": "fix", "label": "Fix it", "preview": "Uses 2 power.",
+      "effects": [ { "type": "resource", "target": "power", "amount": -2 } ] },
+    { "id": "ignore", "label": "Leave it", "preview": "Crew Health drops by 5.",
+      "effects": [ { "type": "health", "amount": -5 } ] }
+  ]
+}

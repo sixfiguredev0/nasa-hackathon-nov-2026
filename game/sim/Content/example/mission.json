@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "missionLengthSols": 10,
+  "crewCount": 4,
+  "startHealth": 100,
+  "healthRecoveryPerSol": 5,
+  "resources": [
+    { "id": "power", "start": 15, "capacity": 20 },
+    { "id": "air", "start": 12, "capacity": 20 }
+  ],
+  "crewNeeds": [
+    { "resource": "air", "perCrewPerSol": 1, "healthPenaltyPerSol": 25 }
+  ],
+  "facilities": [
+    { "id": "solar_array", "startLevel": 1,
+      "levels": [ { "id": "off" },
+                  { "id": "on", "makes": [ { "resource": "power", "amount": 10 } ] } ] },
+    { "id": "life_support", "startLevel": 2,
+      "levels": [ { "id": "off" },
+                  { "id": "eco",  "uses": [ { "resource": "power", "amount": 2 } ], "makes": [ { "resource": "air", "amount": 3 } ] },
+                  { "id": "full", "uses": [ { "resource": "power", "amount": 4 } ], "makes": [ { "resource": "air", "amount": 5 } ] } ] }
+  ],
+  "eventChancePercent": 60,
+  "randomEventMinGapSols": 2
+}

@@ -1,0 +1,8 @@
+# Local to game/sim (plain C# core, not a Unity project).
+bin/
+obj/
+TestResults/
+# The root .gitignore ignores every *.csproj for Unity. These two hand-written projects are needed
+# to compile and test Core without Unity, so they are re-included here only.
+!Core/RedFrontier.Core.csproj
+!Tests/RedFrontier.Core.Tests.csproj
