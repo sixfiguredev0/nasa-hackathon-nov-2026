@@ -285,10 +285,24 @@ namespace RedFrontier.Outpost
                 }
         }
 
+        /// <summary>Build tray backgrounds are 70% transparent; icons and labels stay opaque.</summary>
+        static Color Faded(Color c) { c.a = 0.3f; return c; }
+
+        // OutpostGUI.Frame overdraws its layers, which would stack the alpha; draw each pixel once instead.
+        static void FadedFrame(Rect r, Color face, Color edge, float scale)
+        {
+            float p = Mathf.Max(1f, Mathf.Round(scale));
+            OutpostGUI.Panel(new Rect(r.x + p, r.y, r.width - 2f * p, p), edge);
+            OutpostGUI.Panel(new Rect(r.x + p, r.yMax - p, r.width - 2f * p, p), edge);
+            OutpostGUI.Panel(new Rect(r.x, r.y + p, p, r.height - 2f * p), edge);
+            OutpostGUI.Panel(new Rect(r.xMax - p, r.y + p, p, r.height - 2f * p), edge);
+            OutpostGUI.Panel(new Rect(r.x + p, r.y + p, r.width - 2f * p, r.height - 2f * p), face);
+        }
+
         BuildingDef DrawPanel(float scale, Vector2 mouse)
         {
             bool repaint = Event.current.type == EventType.Repaint;
-            if (repaint) OutpostGUI.InstrumentFrame(panelRect, scale);
+            if (repaint) FadedFrame(panelRect, Faded(FrontierUi.Shadow), Faded(FrontierUi.PanelLight), scale);
 
             BuildingDef hovered = null;
             for (int i = 0; i < Placeable.Count; i++)
@@ -301,8 +315,8 @@ namespace RedFrontier.Outpost
                 if (hot) hovered = def;
                 if (!repaint) continue;
 
-                OutpostGUI.Frame(slot, hot || def == selected ? FrontierUi.PanelDark : FrontierUi.Shadow,
-                    def == selected ? OutpostGUI.InstrumentAccent : FrontierUi.PanelLight, scale);
+                FadedFrame(slot, Faded(hot || def == selected ? FrontierUi.PanelDark : FrontierUi.Shadow),
+                    Faded(def == selected ? OutpostGUI.InstrumentAccent : FrontierUi.PanelLight), scale);
 
                 var frames = BuildingArt.Get(def, def.nodes[def.root], def.footprint);
                 Sprite icon = frames[frames.Length - 1];
