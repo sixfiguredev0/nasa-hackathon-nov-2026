@@ -28,10 +28,23 @@ namespace RedFrontier.Outpost
         [MenuItem("Red Frontier/Outpost/Verify Criteria Fixes")]
         public static void Run()
         {
-            var economyTest = Type.GetType("RedFrontier.Outpost.EditorTools.OutpostEditor, Assembly-CSharp-Editor");
-            var report = (string)economyTest.GetMethod("SelfTestReport").Invoke(null, null);
+            const string editorType = "RedFrontier.Outpost.EditorTools.OutpostEditor, Assembly-CSharp-Editor";
+            var economyTest = Type.GetType(editorType);
+            var selfTest = economyTest?.GetMethod("SelfTestReport");
+            if (selfTest == null)
+            {
+                Debug.LogError("Criteria verification: " + editorType + ".SelfTestReport was not found; nothing was run.");
+                return;
+            }
+            var report = selfTest.Invoke(null, null) as string;
             Debug.Log(report);
-            if (!report.Contains("ALL PASS")) throw new Exception("Existing economy self-test failed");
+            if (report == null || !report.Contains("ALL PASS")) throw new Exception("Existing economy self-test failed");
+            // Never silently discard unsaved edits: let the user save (or cancel the run).
+            if (!Application.isBatchMode && !EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+            {
+                Debug.Log("Criteria verification cancelled: unsaved scene changes were kept.");
+                return;
+            }
             EditorSceneManager.OpenScene("Assets/Scenes/MainMenu.unity");
             SessionState.SetBool(Pending, true);
             EditorApplication.EnterPlaymode();
