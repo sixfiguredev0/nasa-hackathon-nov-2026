@@ -4,8 +4,7 @@ using UnityEngine.UI;
 namespace RedFrontier.Outpost
 {
     /// <summary>
-    /// The mission objective. Announced when the opening hands over control, then tracked beside the resource bar
-    /// until the first Solar Panel is built.
+    /// One immediate goal at a time, advanced by commissioned buildings rather than dialogue clicks.
     /// </summary>
     internal sealed class MissionObjective : MonoBehaviour
     {
@@ -14,16 +13,43 @@ namespace RedFrontier.Outpost
         static readonly Color32 Complete = new Color32(160, 230, 183, 255);
 
         Colony colony;
+        HistoricalTraining training;
         Canvas canvas;
         CanvasGroup banner, tracker;
         RectTransform trackerRect;
-        PixelLabel goal;
+        PixelLabel goal, bannerGoal;
         Image check;
         float started, completedAt = -1f;
+        internal enum Step { Power, Water, Food, SupportPower, Oxygen, Training, Sandbox }
+        internal Step Stage { get; private set; }
+        internal string Caption => Captions[(int)Stage];
+        static readonly string[] Captions =
+        {
+            "Restore power", "Drill for water", "Grow food", "Power life support",
+            "Supply oxygen", "Historical exercise", "Keep exploring"
+        };
+
+        internal string Guidance
+        {
+            get
+            {
+                switch (Stage)
+                {
+                    case Step.Power: return "Build Solar Panels for power. In Build, place a green blueprint.";
+                    case Step.Water: return "Build an Ice Drill for drinking water. It needs power from your Solar Panels.";
+                    case Step.Food: return "Build a Greenhouse for food. It uses water and power to grow plants.";
+                    case Step.SupportPower: return "Add Solar Panels on a good site. Life support needs more power.";
+                    case Step.Oxygen: return "Build a Habitat Dome for oxygen. Its air machine needs power.";
+                    case Step.Training: return "Supplies are ready. A historical training exercise is next.";
+                    default: return "Build freely; Metal arrives by lander. Right-click buildings for upgrades.";
+                }
+            }
+        }
 
         void Start()
         {
             colony = GetComponent<Colony>();
+            training = GetComponent<HistoricalTraining>();
             started = Time.time;
             var root = new GameObject("Mission Objective Canvas", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler));
             canvas = root.GetComponent<Canvas>();
@@ -35,7 +61,7 @@ namespace RedFrontier.Outpost
             banner = bannerRect.gameObject.AddComponent<CanvasGroup>();
             banner.alpha = 0f;
             Label(bannerRect, BannerSize, "New objective", 2, FrontierUi.CoralLight, 0, 10, BannerSize.x, 22);
-            Label(bannerRect, BannerSize, "Restore power", 4, FrontierUi.Cream, 0, 32, BannerSize.x, 40);
+            bannerGoal = Label(bannerRect, BannerSize, Caption, 4, FrontierUi.Cream, 0, 32, BannerSize.x, 40);
 
             trackerRect = Panel("Objective", root.transform, Vector2.one, new Vector2(-12f, -12f), TrackerSize);
             tracker = trackerRect.gameObject.AddComponent<CanvasGroup>();
@@ -53,19 +79,45 @@ namespace RedFrontier.Outpost
 
         void Update()
         {
+            RefreshProgress();
             float age = Time.time - started;
             banner.alpha = Mathf.Clamp01(age / .3f) * Mathf.Clamp01((BannerSeconds - age) / .4f);
-            if (completedAt < 0f)
-            {
-                tracker.alpha = Mathf.Clamp01((age - BannerSeconds + .4f) / .4f);
-                if (!colony.buildings.Exists(b => b.state.def.kind == BuildingKind.Solar && !b.UnderConstruction)) return;
-                completedAt = Time.time;
-                goal.Text = "Power restored";
-                goal.Color = Complete;
-                check.enabled = true;
-            }
-            tracker.alpha = Mathf.Clamp01((completedAt + DoneSeconds - Time.time) / .5f);
-            if (Time.time > completedAt + DoneSeconds) Destroy(this);
+            tracker.alpha = completedAt < 0f ? Mathf.Clamp01((age - BannerSeconds + .4f) / .4f) :
+                Mathf.Clamp01((completedAt + DoneSeconds - Time.time) / .5f);
+        }
+
+        bool Has(BuildingKind kind) => colony.economy.buildings.Exists(b => b.def.kind == kind);
+
+        // Include the habitat's future demand when teaching the extra power step. Site yield and fitness matter.
+        bool HasSupportPower()
+        {
+            float balance = Has(BuildingKind.Habitat) ? 0f : -1f;
+            foreach (var b in colony.economy.buildings)
+                foreach (var rate in b.Node.rates)
+                    if (rate.res == Res.Energy)
+                        balance += rate.value > 0f ? rate.value * b.yield * colony.economy.Efficiency : rate.value;
+            return balance >= 0f;
+        }
+
+        internal void RefreshProgress()
+        {
+            if (colony == null || !colony.Ready || Time.timeScale <= 0f) return;
+            var before = Stage;
+            while ((Stage == Step.Power && Has(BuildingKind.Solar)) ||
+                   (Stage == Step.Water && Has(BuildingKind.Water)) ||
+                   (Stage == Step.Food && Has(BuildingKind.Greenhouse)) ||
+                   (Stage == Step.SupportPower && HasSupportPower()) ||
+                   (Stage == Step.Oxygen && Has(BuildingKind.Habitat)) ||
+                   (Stage == Step.Training && training != null &&
+                       (training.State == HistoricalTraining.Phase.Resolved || training.State == HistoricalTraining.Phase.Unavailable)))
+                Stage++;
+            if (before == Stage) return;
+            started = Time.time;
+            bannerGoal.Text = goal.Text = Caption;
+            if (Stage != Step.Sandbox) return;
+            completedAt = Time.time;
+            goal.Color = Complete;
+            check.enabled = true;
         }
 
         void LateUpdate()
