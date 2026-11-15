@@ -12,7 +12,7 @@ namespace RedFrontier.Outpost
     /// </summary>
     internal sealed class StoryUi : MonoBehaviour
     {
-        static readonly Vector2 Reference = new Vector2(960, 540), PopupSize = new Vector2(560, 128);
+        static readonly Vector2 Reference = new Vector2(960, 540), PopupSize = new Vector2(400, 104);
         static readonly Vector2 LogSize = new Vector2(320, 250), ChoiceSize = new Vector2(700, 330), CardSize = new Vector2(320, 196);
         const float CharsPerSecond = 40f;
 
@@ -101,7 +101,7 @@ namespace RedFrontier.Outpost
                 : fromEarth ? "<b>Mission Control</b> <color=#b9c9db>|| Earth, via orbiter relay</color>"
                 : "<b>Marlonis</b> <color=#9eb9cb>|| Ship computer</color>";
             body.color = log ? (Color)TermText : FrontierUi.Cream;
-            body.fontSize = log ? 13 : 15;
+            body.fontSize = log ? 11 : 12;
             popup.gameObject.SetActive(true);
             next.Select();
         }
@@ -185,37 +185,37 @@ namespace RedFrontier.Outpost
         void BuildPopup()
         {
             popup = FrontierUi.Box("Story popup", layout);
-            FrontierUi.Place(popup, Reference, (Reference.x - PopupSize.x) / 2, 206, PopupSize.x, PopupSize.y); // under the objective banner
+            FrontierUi.Place(popup, Reference, 240, 246, PopupSize.x, PopupSize.y); // above Marlonis's panel (top 358), left of the build tray (x 676)
             frame = Sharp(PixelArt.Sliced("Frame", popup, PixelArt.Frame(BlueFace, BlueEdge, BlueEdge, BlueFace)));
             frame.raycastTarget = true;
 
             // Left icon: Marlonis's portrait, Earth, static, or a tape deck for recordings.
             portrait = FrontierUi.Art("Marlonis", popup, Resources.Load<Texture2D>("OutpostHud/Mission Guide Portrait"));
-            FrontierUi.Place(portrait.rectTransform, PopupSize, 12, 20, 77, 78);
+            FrontierUi.Place(portrait.rectTransform, PopupSize, 10, 14, 64, 64);
             earth = FrontierUi.Art("Earth", popup, EarthTexture());
-            FrontierUi.Place(earth.rectTransform, PopupSize, 22, 30, 56, 56);
+            FrontierUi.Place(earth.rectTransform, PopupSize, 16, 22, 48, 48);
             noiseTexture = new Texture2D(32, 32, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point, name = "Broadcast static" };
             noisePixels = new Color32[32 * 32];
             noise = FrontierUi.Art("Static", popup, noiseTexture);
-            FrontierUi.Place(noise.rectTransform, PopupSize, 18, 28, 64, 56);
+            FrontierUi.Place(noise.rectTransform, PopupSize, 12, 20, 56, 50);
             var deckImage = Sharp(PixelArt.Sliced("Tape deck", popup, PixelArt.Frame(FrontierUi.PanelDark, FrontierUi.Mauve, FrontierUi.PanelLight, FrontierUi.Shadow)));
-            FrontierUi.Place(deckImage.rectTransform, PopupSize, 18, 36, 62, 44);
+            FrontierUi.Place(deckImage.rectTransform, PopupSize, 12, 26, 56, 40);
             deck = deckImage.gameObject;
             for (int i = 0; i < 2; i++)
             {
                 var reel = Sharp(PixelArt.Sliced("Reel", deck.transform, PixelArt.Frame(FrontierUi.CreamDark, FrontierUi.Shadow, FrontierUi.Cream, FrontierUi.Mauve)));
-                FrontierUi.Place(reel.rectTransform, new Vector2(62, 44), 9 + i * 28, 10, 16, 16);
+                FrontierUi.Place(reel.rectTransform, new Vector2(56, 40), 8 + i * 25, 9, 15, 15);
             }
             deckLight = FrontierUi.Fill("Playback light", deck.transform, LedOff);
-            FrontierUi.Place(deckLight.rectTransform, new Vector2(62, 44), 50, 32, 5, 5);
+            FrontierUi.Place(deckLight.rectTransform, new Vector2(56, 40), 45, 29, 5, 5);
 
-            speaker = Body("Speaker", popup, PopupSize, 13, Cyan, TextAnchor.MiddleLeft, 104, 8, 440, 16);
+            speaker = Body("Speaker", popup, PopupSize, 12, Cyan, TextAnchor.MiddleLeft, 84, 6, 304, 14);
             speaker.supportRichText = true;
-            body = Body("Dialogue", popup, PopupSize, 15, FrontierUi.Cream, TextAnchor.UpperLeft, 104, 28, 440, 64);
+            body = Body("Dialogue", popup, PopupSize, 12, FrontierUi.Cream, TextAnchor.UpperLeft, 84, 22, 304, 54);
             pageLabel = PixelLabel.Create("Page", popup, "1/1", 1, FrontierUi.CreamDark, 0f);
-            FrontierUi.Place(pageLabel.Rect, PopupSize, 104, PopupSize.y - 22, 60, 10);
+            FrontierUi.Place(pageLabel.Rect, PopupSize, 84, PopupSize.y - 18, 50, 8);
             next = Button("Next", popup);
-            FrontierUi.Place((RectTransform)next.transform, PopupSize, PopupSize.x - 92, PopupSize.y - 30, 76, 22);
+            FrontierUi.Place((RectTransform)next.transform, PopupSize, PopupSize.x - 76, PopupSize.y - 24, 64, 18);
             next.onClick.AddListener(Advance);
             popup.gameObject.SetActive(false);
 
