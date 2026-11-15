@@ -77,7 +77,9 @@ namespace RedFrontier.Outpost
         /// <summary>An astronaut died: remove their sprite and let the rest carry on with the saved job queue.</summary>
         internal void LoseOne()
         {
-            if (members.Count == 0) return;
+            // eco.crew is already decremented. If a sprite sheet was missing there are fewer sprites than astronauts,
+            // so only remove a sprite once there are more sprites than survivors (normally exactly one per death).
+            if (members.Count == 0 || members.Count <= eco.crew) return;
             StopAllCoroutines();
             GameAudio.StopLoop(Sfx.ConstructLoop, this);
             GameAudio.StopLoop(Sfx.GymLoop, this);
@@ -85,6 +87,12 @@ namespace RedFrontier.Outpost
             var lost = members[members.Count - 1];
             members.RemoveAt(members.Count - 1);
             if (lost.sr != null) Destroy(lost.sr.gameObject);
+            // Coroutines were cut mid-fade / mid-walk: survivors must not stay half transparent or drawn as if on the ladder.
+            foreach (var m in members)
+            {
+                m.nearRocket = false;
+                if (m.sr != null) m.sr.color = Color.white;
+            }
             if (members.Count > 0 && isActiveAndEnabled) StartCoroutine(Sheltering ? Shelter() : Work());
         }
 

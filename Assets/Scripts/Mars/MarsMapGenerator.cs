@@ -59,6 +59,8 @@ namespace RedFrontier.Mars
         public Rect MapWorldRect { get; private set; }
 
         Vector3 groundOrigin; // world position of ground pixel (0, 0)
+        Sprite bakedSprite;       // owned: created by Generate, destroyed on regenerate / OnDestroy
+        Texture2D bakedTexture;   // owned: the baked ground (also referenced by sky.groundTexture)
 
         void Start()
         {
@@ -96,19 +98,19 @@ namespace RedFrontier.Mars
             Vector2 c = placement.zones.Count > 0 ? Terrain.LatticeToGround(b.center.x, b.center.y) : new Vector2(Terrain.TexW, Terrain.TexH) * 0.5f;
             groundOrigin = new Vector3(-Mathf.Round(c.x), -Mathf.Round(c.y), 0f) / Ppu;
 
-            if (ground.sprite != null)
+            ReleaseGround(true);
+            bakedTexture = tex;
+            if (ground != null)
             {
-                var old = ground.sprite;
-                ground.sprite = null;
-                if (old.texture != null && old.texture.name == "MarsGround") DestroyAsset(old.texture);
-                DestroyAsset(old);
+                var sp = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), Vector2.zero, Ppu, 0, SpriteMeshType.FullRect);
+                sp.name = "MarsGround";
+                sp.hideFlags = HideFlags.DontSave;
+                bakedSprite = sp;
+                ground.sprite = sp;
+                ground.transform.position = groundOrigin;
+                ground.sortingOrder = -1000;
             }
-            var sp = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), Vector2.zero, Ppu, 0, SpriteMeshType.FullRect);
-            sp.name = "MarsGround";
-            sp.hideFlags = HideFlags.DontSave;
-            ground.sprite = sp;
-            ground.transform.position = groundOrigin;
-            ground.sortingOrder = -1000;
+            else Debug.LogWarning("MarsMapGenerator: no ground SpriteRenderer assigned; the baked ground is not displayed.");
 
             MapWorldRect = new Rect(groundOrigin.x, groundOrigin.y, tex.width / Ppu, tex.height / Ppu);
             MapHash = Terrain.Hash();
@@ -126,6 +128,34 @@ namespace RedFrontier.Mars
                 if (sky != null) environment.Focus(new Vector2(0f, Mathf.Max(0f, sky.HorizonY - environment.ViewHalfHeight * 0.4f)));
             }
             Debug.Log("Mars map generated: seed=" + newSeed + " hash=" + MapHash + " craters=" + Terrain.Craters.Count + " rocks=" + Terrain.Rocks.Count + " ms=" + clock.ElapsedMilliseconds);
+        }
+
+        // ground sprite + its ~7 MB texture are DontSave runtime objects: nothing else frees them
+        void OnDestroy() => ReleaseGround(false);
+
+        /// <summary>
+        /// Destroys the baked ground sprite and texture. With anySprite (regeneration) whatever sprite sits on the
+        /// ground renderer is replaced and destroyed, as before; on teardown only our own "MarsGround" objects are.
+        /// </summary>
+        void ReleaseGround(bool anySprite)
+        {
+            Sprite ownSprite = bakedSprite;
+            Texture2D ownTex = bakedTexture;
+            bakedSprite = null;
+            bakedTexture = null;
+            if (ground != null && ground.sprite != null)
+            {
+                var old = ground.sprite;
+                if (anySprite || old == ownSprite || old.name == "MarsGround")
+                {
+                    ground.sprite = null;
+                    var oldTex = old.texture;
+                    if (oldTex != null && oldTex.name == "MarsGround" && oldTex != ownTex) DestroyAsset(oldTex);
+                    if (old != ownSprite) DestroyAsset(old);
+                }
+            }
+            if (ownSprite != null) DestroyAsset(ownSprite);
+            if (ownTex != null) DestroyAsset(ownTex);
         }
 
         static void DestroyAsset(UnityEngine.Object o)
