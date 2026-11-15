@@ -72,3 +72,7 @@ See [Docs/CRITERIA_FIXES.md](Docs/CRITERIA_FIXES.md) and
 Game audio was generated with ElevenLabs on a paid plan; usage rights are recorded in
 [MUSIC/evidence/2026-11-15_usage_rights.md](MUSIC/evidence/2026-11-15_usage_rights.md).
 NASA data is used under NASA's open data policy and is not an endorsement by NASA.
+
+## License
+
+Code: MIT, see [LICENSE](LICENSE). Audio and NASA data keep the terms listed above.
