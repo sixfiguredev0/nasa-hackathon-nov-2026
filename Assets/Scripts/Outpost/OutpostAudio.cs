@@ -14,11 +14,13 @@ namespace RedFrontier.Outpost
     internal sealed class OutpostAudio : MonoBehaviour
     {
         const float ShortageRepeat = 30f, RecoveryMinShort = 1.5f;
+        const int ShortageRepeats = 2; // onset + 2 reminders (30 s, then 60 s later), then the HUD and tension music carry it
         const float StallConfirm = 1f, StallClear = 3f, StallAfterShortage = 4f;
         const float FitnessWarn = 0.2f, FitnessRearm = 0.3f;
 
         Colony colony;
         bool begun, wasShort, fitnessArmed = true;
+        int shortageRepeats;
         float shortSince, nextShortageRepeat, lastShortageAlert = -999f;
         readonly Dictionary<BuildingState, float> stalledSince = new Dictionary<BuildingState, float>();
         readonly Dictionary<BuildingState, float> clearSince = new Dictionary<BuildingState, float>();
@@ -42,19 +44,25 @@ namespace RedFrontier.Outpost
                 GameAudio.BeginGameplayMusic();
             }
 
+            // Paused (timeScale 0): the economy ticks with dt = 0, so lifeSupportShort reads false and stalls clear.
+            // Those frames carry no new state; reading them would fake a recovery and re-alarm on resume.
+            if (Time.deltaTime <= 0f) return;
+
             // Life support
             bool shortNow = eco.lifeSupportShort;
             GameAudio.SetShortage(shortNow);
             if (shortNow && !wasShort)
             {
                 shortSince = now;
+                shortageRepeats = 0;
                 Alert(Sfx.AlertShortage, now);
                 nextShortageRepeat = now + ShortageRepeat;
             }
-            else if (shortNow && now >= nextShortageRepeat)
+            else if (shortNow && shortageRepeats < ShortageRepeats && now >= nextShortageRepeat)
             {
+                shortageRepeats++;
                 Alert(Sfx.AlertShortage, now);
-                nextShortageRepeat = now + ShortageRepeat;
+                nextShortageRepeat = now + ShortageRepeat * 2f;
             }
             else if (!shortNow && wasShort && now - shortSince >= RecoveryMinShort)
                 GameAudio.Play(Sfx.AlertRecovered);
