@@ -46,6 +46,7 @@ namespace RedFrontier.Outpost
         ColonyEconomy eco;
         readonly List<Member> members = new List<Member>();
         readonly List<Building> jobs = new List<Building>();
+        Building workTarget;
         float jobProgress;
         internal bool Sheltering { get; private set; }
         internal bool Sheltered { get; private set; }
@@ -57,6 +58,7 @@ namespace RedFrontier.Outpost
             Sheltering = value;
             Sheltered = false;
             StopAllCoroutines();
+            workTarget = null;
             GameAudio.StopLoop(Sfx.ConstructLoop, this);
             GameAudio.StopLoop(Sfx.GymLoop, this);
             eco.training = null;
@@ -79,6 +81,7 @@ namespace RedFrontier.Outpost
             // so only remove a sprite once there are more sprites than survivors (normally exactly one per death).
             if (members.Count == 0 || members.Count <= eco.crew) return;
             StopAllCoroutines();
+            workTarget = null;
             GameAudio.StopLoop(Sfx.ConstructLoop, this);
             GameAudio.StopLoop(Sfx.GymLoop, this);
             eco.training = null;
@@ -137,6 +140,25 @@ namespace RedFrontier.Outpost
             return true;
         }
 
+        internal void CancelWorkAt(Building building)
+        {
+            int index = jobs.IndexOf(building);
+            if (index >= 0) jobs.RemoveAt(index);
+            if (index == 0) jobProgress = 0f;
+            if (workTarget != building) return;
+
+            StopAllCoroutines();
+            workTarget = null;
+            GameAudio.StopLoop(Sfx.ConstructLoop, this);
+            GameAudio.StopLoop(Sfx.GymLoop, this);
+            foreach (var member in members)
+            {
+                member.nearRocket = false;
+                member.sr.color = Color.white;
+            }
+            if (isActiveAndEnabled) StartCoroutine(Work());
+        }
+
         IEnumerator Work()
         {
             while (true)
@@ -147,6 +169,7 @@ namespace RedFrontier.Outpost
                 if (jobs.Count > 0)
                 {
                     var job = jobs[0];
+                    workTarget = job;
                     yield return All((m, i) => Exit(m, i * 0.4f, door, foot, StandPoint(job, i)));
                     // unfit crew build slower: progress runs at Efficiency (50..100%)
                     GameAudio.StartLoop(Sfx.ConstructLoop, this);
@@ -159,6 +182,7 @@ namespace RedFrontier.Outpost
                     GameAudio.StopLoop(Sfx.ConstructLoop, this);
                     jobs.RemoveAt(0);
                     jobProgress = 0f;
+                    workTarget = null;
                     job.FinishBuild();
                     GameAudio.Play(Sfx.BuildComplete); // only here: the crew actually finished work, never on scene setup
                     continue; // straight on to the next queued job
@@ -167,6 +191,7 @@ namespace RedFrontier.Outpost
                 var gym = GymToTrainAt();
                 if (gym != null)
                 {
+                    workTarget = gym;
                     yield return All((m, i) => Exit(m, i * 0.4f, door, foot, StandPoint(gym, i)));
                     eco.training = gym.state;
                     GameAudio.StartLoop(Sfx.GymLoop, this);
@@ -177,6 +202,7 @@ namespace RedFrontier.Outpost
                     }
                     GameAudio.StopLoop(Sfx.GymLoop, this);
                     eco.training = null;
+                    workTarget = null;
                     continue;
                 }
 

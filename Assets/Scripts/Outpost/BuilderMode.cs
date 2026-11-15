@@ -19,6 +19,7 @@ namespace RedFrontier.Outpost
 
         Colony colony;
         Camera cam;
+        UpgradeBubbles buildingControls;
         bool open;
         BuildingDef selected;
         SpriteRenderer ghost;
@@ -82,6 +83,8 @@ namespace RedFrontier.Outpost
             if (colony == null) colony = Colony.Instance;
             if (cam == null) cam = Camera.main;
             if (colony == null || cam == null || !colony.Ready) return;
+            if (buildingControls == null) buildingControls = colony.GetComponent<UpgradeBubbles>();
+            if (buildingControls != null && buildingControls.ConfirmingSalvage) return;
 
             Layout();
             if (Input.GetKeyDown(KeyCode.B)) Toggle();
@@ -134,7 +137,8 @@ namespace RedFrontier.Outpost
 
         void OnGUI()
         {
-            if (MissionPauseMenu.BlocksGameplayInput && Event.current.type != EventType.Repaint) return;
+            if (Event.current.type != EventType.Repaint && (MissionPauseMenu.BlocksGameplayInput ||
+                (buildingControls != null && buildingControls.ConfirmingSalvage))) return;
             if (colony == null || cam == null || !colony.Ready) return;
             float s = OutpostGUI.Scale;
             var e = Event.current;

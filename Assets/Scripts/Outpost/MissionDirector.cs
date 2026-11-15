@@ -55,6 +55,8 @@ namespace RedFrontier.Outpost
 
         void Awake() => Instance = this;
 
+        internal void ForgetBuilding(BuildingState building) => brokenUntil.Remove(building);
+
         void OnDestroy()
         {
             if (Instance == this) Instance = null;

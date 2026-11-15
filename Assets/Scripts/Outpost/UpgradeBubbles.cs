@@ -5,8 +5,7 @@ using UnityEngine;
 namespace RedFrontier.Outpost
 {
     /// <summary>
-    /// Right-click a building (a click, not a camera drag) to show two round buttons beside it:
-    /// up arrow opens the upgrade tree as bubbles (left-click a yellow bubble to buy it), "i" shows building info.
+    /// Right-click a building to show its upgrades, info and salvage action.
     /// Right-click again, left-click empty space or Esc closes.
     /// </summary>
     public class UpgradeBubbles : MonoBehaviour
@@ -16,20 +15,52 @@ namespace RedFrontier.Outpost
         [Tooltip("Max mouse travel (px) for a right-click; more is a camera drag")]
         public float clickSlop = 6f;
 
-        enum Mode { Buttons, Tree, Info }
+        enum Mode { Buttons, Tree, Info, Salvage }
 
         Building open;
         Mode mode;
         Vector2 downPos;
+        Amount[] shownRefund;
+        bool storageLimited;
         readonly Dictionary<string, Vector2> cell = new Dictionary<string, Vector2>(); // x = depth, y = row
         readonly Dictionary<string, Vector2> pos = new Dictionary<string, Vector2>();
+
+        internal bool ConfirmingSalvage => open != null && mode == Mode.Salvage;
 
         internal bool CancelForEscape()
         {
             if (open == null) return false;
-            open = null;
+            if (ConfirmingSalvage) CancelSalvage();
+            else open = null;
             GameAudio.Play(Sfx.UiBack);
             return true;
+        }
+
+        internal void ForgetBuilding(Building building)
+        {
+            if (open != building) return;
+            CancelSalvage();
+            open = null;
+        }
+
+        void BeginSalvage()
+        {
+            if (!colony.TryGetSalvageRefund(open, out shownRefund, out storageLimited)) return;
+            mode = Mode.Salvage;
+            GameAudio.Play(Sfx.UiSelect);
+        }
+
+        void CancelSalvage()
+        {
+            mode = Mode.Buttons;
+            shownRefund = null;
+        }
+
+        void ConfirmSalvage()
+        {
+            if (!ConfirmingSalvage) return;
+            if (colony.TrySalvage(open, shownRefund)) GameAudio.Play(Sfx.UiSelect);
+            else GameAudio.Play(Sfx.UiDenied); // the next repaint shows the updated recovery
         }
 
         void Update()
@@ -41,6 +72,7 @@ namespace RedFrontier.Outpost
             if (Input.GetMouseButtonDown(1)) downPos = Input.mousePosition;
             if (Input.GetMouseButtonUp(1) && ((Vector2)Input.mousePosition - downPos).magnitude <= clickSlop)
             {
+                if (ConfirmingSalvage) { CancelForEscape(); return; }
                 var mouse = new Vector2(Input.mousePosition.x, Screen.height - Input.mousePosition.y);
                 if (BuilderMode.PointerOverUI(mouse)) return;
                 var b = colony.BuildingAt(cam.ScreenToWorldPoint(Input.mousePosition));
@@ -54,6 +86,7 @@ namespace RedFrontier.Outpost
         {
             if (MissionPauseMenu.BlocksGameplayInput) return;
             if (colony == null || cam == null) return;
+            if (ConfirmingSalvage) { DrawSalvageConfirmation(); return; }
             if (BuilderMode.Placing || BuilderMode.PointerOverUI(Event.current.mousePosition)) return;
             if (open == null) { HoverHint(); return; }
 
@@ -67,6 +100,12 @@ namespace RedFrontier.Outpost
             var corner = OutpostGUI.WorldToGui(cam, open.TopRight);
             var upPos = new Vector2(Mathf.Min(corner.x + br + 8 * s, Screen.width - 2.6f * br), Mathf.Max(corner.y + br, br + 50 * s));
             var infoPos = upPos + new Vector2(0.6f * br, 2.6f * br);
+            float salvageX = infoPos.x - br - 84 * s;
+            if (salvageX < 8 * s) salvageX = Mathf.Max(8 * s, infoPos.x + br + 8 * s);
+            var salvageRect = new Rect(salvageX,
+                Mathf.Clamp(infoPos.y - 12 * s, 8 * s, Screen.height - 32 * s), 76 * s, 24 * s);
+            bool canSalvage = mode == Mode.Buttons && colony.CanSalvage(open);
+            if (canSalvage) DrawSalvageButton(salvageRect, "Salvage", mouse, s);
             bool canUpgrade = false;
             if (!open.UnderConstruction)
                 foreach (var c in st.Node.next) canUpgrade |= eco.Status(st, c) == NodeStatus.Available;
@@ -89,7 +128,8 @@ namespace RedFrontier.Outpost
             var e = Event.current;
             if (e.type == EventType.MouseDown && e.button == 0)
             {
-                if (upHot && open.UnderConstruction) GameAudio.Play(Sfx.UiDenied); // blueprint: no upgrades until built
+                if (canSalvage && salvageRect.Contains(mouse)) BeginSalvage();
+                else if (upHot && open.UnderConstruction) GameAudio.Play(Sfx.UiDenied); // blueprint: no upgrades until built
                 else if (upHot) { mode = mode == Mode.Tree ? Mode.Buttons : Mode.Tree; GameAudio.Play(Sfx.UiSelect); }
                 else if (infoHot) { mode = mode == Mode.Info ? Mode.Buttons : Mode.Info; GameAudio.Play(Sfx.UiSelect); }
                 else if (hoveredNode != null)
@@ -97,6 +137,51 @@ namespace RedFrontier.Outpost
                 else open = null;
                 e.Use();
             }
+        }
+
+        void DrawSalvageConfirmation()
+        {
+            var e = Event.current;
+            float s = Mathf.Min(OutpostGUI.Scale, Screen.width / 336f, Screen.height / 180f);
+            var panel = new Rect((Screen.width - 320 * s) / 2, (Screen.height - 156 * s) / 2, 320 * s, 156 * s);
+            Rect Part(float x, float y, float w, float h) => new Rect(panel.x + x * s, panel.y + y * s, w * s, h * s);
+            var cancel = Part(90, 116, 96, 28);
+            var confirm = Part(196, 116, 112, 28);
+            if (e.type == EventType.Repaint)
+            {
+                if (!colony.TryGetSalvageRefund(open, out shownRefund, out storageLimited)) { CancelSalvage(); return; }
+                int depth = GUI.depth;
+                GUI.depth = -2;
+                OutpostGUI.InstrumentFrame(panel, s);
+                GUI.Label(Part(12, 8, 296, 24), "Salvage " + open.state.Node.name + "?",
+                    OutpostGUI.Text(16 * s, TextAnchor.MiddleLeft, FrontierUi.Cream));
+                OutpostGUI.Panel(Part(12, 34, 296, 1), FrontierUi.PanelLight);
+                string recovery = shownRefund.Length == 0 ? "No resources recovered" : "Recover " + OutpostGUI.List(shownRefund);
+                GUI.Label(Part(12, 40, 296, 40), recovery,
+                    OutpostGUI.Text(13 * s, TextAnchor.UpperLeft, FrontierUi.Cream, true));
+
+                string warning = open.state.Node.storage.Length > 0 ? "Stock above the remaining storage limit is lost." :
+                    storageLimited ? "Recovery is limited by available storage." : "";
+                GUI.Label(Part(12, 82, 296, 28), warning,
+                    OutpostGUI.Text(11 * s, TextAnchor.UpperLeft, OutpostGUI.InstrumentWarning, true));
+                DrawSalvageButton(cancel, "Cancel", e.mousePosition, s);
+                DrawSalvageButton(confirm, "Confirm salvage", e.mousePosition, s, true);
+                GUI.depth = depth;
+            }
+            else if (e.type == EventType.MouseDown && e.button == 0)
+            {
+                if (cancel.Contains(e.mousePosition)) CancelForEscape();
+                else if (confirm.Contains(e.mousePosition)) ConfirmSalvage();
+                e.Use();
+            }
+        }
+
+        static void DrawSalvageButton(Rect rect, string label, Vector2 mouse, float scale, bool confirm = false)
+        {
+            if (Event.current.type != EventType.Repaint) return;
+            OutpostGUI.Frame(rect, rect.Contains(mouse) ? FrontierUi.PanelLight : FrontierUi.PanelDark,
+                confirm ? FrontierUi.CoralLight : FrontierUi.PanelLight, scale);
+            GUI.Label(rect, label, OutpostGUI.Text(12 * scale, TextAnchor.MiddleCenter, FrontierUi.Cream));
         }
 
         static void RoundButton(Vector2 p, float r, bool hot, bool active, bool available, float s)
@@ -251,7 +336,7 @@ namespace RedFrontier.Outpost
             string text = "<b>" + st.def.name + "</b>: " + st.Node.name;
             if (st.def.kind != BuildingKind.Rocket) text += "\n<color=#aaa>Site output " + (st.yield * 100f).ToString("0") + "%</color>";
             if (b.UnderConstruction) text += "\n<color=#9cf>Blueprint: waiting for the crew to build it</color>";
-            else text += "\n<color=#aaa>Right-click for upgrades</color>";
+            else text += "\n<color=#aaa>Right-click for building actions</color>";
             if (st.broken) text += "\n<color=#f88>Offline: equipment failure</color>";
             else if (st.stalled) text += "\n<color=#f88>Stopped: needs " + st.missing + "</color>";
             var style = OutpostGUI.Text(11 * s, TextAnchor.UpperLeft, Color.white);

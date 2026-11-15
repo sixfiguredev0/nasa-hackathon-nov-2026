@@ -19,6 +19,9 @@ namespace RedFrontier.Outpost
         [Tooltip("Play the archived 30 s opening instead of the short 15 s one")]
         public bool useLegacyOpening;
 
+        [SerializeField, Range(0, 100), Tooltip("Percentage of paid placement and upgrades recovered by salvage")]
+        int salvageRefundPercent = 50;
+
         public readonly ColonyEconomy economy = new ColonyEconomy();
         public readonly List<Building> buildings = new List<Building>();
         public static Colony Instance { get; private set; }
@@ -131,13 +134,63 @@ namespace RedFrontier.Outpost
             var cost = PlaceCost(def);
             if (!Ready || def.kind == BuildingKind.Rocket || !Fits(cells) || !economy.CanAfford(cost)) return null;
             economy.Pay(cost);
-            return Spawn(def, cells, true);
+            var building = Spawn(def, cells, true);
+            building.state.RecordCost(cost);
+            return building;
+        }
+
+        // The lander is the crew's shelter, resupply source and prerequisite for upgrades.
+        internal bool CanSalvage(Building building) =>
+            Ready && building != null && buildings.Contains(building) && building.state.def.kind != BuildingKind.Rocket;
+
+        internal bool TryGetSalvageRefund(Building building, out Amount[] refund, out bool storageLimited)
+        {
+            refund = null;
+            storageLimited = false;
+            if (!CanSalvage(building)) return false;
+
+            var remainingCaps = new float[ColonyEconomy.ResCount];
+            economy.CalculateCaps(remainingCaps, building.state);
+            var amounts = new List<Amount>();
+            int percent = Mathf.Clamp(salvageRefundPercent, 0, 100);
+            for (int i = 0; i < remainingCaps.Length; i++)
+            {
+                float recovered = (float)System.Math.Floor((double)building.state.paid[i] * percent / 100);
+                float room = Mathf.Max(0, Mathf.Floor(remainingCaps[i] - economy.stock[i]));
+                float credited = Mathf.Min(recovered, room);
+                storageLimited |= credited < recovered;
+                if (credited > 0) amounts.Add(new Amount((Res)i, credited));
+            }
+            refund = amounts.ToArray();
+            return true;
+        }
+
+        internal bool TrySalvage(Building building, Amount[] shownRefund)
+        {
+            if (shownRefund == null || !TryGetSalvageRefund(building, out var refund, out _) ||
+                refund.Length != shownRefund.Length) return false;
+            for (int i = 0; i < refund.Length; i++)
+                if (refund[i].res != shownRefund[i].res || refund[i].value != shownRefund[i].value) return false;
+
+            // Drop ownership before cleanup so this building cannot be salvaged or commissioned again.
+            buildings.Remove(building);
+            economy.buildings.Remove(building.state);
+            if (economy.training == building.state) economy.training = null;
+            economy.RecomputeCaps();
+            foreach (var amount in refund) economy[amount.res] += amount.value;
+
+            if (TryGetComponent<Crew>(out var crew)) crew.CancelWorkAt(building);
+            if (TryGetComponent<MissionDirector>(out var director)) director.ForgetBuilding(building.state);
+            if (TryGetComponent<UpgradeBubbles>(out var controls)) controls.ForgetBuilding(building);
+            building.gameObject.SetActive(false);
+            Destroy(building.gameObject);
+            return true;
         }
 
         /// <summary>Called when the crew finishes a placed building.</summary>
         public void Commission(BuildingState s)
         {
-            if (economy.buildings.Contains(s)) return;
+            if (economy.buildings.Contains(s) || !buildings.Exists(building => building.state == s)) return;
             economy.buildings.Add(s);
             economy.RecomputeCaps();
         }

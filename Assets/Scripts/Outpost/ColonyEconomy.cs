@@ -27,10 +27,16 @@ namespace RedFrontier.Outpost
         public bool broken;
         /// <summary>Output multiplier from where it stands (<see cref="SiteSurvey"/>). Battery: also scales storage. Gym: training.</summary>
         public float yield = 1f;
+        internal readonly float[] paid = new float[ColonyEconomy.ResCount];
 
         public BuildingState(BuildingDef d) { def = d; nodeId = d.root; }
 
         public UpgradeNode Node => def.nodes[nodeId];
+
+        internal void RecordCost(Amount[] cost)
+        {
+            foreach (var amount in cost) paid[(int)amount.res] += amount.value;
+        }
 
         /// <summary>True for the current node and every node before it on the path.</summary>
         public bool Owns(string id)
@@ -107,10 +113,19 @@ namespace RedFrontier.Outpost
 
         public void RecomputeCaps()
         {
-            Array.Clear(cap, 0, ResCount);
-            foreach (var b in buildings)
-                foreach (var a in b.Node.storage) cap[(int)a.res] += a.value * (b.def.kind == BuildingKind.Battery ? b.yield : 1f);
+            CalculateCaps(cap);
             for (int i = 0; i < ResCount; i++) stock[i] = Mathf.Min(stock[i], cap[i]);
+        }
+
+        internal void CalculateCaps(float[] result, BuildingState excluding = null)
+        {
+            Array.Clear(result, 0, ResCount);
+            foreach (var b in buildings)
+            {
+                if (b == excluding) continue;
+                foreach (var a in b.Node.storage)
+                    result[(int)a.res] += a.value * (b.def.kind == BuildingKind.Battery ? b.yield : 1f);
+            }
         }
 
         /// <summary>
@@ -218,7 +233,9 @@ namespace RedFrontier.Outpost
         {
             // blueprints (placed but not yet built by the crew) are not in the economy and can't be upgraded
             if (!buildings.Contains(b) || Status(b, id) != NodeStatus.Available) return false;
-            Pay(b.def.nodes[id].cost);
+            var cost = b.def.nodes[id].cost;
+            Pay(cost);
+            b.RecordCost(cost);
             b.nodeId = id;
             RecomputeCaps();
             return true;

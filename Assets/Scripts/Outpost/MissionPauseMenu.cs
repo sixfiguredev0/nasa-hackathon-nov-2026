@@ -54,6 +54,7 @@ namespace RedFrontier.Outpost
                 return;
             }
 
+            if (upgrades != null && upgrades.ConfirmingSalvage && upgrades.CancelForEscape()) return;
             if ((builder != null && builder.CancelForEscape()) ||
                 (upgrades != null && upgrades.CancelForEscape())) return;
             Pause();

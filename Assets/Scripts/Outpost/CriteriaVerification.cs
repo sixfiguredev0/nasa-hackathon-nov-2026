@@ -18,15 +18,23 @@ namespace RedFrontier.Outpost
     internal static class CriteriaVerification
     {
         const string Pending = "RedFrontier.CriteriaVerification";
+        const string SalvageOnly = "RedFrontier.SalvageVerification";
         static CriteriaVerification() => EditorApplication.playModeStateChanged += state =>
         {
             if (state != PlayModeStateChange.EnteredPlayMode || !SessionState.GetBool(Pending, false)) return;
             SessionState.SetBool(Pending, false);
-            new GameObject("Criteria verification").AddComponent<CriteriaVerificationRunner>();
+            var runner = new GameObject("Criteria verification").AddComponent<CriteriaVerificationRunner>();
+            runner.SalvageOnly = SessionState.GetBool(SalvageOnly, false);
+            SessionState.SetBool(SalvageOnly, false);
         };
 
         [MenuItem("Red Frontier/Outpost/Verify Criteria Fixes")]
-        public static void Run()
+        public static void Run() => RunSuite(false);
+
+        [MenuItem("Red Frontier/Outpost/Verify Salvage")]
+        public static void RunSalvage() => RunSuite(true);
+
+        static void RunSuite(bool salvageOnly)
         {
             const string editorType = "RedFrontier.Outpost.EditorTools.OutpostEditor, Assembly-CSharp-Editor";
             var economyTest = Type.GetType(editorType);
@@ -47,12 +55,14 @@ namespace RedFrontier.Outpost
             }
             EditorSceneManager.OpenScene("Assets/Scenes/MainMenu.unity");
             SessionState.SetBool(Pending, true);
+            SessionState.SetBool(SalvageOnly, salvageOnly);
             EditorApplication.EnterPlaymode();
         }
     }
 
     internal sealed class CriteriaVerificationRunner : MonoBehaviour
     {
+        internal bool SalvageOnly;
         readonly List<string> results = new List<string>();
         const BindingFlags Fields = BindingFlags.Instance | BindingFlags.NonPublic;
         Colony colony;
@@ -233,6 +243,12 @@ namespace RedFrontier.Outpost
 
         IEnumerator Suite()
         {
+            if (SalvageOnly)
+            {
+                yield return VerifySalvage();
+                yield break;
+            }
+
             string json = Resources.Load<TextAsset>("Nasa/donki-sep-curated").text;
             Check(HistoricalTraining.TryRead(json, out var record, out var date) && record.sepID == HistoricalTraining.SelectedId &&
                 record.eventTime == "2024-05-10T13:35Z" && record.instruments[0].displayName == "GOES-P: SEISS >10 MeV" &&
@@ -330,6 +346,109 @@ namespace RedFrontier.Outpost
             yield return ReturnToMenu();
             yield return Launch(false);
             Check(training.Remaining == 0f && !crew.Sheltering, "leaving during shelter cannot carry a suspended crew into a new mission");
+        }
+
+        IEnumerator VerifySalvage()
+        {
+            yield return Launch(false);
+            var eco = colony.economy;
+            var controls = colony.GetComponent<UpgradeBubbles>();
+            var rocket = colony.buildings[0];
+            Amount[] Quote(Building building) => colony.TryGetSalvageRefund(building, out var refund, out _) ? refund : null;
+            bool Confirm(Building building, Amount[] quote) => colony.TrySalvage(building, quote);
+            Check(Quote(rocket) == null && !Confirm(rocket, Array.Empty<Amount>()), "the landing rocket is protected");
+
+            Time.timeScale = 5f;
+            var first = Place(BuildingKind.Solar);
+            yield return Until(() => !first.UnderConstruction);
+            var repeatCost = colony.PlaceCost(first.state.def)[0].value;
+            var second = Place(BuildingKind.Solar);
+            yield return Until(() => !second.UnderConstruction);
+            Time.timeScale = 1f;
+            eco[Res.Metal] = 100;
+            eco[Res.Food] = 100;
+            Check(eco.TryUpgrade(rocket.state, "rocket2"), "existing rocket prerequisite is met through its normal upgrade");
+            eco[Res.Metal] = 70;
+            Check(eco.TryUpgrade(second.state, "solar2"), "the repeat building purchases its upgrade at the catalog cost");
+            var upgradedQuote = Quote(second);
+            float expected = Mathf.Floor((repeatCost + second.state.Node.cost[0].value) * .5f);
+            Check(upgradedQuote.Length == 1 && upgradedQuote[0].res == Res.Metal && upgradedQuote[0].value == expected,
+                "preview uses the scaled price actually paid and includes paid upgrades");
+            typeof(UpgradeBubbles).GetField("open", Fields).SetValue(controls, second);
+            Call(controls, "BeginSalvage");
+            Check(controls.ConfirmingSalvage && Field<Amount[]>(controls, "shownRefund")[0].value == expected,
+                "opening confirmation previews the amount before crediting it");
+            float before = eco[Res.Metal];
+            Call(controls, "CancelForEscape");
+            Check(eco[Res.Metal] == before && colony.buildings.Contains(second) && Field<Building>(controls, "open") == second,
+                "cancelling confirmation leaves the selected building and stock intact");
+
+            eco[Res.Metal] = eco.cap[(int)Res.Metal] - 5;
+            Check(Quote(second)[0].value == 5 && !Confirm(second, upgradedQuote) && colony.buildings.Contains(second),
+                "preview respects storage and an outdated quote cannot remove the building");
+            eco[Res.Metal] = before;
+            var site = second.cells;
+            var failures = Field<Dictionary<BuildingState, float>>(colony.GetComponent<MissionDirector>(), "brokenUntil");
+            failures.Add(second.state, 100f);
+            second.state.broken = true;
+            Call(controls, "BeginSalvage");
+            Call(controls, "ConfirmSalvage");
+            Check(eco[Res.Metal] == before + expected && !Confirm(second, upgradedQuote) && eco[Res.Metal] == before + expected &&
+                !eco.buildings.Contains(second.state) && !second.gameObject.activeSelf && colony.Fits(site) &&
+                !failures.ContainsKey(second.state) && Field<Building>(controls, "open") == null,
+                "confirmation clears selection, economy, footprint and pending repairs with exactly one refund");
+            eco.solarFactor = 1;
+            eco.Tick(.01f);
+            Check(Mathf.Abs(eco.net[(int)Res.Energy] - first.state.Node.rates[0].value * first.state.yield * eco.Efficiency) < .01f,
+                "only the surviving array produces power on the next tick");
+
+            var replacement = colony.TryPlace(first.state.def, site);
+            Check(replacement != null, "normal placement can reuse the salvaged footprint");
+            var next = Place(BuildingKind.Battery);
+            var jobs = Field<List<Building>>(crew, "jobs");
+            Time.timeScale = 5f;
+            yield return Until(() => jobs.Count > 0 && jobs[0] == replacement && Field<float>(crew, "jobProgress") > 0f);
+            eco[Res.Metal] = 70;
+            before = eco[Res.Metal];
+            Check(Confirm(replacement, Quote(replacement)) && !jobs.Contains(replacement) && Field<float>(crew, "jobProgress") == 0f &&
+                eco[Res.Metal] == before + Mathf.Floor(repeatCost * .5f),
+                "salvaging an active blueprint drops its job and resets its progress");
+            yield return Until(() => !next.UnderConstruction);
+            Check(eco.buildings.Contains(next.state) && !eco.buildings.Contains(replacement.state),
+                "the next crew job completes without commissioning the salvaged blueprint");
+
+            var habitat = Place(BuildingKind.Habitat);
+            yield return Until(() => !habitat.UnderConstruction);
+            var percent = typeof(Colony).GetField("salvageRefundPercent", Fields);
+            percent.SetValue(colony, 33);
+            eco[Res.Metal] = 80;
+            eco[Res.Food] = 90;
+            eco[Res.Oxygen] = 280;
+            var habitatQuote = Quote(habitat);
+            Check(habitatQuote.Length == 2 && habitatQuote[0].res == Res.Food && habitatQuote[0].value == 3 &&
+                habitatQuote[1].res == Res.Metal && habitatQuote[1].value == 13 && Confirm(habitat, habitatQuote) &&
+                eco[Res.Metal] == 93 && eco[Res.Food] == 93 && eco[Res.Oxygen] == 200,
+                "configured refund rounds each resource down and removal updates storage and clamps overflow");
+
+            var gym = Place(BuildingKind.Gym);
+            yield return Until(() => !gym.UnderConstruction);
+            eco.fitness = .5f;
+            yield return Until(() => eco.training == gym.state);
+            Check(Confirm(gym, Quote(gym)) && eco.training == null && Field<Building>(crew, "workTarget") != gym,
+                "removing an active gym ends training and clears the crew target");
+
+            Time.timeScale = 1f;
+            int seed = colony.map.LastSeed;
+            typeof(MissionDirector).GetMethod("End", Fields)
+                .Invoke(colony.GetComponent<MissionDirector>(), new object[] { false });
+            EventSystem.current.currentSelectedGameObject.GetComponent<PixelButton>().onClick.Invoke();
+            yield return Until(() => Colony.Instance != null && Colony.Instance != colony);
+            yield return Until(() => FindObjectOfType<OpeningCutscene>() != null);
+            typeof(OpeningCutscene).GetMethod("Finish", Fields).Invoke(FindObjectOfType<OpeningCutscene>(), new object[] { true });
+            yield return Until(() => Colony.Instance.Ready);
+            colony = Colony.Instance;
+            Check(colony.map.LastSeed == seed && colony.buildings.Count == 1 && colony.economy.buildings.Count == 1 &&
+                colony.Fits(site) && colony.economy[Res.Metal] < 61f, "same-seed restart clears buildings and salvage credits");
         }
     }
 }
