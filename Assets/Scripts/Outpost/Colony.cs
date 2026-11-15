@@ -77,7 +77,10 @@ namespace RedFrontier.Outpost
             gameObject.AddComponent<MissionGuide>();
             gameObject.AddComponent<MissionObjective>();
             gameObject.AddComponent<HistoricalTraining>();
-            gameObject.AddComponent<MissionDirector>();
+            gameObject.AddComponent<StoryArc>();
+            gameObject.AddComponent<StoryUi>();
+            gameObject.AddComponent<Skywatch>();
+            gameObject.AddComponent<MissionDirector>(); // after Skywatch: it defers the clock, sky and dust to Skywatch
         }
 
         void Update()

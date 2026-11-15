@@ -79,7 +79,7 @@ namespace RedFrontier.Outpost
         public BuildingState training;
         public bool lifeSupportShort;
         public Res shortOf;
-        /// <summary>Day/night and dust: scales Energy made by Solar buildings only (1 = noon on a clear day).</summary>
+        /// <summary>Day/night and dust: scales Energy made by Solar buildings only (1 = noon on a clear day). Set by Skywatch, or by MissionDirector without it.</summary>
         public float solarFactor = 1f;
         /// <summary>Scales Metal delivered by the lander (0 while Earth's resupply is delayed).</summary>
         public float resupplyFactor = 1f;
@@ -88,6 +88,18 @@ namespace RedFrontier.Outpost
         public int crewLost;
         /// <summary>Raised when an astronaut dies; the argument is the resource that ran out.</summary>
         public event Action<Res> CrewLost;
+
+        // Skywatch weather (set each frame by Skywatch, which also owns solarFactor above). Defaults leave the economy as before.
+        /// <summary>Energy per second each Habitat and Greenhouse needs for heaters (cold nights).</summary>
+        public float heatPerBuilding;
+        /// <summary>Storm choice: Greenhouse lights off. It uses no Energy and grows at <see cref="DimmedGrowth"/>.</summary>
+        public bool greenhouseDimmed;
+        /// <summary>Plants froze in a night without heat: Greenhouses make nothing until Skywatch thaws them.</summary>
+        public bool greenhouseFrozen;
+        /// <summary>Last tick the heaters could not be paid.</summary>
+        public bool cold;
+        public const float DimmedGrowth = 0.4f;
+        public const float ColdLoss = 1f / 400f;       // extra fitness loss per second while the habitat is cold
 
         public float Efficiency => Mathf.Lerp(0.5f, 1f, fitness);
 
@@ -122,8 +134,11 @@ namespace RedFrontier.Outpost
             Array.Clear(net, 0, ResCount);
             float eff = Efficiency;
             for (int pass = 0; pass < 2; pass++)
+            {
+                if (pass == 1) PayHeat(dt); // heaters come before machines: warmth keeps crew and plants alive
                 foreach (var b in buildings)
                     if (Consumes(b.Node) == (pass == 1)) Run(b, dt, eff);
+            }
             if (crew <= 0) return;
 
             lifeSupportShort = false;
@@ -147,6 +162,7 @@ namespace RedFrontier.Outpost
                 }
             }
             float f = fitness - (lifeSupportShort ? ShortageLoss : FitnessLoss) * dt;
+            if (cold) f -= ColdLoss * dt;
             if (training != null && !training.stalled && !lifeSupportShort && buildings.Contains(training)) f += training.Node.train * training.yield * dt;
             fitness = Mathf.Clamp01(f);
         }
@@ -157,20 +173,40 @@ namespace RedFrontier.Outpost
             return false;
         }
 
+        void PayHeat(float dt)
+        {
+            cold = false;
+            if (heatPerBuilding <= 0f) return;
+            int heated = 0;
+            foreach (var b in buildings)
+                if (b.def.kind == BuildingKind.Habitat || b.def.kind == BuildingKind.Greenhouse) heated++;
+            if (heated == 0) return;
+            int e = (int)Res.Energy;
+            float rate = heatPerBuilding * heated, need = rate * dt;
+            net[e] -= rate;
+            if (stock[e] >= need) stock[e] -= need;
+            else { stock[e] = 0f; cold = true; }
+        }
+
         /// <summary>Output is scaled by crew efficiency and the site's yield; what a building uses is not.</summary>
         void Run(BuildingState b, float dt, float eff)
         {
             var rates = b.Node.rates;
             b.stalled = false;
             if (b.broken) { b.stalled = true; return; }
+            bool greenhouse = b.def.kind == BuildingKind.Greenhouse;
+            if (greenhouse && greenhouseFrozen) return;
+            bool dimmed = greenhouse && greenhouseDimmed;
             foreach (var a in rates)
-                if (a.value < 0 && stock[(int)a.res] < -a.value * dt) { b.stalled = true; b.missing = a.res; return; }
+                if (a.value < 0 && !(dimmed && a.res == Res.Energy) && stock[(int)a.res] < -a.value * dt) { b.stalled = true; b.missing = a.res; return; }
             foreach (var a in rates)
             {
                 int i = (int)a.res;
+                if (dimmed && a.value < 0 && a.res == Res.Energy) continue;
                 float v = a.value > 0 ? a.value * eff * b.yield : a.value;
                 if (v > 0 && a.res == Res.Energy && b.def.kind == BuildingKind.Solar) v *= solarFactor;
                 if (v > 0 && a.res == Res.Metal && b.def.kind == BuildingKind.Rocket) v *= resupplyFactor;
+                if (a.value > 0 && dimmed) v *= DimmedGrowth;
                 stock[i] = Mathf.Min(stock[i] + v * dt, cap[i]);
                 net[i] += v;
             }

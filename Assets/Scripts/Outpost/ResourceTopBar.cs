@@ -12,10 +12,12 @@ namespace RedFrontier.Outpost
         private static readonly string SecondaryHex = ColorUtility.ToHtmlStringRGB(Secondary);
         private static readonly Color32 Fill = new Color32(217, 170, 106, 255);
         private static readonly Color32 Warning = new Color32(246, 190, 175, 255);
-        private static readonly Res[] VisibleResources = { Res.Energy, Res.Oxygen, Res.Food, Res.Water };
+        private static readonly Res[] VisibleResources = { Res.Energy, Res.Oxygen, Res.Metal, Res.Food, Res.Water };
+        // Single-arc dial cards, left to right; Metal is here because every building costs it.
+        private static readonly Res[] DialResources = { Res.Energy, Res.Oxygen, Res.Metal };
 
         private const float DialWidth = 132f, ResourcesWidth = 232f, CardHeight = 72f, Gap = 8f;
-        private const float DialRowWidth = DialWidth * 2f + Gap;
+        private const float DialRowWidth = DialWidth * 3f + Gap * 2f;
         private const float WideWidth = DialRowWidth + Gap + ResourcesWidth;
         private const int GaugeSteps = 40, TileSize = 48, AtlasColumns = 8;
         private const int TilesPerGauge = GaugeSteps + 1;
@@ -51,9 +53,9 @@ namespace RedFrontier.Outpost
 
             float left = Bounds.x;
             float top = Bounds.y;
-            DrawDial(new Rect(left, top, DialWidth * scale, CardHeight * scale), Res.Energy, economy, scale);
-            DrawDial(new Rect(left + (DialWidth + Gap) * scale, top, DialWidth * scale, CardHeight * scale),
-                Res.Oxygen, economy, scale);
+            for (int i = 0; i < DialResources.Length; i++)
+                DrawDial(new Rect(left + i * (DialWidth + Gap) * scale, top, DialWidth * scale, CardHeight * scale),
+                    DialResources[i], economy, scale);
 
             float resourcesX = stacked ? left + (DialRowWidth - ResourcesWidth) * .5f * scale
                 : left + (DialRowWidth + Gap) * scale;

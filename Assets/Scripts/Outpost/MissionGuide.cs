@@ -9,7 +9,7 @@ namespace RedFrontier.Outpost
     {
         static MissionGuide active;
         static readonly Vector2 PanelSize = new Vector2(414, 87);
-        static readonly Vector2 EventSize = new Vector2(550, 178), SourceSize = new Vector2(550, 270);
+        static readonly Vector2 EventSize = new Vector2(550, 178), SourceSize = new Vector2(550, 270), StorySize = new Vector2(500, 106);
         static readonly Vector2 Reference = new Vector2(960, 540);
 
         static readonly Color32 BlueFace = new Color32(34, 40, 55, 255);
@@ -22,18 +22,20 @@ namespace RedFrontier.Outpost
         Colony colony;
         MissionObjective objective;
         HistoricalTraining training;
+        StoryArc story;
         Canvas canvas;
         GameObject unread;
         EventSystem events;
         Text speaker, dialogue;
-        PixelButton notification, next, shelter, work, source;
+        PixelButton notification, next, shelter, work, source, action;
         MissionObjective.Step shownStep;
         HistoricalTraining.Phase shownPhase;
-        bool showingSource;
+        bool showingSource, shownOffline;
         static int releasedFrame = -1;
 
         internal static bool PointerOverUI(Vector2 guiPoint)
         {
+            if (Skywatch.PointerOverUI(guiPoint) || StoryArc.PointerOverUI(guiPoint)) return true;
             if (active == null || active.canvas == null || MissionPauseMenu.BlocksGameplayInput) return false;
             if (releasedFrame == Time.frameCount) return true;
             var screenPoint = new Vector2(guiPoint.x, Screen.height - guiPoint.y);
@@ -50,6 +52,7 @@ namespace RedFrontier.Outpost
             colony = GetComponent<Colony>();
             objective = GetComponent<MissionObjective>();
             training = GetComponent<HistoricalTraining>();
+            story = GetComponent<StoryArc>();
             var layout = FrontierUi.FitLayout(root);
             FrontierUi.Resize(root, Reference, layout);
 
@@ -131,6 +134,16 @@ namespace RedFrontier.Outpost
                 RefreshDialogue();
                 GameAudio.Play(Sfx.GuideNext);
             });
+            // Story steps: repair the radio, then open the final choice.
+            action = BlueButton("Repair radio", panel);
+            action.onClick.AddListener(() =>
+            {
+                if (MissionPauseMenu.BlocksGameplayInput || story == null) return;
+                releasedFrame = Time.frameCount;
+                if (objective.Stage == MissionObjective.Step.Decide) GetComponent<StoryUi>().OpenChoice();
+                else story.TryRepairRadio();
+                RefreshDialogue();
+            });
             RefreshDialogue();
             panel.gameObject.SetActive(false);
             active = this;
@@ -152,12 +165,15 @@ namespace RedFrontier.Outpost
         void LateUpdate()
         {
             if (canvas == null) return;
-            canvas.enabled = !MissionPauseMenu.BlocksGameplayInput;
-            if (shownStep != objective.Stage || shownPhase != training.State)
+            canvas.enabled = !MissionPauseMenu.BlocksGameplayInput && !StoryArc.Cinematic;
+            bool offline = story != null && story.MarlonisOffline;
+            if (shownStep != objective.Stage || shownPhase != training.State || shownOffline != offline)
             {
-                bool announce = shownPhase != training.State &&
+                shownOffline = offline;
+                bool announce = (shownPhase != training.State &&
                     (training.State == HistoricalTraining.Phase.Choice || training.State == HistoricalTraining.Phase.Resolved ||
-                     training.State == HistoricalTraining.Phase.Unavailable);
+                     training.State == HistoricalTraining.Phase.Unavailable)) ||
+                    (shownStep != objective.Stage && (objective.Stage == MissionObjective.Step.RepairRadio || objective.Stage == MissionObjective.Step.Decide));
                 shownStep = objective.Stage;
                 shownPhase = training.State;
                 showingSource = false;
@@ -166,7 +182,9 @@ namespace RedFrontier.Outpost
                 if (announce) panel.gameObject.SetActive(true);
             }
             if (training.State == HistoricalTraining.Phase.Choice || training.State == HistoricalTraining.Phase.Sheltering ||
-                training.State == HistoricalTraining.Phase.Working)
+                training.State == HistoricalTraining.Phase.Working ||
+                objective.Stage == MissionObjective.Step.RepairRadio || objective.Stage == MissionObjective.Step.Signal ||
+                objective.Stage == MissionObjective.Step.Fuel)
                 RefreshDialogue();
             Rect fitness = colony.CrewFitnessBounds;
             if (fitness.width <= 0f) return;
@@ -200,15 +218,17 @@ namespace RedFrontier.Outpost
 
         void RefreshDialogue()
         {
-            bool exercise = training.State != HistoricalTraining.Phase.Waiting;
-            bool choosing = training.State == HistoricalTraining.Phase.Choice && !showingSource;
-            var size = showingSource ? SourceSize : exercise ? EventSize : PanelSize;
-            float textLeft = exercise ? 140 : 103; // clear the portrait divider in the wider original frame
+            // The exercise layout stays until the story moves past it; story steps get a taller box for longer lines.
+            bool exercise = training.State != HistoricalTraining.Phase.Waiting && objective.Stage <= MissionObjective.Step.Training;
+            bool storyStep = !exercise && objective.Stage > MissionObjective.Step.Training;
+            bool choosing = training.State == HistoricalTraining.Phase.Choice && !showingSource && exercise;
+            var size = showingSource ? SourceSize : exercise ? EventSize : storyStep ? StorySize : PanelSize;
+            float textLeft = exercise || storyStep ? Mathf.Round(size.x * .255f) : 103; // clear the portrait divider in the wider original frame
             FrontierUi.Place(panel, Reference, (Reference.x - size.x) / 2,
                 Reference.y - size.y - 24, size.x, size.y);
             FrontierUi.Place(portraitRect, size, 9, 0, 77, 78);
             FrontierUi.Place(speakerBox, size, textLeft, 7, size.x - textLeft - 16, 16);
-            FrontierUi.Place(textBox, size, textLeft, 23, size.x - textLeft - 16, showingSource ? 205 : exercise ? 67 : 37);
+            FrontierUi.Place(textBox, size, textLeft, 23, size.x - textLeft - 16, showingSource ? 205 : exercise ? 67 : storyStep ? 54 : 37);
             dialogue.fontSize = showingSource ? 12 : 15;
             FrontierUi.Place((RectTransform)next.transform, size, size.x - 88, size.y - 27, 72, 21);
             FrontierUi.Place((RectTransform)shelter.transform, size, 16, 99, 250, 32);
@@ -217,8 +237,18 @@ namespace RedFrontier.Outpost
             shelter.gameObject.SetActive(choosing);
             work.gameObject.SetActive(choosing);
             source.gameObject.SetActive(exercise && !showingSource && training.Observation != null);
+            bool repair = story != null && story.CanRepairRadio, decide = story != null && objective.Stage == MissionObjective.Step.Decide &&
+                story.Chosen == StoryArc.Ending.None;
+            action.gameObject.SetActive(storyStep && (repair || decide));
+            action.label.Text = decide ? "Make your choice" : "Repair radio";
+            action.interactable = decide || (repair && story.RadioAffordable);
+            FrontierUi.Place((RectTransform)action.transform, size, textLeft, size.y - 27, 160, 21);
+            bool offline = story != null && story.MarlonisOffline;
+            speaker.text = offline ? "<b>Mission Control</b> <color=#9eb9cb>|| Earth</color>" : "<b>Marlonis</b> <color=#9eb9cb>|| Mission Quest</color>";
+            portraitRect.gameObject.SetActive(!offline);
             next.label.Text = showingSource ? "Back" : "Hide";
             if (showingSource) { dialogue.text = training.SourceDetails; return; }
+            if (!exercise) { dialogue.text = objective.Guidance; return; }
             switch (training.State)
             {
                 case HistoricalTraining.Phase.Choice:

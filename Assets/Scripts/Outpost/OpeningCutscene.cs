@@ -803,10 +803,10 @@ namespace RedFrontier.Outpost
 
         static float Square(float hz, float s) => Mathf.Sign(Mathf.Sin(s * 2f * Mathf.PI * hz));
 
-        static AudioClip Blip(float hz, float crackle, System.Func<float> white) =>
+        internal static AudioClip Blip(float hz, float crackle, System.Func<float> white) =>
             Synth("Voice", .05f, s => (Square(hz, s) * .5f + white() * crackle) * (1f - s / .05f));
 
-        static AudioClip Synth(string name, float seconds, System.Func<float, float> wave)
+        internal static AudioClip Synth(string name, float seconds, System.Func<float, float> wave)
         {
             var data = new float[Mathf.CeilToInt(seconds * Rate)];
             for (int i = 0; i < data.Length; i++) data[i] = Mathf.Clamp(wave(i / (float)Rate), -1f, 1f);

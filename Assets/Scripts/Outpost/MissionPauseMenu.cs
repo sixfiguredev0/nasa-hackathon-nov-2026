@@ -10,7 +10,7 @@ namespace RedFrontier.Outpost
     {
         const string TitleScene = "Assets/Scenes/MainMenu.unity";
         const int VolumeSteps = 10;
-        static readonly Vector2 PanelSize = new Vector2(402, 326);
+        static readonly Vector2 PanelSize = new Vector2(402, 389);
         static MissionPauseMenu active;
         static int releasedFrame = -1;
 
@@ -20,7 +20,7 @@ namespace RedFrontier.Outpost
         EventSystem events;
         bool ownsEvents;
         GameObject priorSelection;
-        PixelButton resume, settingsButton, titleButton, motion, keepPlaying, leave;
+        PixelButton resume, settingsButton, titleButton, nasaData, motion, keepPlaying, leave;
         PixelSlider volume;
         PixelLabel volumeValue;
         AudioMixRow mix;
@@ -115,12 +115,14 @@ namespace RedFrontier.Outpost
             settingsButton.onClick.AddListener(OpenSettings);
             titleButton = Action(main, "Return to title", 217);
             titleButton.onClick.AddListener(OpenConfirmation);
-            FrontierUi.Chain(resume, settingsButton, titleButton);
+            nasaData = Action(main, "Real NASA data", 280);
+            nasaData.onClick.AddListener(OpenNasaData);
+            FrontierUi.Chain(resume, settingsButton, titleButton, nasaData);
             var keycap = PixelArt.Sliced("Esc key", main, PixelArt.Frame(FrontierUi.PanelDark,
                 FrontierUi.Mauve, FrontierUi.CreamDark, FrontierUi.Mauve));
-            FrontierUi.Place(keycap.rectTransform, PanelSize, 137, 282, 46, 23);
+            FrontierUi.Place(keycap.rectTransform, PanelSize, 137, 345, 46, 23);
             PixelLabel.Create("Key", keycap.transform, "Esc", 2, FrontierUi.Cream, .5f, false);
-            Label(main, "Resume", 196, 279, 105, 28, 2);
+            Label(main, "Resume", 196, 342, 105, 28, 2);
 
             settings = Page("Settings");
             Label(settings, "Master volume", 29, 78, 240, 26, 2);
@@ -199,6 +201,12 @@ namespace RedFrontier.Outpost
             settings.gameObject.SetActive(page == settings);
             confirmation.gameObject.SetActive(page == confirmation);
             selection.Select();
+        }
+
+        void OpenNasaData()
+        {
+            Resume();
+            if (Skywatch.Instance != null) Skywatch.Instance.OpenDataScreen();
         }
 
         void OpenSettings()
