@@ -507,6 +507,7 @@ public sealed class MainMenu : MonoBehaviour
         if (string.IsNullOrEmpty(destination) || !Application.CanStreamedLevelBeLoaded(destination))
         {
             launchError.gameObject.SetActive(true);
+            GameAudio.Play(Sfx.UiDenied);
             return;
         }
 

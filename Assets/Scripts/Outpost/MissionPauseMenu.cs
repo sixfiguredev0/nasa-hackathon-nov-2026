@@ -45,8 +45,8 @@ namespace RedFrontier.Outpost
             if (loading) return;
             if (active == this)
             {
-                if (settings.gameObject.activeSelf) { GameAudio.Play(Sfx.UiBack); Show(main, settingsButton); }
-                else if (confirmation.gameObject.activeSelf) { GameAudio.Play(Sfx.UiBack); Show(main, titleButton); }
+                if (settings.gameObject.activeSelf) BackFromSettings();
+                else if (confirmation.gameObject.activeSelf) BackFromConfirmation();
                 else Resume();
                 return;
             }
@@ -114,7 +114,7 @@ namespace RedFrontier.Outpost
             settingsButton = Action(main, "Settings", 154);
             settingsButton.onClick.AddListener(OpenSettings);
             titleButton = Action(main, "Return to title", 217);
-            titleButton.onClick.AddListener(() => Show(confirmation, keepPlaying));
+            titleButton.onClick.AddListener(OpenConfirmation);
             FrontierUi.Chain(resume, settingsButton, titleButton);
             var keycap = PixelArt.Sliced("Esc key", main, PixelArt.Frame(FrontierUi.PanelDark,
                 FrontierUi.Mauve, FrontierUi.CreamDark, FrontierUi.Mauve));
@@ -141,13 +141,13 @@ namespace RedFrontier.Outpost
                 UpdateSettings();
             });
             var back = Action(settings, "Back", 260, height: 44);
-            back.onClick.AddListener(() => Show(main, settingsButton));
+            back.onClick.AddListener(BackFromSettings);
             FrontierUi.Chain(volume, mix.Sliders[0], mix.Sliders[1], mix.Sliders[2], motion, back);
 
             confirmation = Page("Return to title?");
             Label(confirmation, "The current mission\nwill end.", 29, 84, 344, 61, 3, .5f);
             keepPlaying = Action(confirmation, "Keep playing", 163, true);
-            keepPlaying.onClick.AddListener(() => Show(main, titleButton));
+            keepPlaying.onClick.AddListener(BackFromConfirmation);
             leave = Action(confirmation, "Return to title", 231);
             leave.interactable = Application.CanStreamedLevelBeLoaded(TitleScene);
             leave.onClick.AddListener(ReturnToTitle);
@@ -203,10 +203,29 @@ namespace RedFrontier.Outpost
 
         void OpenSettings()
         {
+            GameAudio.Play(Sfx.UiPanelOpen);
             volume.SetValueWithoutNotify(Mathf.Round(FrontierUi.MasterVolume * VolumeSteps));
             mix.Refresh();
             UpdateSettings();
             Show(settings, volume);
+        }
+
+        void OpenConfirmation()
+        {
+            GameAudio.Play(Sfx.UiPanelOpen);
+            Show(confirmation, keepPlaying);
+        }
+
+        void BackFromSettings()
+        {
+            GameAudio.Play(Sfx.UiBack);
+            Show(main, settingsButton);
+        }
+
+        void BackFromConfirmation()
+        {
+            GameAudio.Play(Sfx.UiBack);
+            Show(main, titleButton);
         }
 
         void UpdateSettings()
