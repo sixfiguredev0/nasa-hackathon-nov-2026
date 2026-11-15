@@ -14,7 +14,7 @@ namespace RedFrontier.Outpost
         static MissionPauseMenu active;
         static int releasedFrame = -1;
 
-        internal static bool BlocksGameplayInput => active != null || releasedFrame == Time.frameCount;
+        internal static bool BlocksGameplayInput => active != null || releasedFrame == Time.frameCount || MissionDebrief.IsOpen;
 
         RectTransform canvas, panel, main, settings, confirmation;
         EventSystem events;
@@ -42,7 +42,7 @@ namespace RedFrontier.Outpost
 
         void HandleEscape()
         {
-            if (loading) return;
+            if (loading || MissionDebrief.IsOpen) return;
             if (active == this)
             {
                 if (settings.gameObject.activeSelf) BackFromSettings();

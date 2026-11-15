@@ -165,7 +165,8 @@ namespace RedFrontier.Outpost
                 RefreshDialogue();
                 if (announce) panel.gameObject.SetActive(true);
             }
-            if (training.State == HistoricalTraining.Phase.Sheltering || training.State == HistoricalTraining.Phase.Working)
+            if (training.State == HistoricalTraining.Phase.Choice || training.State == HistoricalTraining.Phase.Sheltering ||
+                training.State == HistoricalTraining.Phase.Working)
                 RefreshDialogue();
             Rect fitness = colony.CrewFitnessBounds;
             if (fitness.width <= 0f) return;
@@ -221,21 +222,22 @@ namespace RedFrontier.Outpost
             switch (training.State)
             {
                 case HistoricalTraining.Phase.Choice:
-                    dialogue.text = "Archived training: NASA recorded a solar-particle event on " + training.ObservationDate +
-                        ". Shelter pauses construction safely; working brings a brief fitness dip.";
+                    dialogue.text = "Solar particle burst incoming! (Modeled on NASA's archived " + training.ObservationDate +
+                        " record.) Shelter: no building for " + Mathf.RoundToInt(HistoricalTraining.ExerciseSeconds) + " s. Keep working: fitness -" +
+                        Mathf.RoundToInt(HistoricalTraining.FitnessDip * 100f) + ". Decide in " + Mathf.CeilToInt(training.ChoiceRemaining) + " s.";
                     break;
                 case HistoricalTraining.Phase.Sheltering:
                     dialogue.text = Crew.Instance != null && !Crew.Instance.Sheltered ?
                         "The crew are returning to the lander. Queued construction and its progress are saved." :
-                        "The crew are protected in this exercise. Construction resumes in " + Mathf.CeilToInt(training.Remaining) + " seconds.";
+                        "The crew are protected. Construction resumes in " + Mathf.CeilToInt(training.Remaining) + " seconds.";
                     break;
                 case HistoricalTraining.Phase.Working:
-                    dialogue.text = "Work continues with an 8-point fitness dip. That dip recovers in " + Mathf.CeilToInt(training.Remaining) + " seconds; normal fitness changes continue.";
+                    dialogue.text = "Work continues with a " + Mathf.RoundToInt(HistoricalTraining.FitnessDip * 100f) + "-point fitness dip. It recovers in " + Mathf.CeilToInt(training.Remaining) + " seconds; normal fitness changes continue.";
                     break;
                 case HistoricalTraining.Phase.Resolved:
                     dialogue.text = training.ChoseShelter ?
-                        "Exercise complete: shelter prevented the extra fitness dip and delayed construction. Saved jobs now resume; keep building freely." :
-                        "Exercise complete: construction kept moving and the extra fitness dip has recovered. Keep building freely.";
+                        "The burst has passed: shelter prevented the fitness dip but cost building time. Saved jobs now resume." :
+                        "The burst has passed: construction kept moving and the fitness dip has recovered.";
                     break;
                 case HistoricalTraining.Phase.Unavailable:
                     dialogue.text = training.DataError;

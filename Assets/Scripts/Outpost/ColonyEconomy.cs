@@ -23,6 +23,8 @@ namespace RedFrontier.Outpost
         public string nodeId;
         public bool stalled;
         public Res missing;
+        /// <summary>Offline from an equipment failure event (set and cleared by <see cref="MissionDirector"/>).</summary>
+        public bool broken;
         /// <summary>Output multiplier from where it stands (<see cref="SiteSurvey"/>). Battery: also scales storage. Gym: training.</summary>
         public float yield = 1f;
 
@@ -45,7 +47,26 @@ namespace RedFrontier.Outpost
         public static readonly int ResCount = Enum.GetValues(typeof(Res)).Length;
 
         /// <summary>What each astronaut breathes, eats and drinks per second.</summary>
-        public static readonly Amount[] UpkeepPerCrew = { new Amount(Res.Oxygen, 0.15f), new Amount(Res.Food, 0.08f), new Amount(Res.Water, 0.08f) };
+        /// <summary>Astronauts in a mission (the art has exactly two).</summary>
+        public const int DefaultCrew = 2;
+        /// <summary>Stock the mission starts with, in Res order: Energy, Water, Food, Oxygen, Metal. Tuned with the economy simulator.</summary>
+        public static readonly float[] MissionStart = { 30f, 40f, 50f, 50f, 60f };
+        public const float UpkeepScale = 1.75f;        // hard mode: tuned with Red Frontier > Outpost > Simulate Economy
+        public static readonly Amount[] UpkeepPerCrew =
+        {
+            new Amount(Res.Oxygen, 0.15f * UpkeepScale), new Amount(Res.Food, 0.08f * UpkeepScale), new Amount(Res.Water, 0.08f * UpkeepScale)
+        };
+        /// <summary>Seconds of continuous shortage after which one astronaut is lost. Air is the quickest, food the slowest.</summary>
+        public static float DeathAfter(Res r)
+        {
+            switch (r)
+            {
+                case Res.Oxygen: return 25f;
+                case Res.Water: return 60f;
+                case Res.Food: return 100f;
+                default: return 0f;
+            }
+        }
         public const float FitnessLoss = 1f / 300f;    // per second in low gravity: fit to unfit in 5 minutes
         public const float ShortageLoss = 1f / 25f;    // per second while Oxygen, Food or Water has run out
         public const float RepeatCostStep = 0.35f;     // each extra copy of a building costs 35% more to place
@@ -58,6 +79,15 @@ namespace RedFrontier.Outpost
         public BuildingState training;
         public bool lifeSupportShort;
         public Res shortOf;
+        /// <summary>Day/night and dust: scales Energy made by Solar buildings only (1 = noon on a clear day).</summary>
+        public float solarFactor = 1f;
+        /// <summary>Scales Metal delivered by the lander (0 while Earth's resupply is delayed).</summary>
+        public float resupplyFactor = 1f;
+        /// <summary>Seconds each of Oxygen / Water / Food has been out. Reset when it is available again.</summary>
+        public readonly float[] deprived = new float[ResCount];
+        public int crewLost;
+        /// <summary>Raised when an astronaut dies; the argument is the resource that ran out.</summary>
+        public event Action<Res> CrewLost;
 
         public float Efficiency => Mathf.Lerp(0.5f, 1f, fitness);
 
@@ -99,11 +129,22 @@ namespace RedFrontier.Outpost
             lifeSupportShort = false;
             foreach (var a in UpkeepPerCrew)
             {
+                if (crew <= 0) break;
                 int i = (int)a.res;
                 float need = a.value * crew * dt;
                 net[i] -= a.value * crew;
-                if (stock[i] >= need) stock[i] -= need;
-                else { stock[i] = 0f; lifeSupportShort = true; shortOf = a.res; }
+                if (stock[i] >= need) { stock[i] -= need; deprived[i] = 0f; }
+                else
+                {
+                    stock[i] = 0f; lifeSupportShort = true; shortOf = a.res;
+                    deprived[i] += dt;
+                    if (deprived[i] >= DeathAfter(a.res))
+                    {
+                        deprived[i] = 0f;
+                        crew--; crewLost++;
+                        CrewLost?.Invoke(a.res);
+                    }
+                }
             }
             float f = fitness - (lifeSupportShort ? ShortageLoss : FitnessLoss) * dt;
             if (training != null && !training.stalled && !lifeSupportShort && buildings.Contains(training)) f += training.Node.train * training.yield * dt;
@@ -121,12 +162,15 @@ namespace RedFrontier.Outpost
         {
             var rates = b.Node.rates;
             b.stalled = false;
+            if (b.broken) { b.stalled = true; return; }
             foreach (var a in rates)
                 if (a.value < 0 && stock[(int)a.res] < -a.value * dt) { b.stalled = true; b.missing = a.res; return; }
             foreach (var a in rates)
             {
                 int i = (int)a.res;
                 float v = a.value > 0 ? a.value * eff * b.yield : a.value;
+                if (v > 0 && a.res == Res.Energy && b.def.kind == BuildingKind.Solar) v *= solarFactor;
+                if (v > 0 && a.res == Res.Metal && b.def.kind == BuildingKind.Rocket) v *= resupplyFactor;
                 stock[i] = Mathf.Min(stock[i] + v * dt, cap[i]);
                 net[i] += v;
             }
