@@ -30,11 +30,12 @@ namespace RedFrontier.Outpost
         Vector2Int heatCenter = new Vector2Int(int.MinValue, 0);
         BuildingDef heatDef;
         readonly float[] heat = new float[(2 * GridRadius + 1) * (2 * GridRadius + 1)];
-        Rect buttonRect, panelRect;
-        Texture2D panelArt, buttonArt;
+        Rect buttonRect, panelRect, detailsRect;
+        Texture2D buildIcon;
         GUIStyle buttonStyle, slotLabel;
         const int Columns = 3;
-        const float SlotSize = 68f, SlotStride = 76f, PanelPadding = 12f, PanelSize = 244f;
+        const float SlotSize = 76f, SlotStride = 84f, PanelPadding = 12f;
+        const float PanelWidth = 2 * PanelPadding + (Columns - 1) * SlotStride + SlotSize;
         Vector2 rightDown;
         string flash;
         float flashUntil;
@@ -58,7 +59,9 @@ namespace RedFrontier.Outpost
 
         static Vector2 GuiMouse => new Vector2(Input.mousePosition.x, Screen.height - Input.mousePosition.y);
         internal static bool PointerOverUI(Vector2 guiPos) => current != null && current.OverUI(guiPos);
-        bool OverUI(Vector2 guiPos) => buttonRect.Contains(guiPos) || (open && panelRect.Contains(guiPos)) || MissionGuide.PointerOverUI(guiPos);
+        bool OverUI(Vector2 guiPos) => buttonRect.Contains(guiPos) || TrayContains(guiPos) || MissionGuide.PointerOverUI(guiPos);
+        bool TrayContains(Vector2 guiPos) => open &&
+            (panelRect.Contains(guiPos) || (selected != null && detailsRect.Contains(guiPos)));
 
         internal bool CancelForEscape()
         {
@@ -80,6 +83,7 @@ namespace RedFrontier.Outpost
             if (cam == null) cam = Camera.main;
             if (colony == null || cam == null || !colony.Ready) return;
 
+            Layout();
             if (Input.GetKeyDown(KeyCode.B)) Toggle();
             if (Input.GetMouseButtonDown(1)) rightDown = Input.mousePosition;
             if (Input.GetMouseButtonUp(1) && ((Vector2)Input.mousePosition - rightDown).magnitude <= 6f) // a click, not a camera drag
@@ -115,6 +119,19 @@ namespace RedFrontier.Outpost
             ghost.color = fits && affordable ? new Color(0.55f, 1f, 0.55f, 0.75f) : new Color(1f, 0.35f, 0.3f, 0.6f);
         }
 
+        float Layout()
+        {
+            float scale = Mathf.Min(Mathf.Clamp(Screen.height / 720f, 1f, 1.5f),
+                Screen.width / 320f, Screen.height / 480f);
+            int rows = (Placeable.Count + Columns - 1) / Columns;
+            float panelHeight = 2 * PanelPadding + (rows - 1) * SlotStride + SlotSize;
+            panelRect = new Rect(Screen.width - (PanelWidth + 16f) * scale,
+                Screen.height - (panelHeight + 72f) * scale, PanelWidth * scale, panelHeight * scale);
+            buttonRect = new Rect(panelRect.xMax - 112f * scale, panelRect.yMax + 12f * scale, 112f * scale, 44f * scale);
+            detailsRect = new Rect(panelRect.x, panelRect.y - 88f * scale, panelRect.width, 80f * scale);
+            return scale;
+        }
+
         void OnGUI()
         {
             if (MissionPauseMenu.BlocksGameplayInput && Event.current.type != EventType.Repaint) return;
@@ -124,24 +141,21 @@ namespace RedFrontier.Outpost
             var mouse = e.mousePosition;
             if (e.isMouse && MissionGuide.PointerOverUI(mouse)) { e.Use(); return; }
 
-            float scale = Mathf.Min(Mathf.Clamp(Screen.height / 720f, 1f, 1.5f),
-                Screen.width / 320f, Screen.height / 460f);
-            panelRect = new Rect(Screen.width - (PanelSize + 12f) * scale,
-                Screen.height - (PanelSize + 76f) * scale, PanelSize * scale, PanelSize * scale);
-            buttonRect = new Rect(panelRect.xMax - 108f * scale, panelRect.yMax + 10f * scale, 108f * scale, 44f * scale);
+            float scale = Layout();
 
             if (buttonStyle == null)
             {
-                panelArt = Resources.Load<Texture2D>("OutpostHud/Build Panel");
-                buttonArt = Resources.Load<Texture2D>("OutpostHud/Build Button");
+                buildIcon = Resources.Load<Texture2D>("OutpostHud/Instrument Build");
                 buttonStyle = new GUIStyle(GUIStyle.none) { alignment = TextAnchor.MiddleCenter, fontStyle = FontStyle.Bold };
                 buttonStyle.normal.textColor = new Color32(248, 232, 215, 255);
                 buttonStyle.hover.textColor = Color.white;
                 buttonStyle.active.textColor = buttonStyle.normal.textColor;
                 slotLabel = new GUIStyle(buttonStyle) { fontStyle = FontStyle.Normal, wordWrap = true };
             }
-            buttonStyle.fontSize = Mathf.Max(1, Mathf.RoundToInt(17f * scale));
-            slotLabel.fontSize = Mathf.Max(1, Mathf.RoundToInt(11f * scale));
+            buttonStyle.fontSize = Mathf.Max(1, Mathf.RoundToInt(14f * scale));
+            slotLabel.fontSize = Mathf.Max(1, Mathf.RoundToInt(12f * scale));
+            buttonStyle.padding.left = Mathf.RoundToInt(24f * scale);
+            buttonStyle.padding.right = Mathf.RoundToInt(26f * scale);
             int priorDepth = GUI.depth;
             GUI.depth = -1;
 
@@ -149,28 +163,37 @@ namespace RedFrontier.Outpost
             BuildingDef hovered = open ? DrawPanel(scale, mouse) : null;
             if (e.type == EventType.Repaint)
             {
-                Color priorColor = GUI.color;
-                if (!open && !buttonRect.Contains(mouse)) GUI.color *= new Color(0.86f, 0.86f, 0.86f);
-                GUI.DrawTexture(buttonRect, buttonArt);
-                GUI.color = priorColor;
+                bool highlighted = open || buttonRect.Contains(mouse);
+                OutpostGUI.Frame(buttonRect, highlighted ? FrontierUi.PanelDark : FrontierUi.Shadow,
+                    open ? OutpostGUI.InstrumentAccent : FrontierUi.PanelLight, scale);
+                if (buildIcon != null)
+                    GUI.DrawTexture(new Rect(buttonRect.x + 9f * scale, buttonRect.y + 13f * scale, 18f * scale, 18f * scale),
+                        buildIcon);
             }
-            if (GUI.Button(buttonRect, "BUILD", buttonStyle)) Toggle();
-            if (hovered != null)
+            if (GUI.Button(buttonRect, "Build", buttonStyle)) Toggle();
+            if (e.type == EventType.Repaint)
+            {
+                var keycap = new Rect(buttonRect.xMax - 28f * scale, buttonRect.y + 12f * scale, 20f * scale, 20f * scale);
+                OutpostGUI.Frame(keycap, FrontierUi.PanelDark, FrontierUi.PanelLight, scale);
+                GUI.Label(keycap, "B", OutpostGUI.Text(11f * scale, TextAnchor.MiddleCenter, FrontierUi.Cream));
+                if (selected != null && open) DrawSelectionDetails(scale, mouse);
+            }
+            if (hovered != null && selected == null)
             {
                 var cost = colony.PlaceCost(hovered);
                 var status = colony.economy.CanAfford(cost) ? NodeStatus.Available : NodeStatus.TooExpensive;
                 UpgradeBubbles.Tooltip(hovered.nodes[hovered.root], status, new Vector2(Mathf.Max(8 * s, panelRect.x - 260 * s), mouse.y - 16 * s), s, cost);
             }
-            if (Time.unscaledTime < flashUntil) Label(mouse + new Vector2(16 * s, -30 * s), "<color=#f88>" + flash + "</color>", s);
 
             if (e.type == EventType.MouseDown && e.button == 0)
             {
                 if (MissionGuide.PointerOverUI(mouse)) e.Use();
-                else if (open && panelRect.Contains(mouse))
+                else if (TrayContains(mouse))
                 {
                     if (hovered != null)
                     {
                         selected = selected == hovered ? null : hovered;
+                        flashUntil = 0f;
                         GameAudio.Play(Sfx.UiSelect);
                     }
                     e.Use();
@@ -231,11 +254,7 @@ namespace RedFrontier.Outpost
             foreach (var b in colony.buildings) Outline(b.cells, 1.5f * s, new Color(1f, 0.4f, 0.3f, 0.5f));
             bool ok = fits && affordable;
             Outline(cells, 2 * s, ok ? new Color(0.4f, 1f, 0.4f) : new Color(1f, 0.3f, 0.25f));
-            if (Time.unscaledTime >= flashUntil)
-            {
-                string head = ok ? "<b>" + selected.name + "</b>  " + OutpostGUI.List(colony.PlaceCost(selected)) : "<color=#f88>" + Problem() + "</color>";
-                Label(mouse + new Vector2(16 * s, 12 * s), head + "\n" + SiteSurvey.Describe(yield, why), s);
-            }
+            Label(mouse + new Vector2(16 * s, 12 * s), SiteSurvey.Describe(yield, why), s);
         }
 
         /// <summary>Grid cells around the cursor, fading out with distance, each with a dot coloured by its yield.</summary>
@@ -269,7 +288,7 @@ namespace RedFrontier.Outpost
         BuildingDef DrawPanel(float scale, Vector2 mouse)
         {
             bool repaint = Event.current.type == EventType.Repaint;
-            if (repaint) GUI.DrawTexture(panelRect, panelArt);
+            if (repaint) OutpostGUI.InstrumentFrame(panelRect, scale);
 
             BuildingDef hovered = null;
             for (int i = 0; i < Placeable.Count; i++)
@@ -282,12 +301,8 @@ namespace RedFrontier.Outpost
                 if (hot) hovered = def;
                 if (!repaint) continue;
 
-                if (hot || def == selected)
-                {
-                    var border = new Rect(x + 2f * scale, y + 2f * scale, slot.width - 4f * scale, slot.height - 4f * scale);
-                    Color tint = def == selected ? new Color32(255, 193, 94, 255) : new Color32(173, 125, 159, 255);
-                    GUI.DrawTexture(border, OutpostGUI.White, ScaleMode.StretchToFill, true, 0f, tint, scale, 4f * scale);
-                }
+                OutpostGUI.Frame(slot, hot || def == selected ? FrontierUi.PanelDark : FrontierUi.Shadow,
+                    def == selected ? OutpostGUI.InstrumentAccent : FrontierUi.PanelLight, scale);
 
                 var frames = BuildingArt.Get(def, def.nodes[def.root], def.footprint);
                 Sprite icon = frames[frames.Length - 1];
@@ -299,19 +314,41 @@ namespace RedFrontier.Outpost
                 float width = source.width * fit;
                 float height = source.height * fit;
                 GUI.DrawTextureWithTexCoords(new Rect(slot.center.x - width / 2f, y + 21f * scale - height / 2f, width, height), texture, uv);
-                GUI.Label(new Rect(x + 3f * scale, y + 38f * scale, slot.width - 6f * scale, 28f * scale),
+                GUI.Label(new Rect(x + 4f * scale, y + 40f * scale, slot.width - 8f * scale, 32f * scale),
                     def.nodes[def.root].name, slotLabel);
             }
             return hovered;
         }
 
+        void DrawSelectionDetails(float scale, Vector2 mouse)
+        {
+            OutpostGUI.InstrumentFrame(detailsRect, scale);
+            float left = detailsRect.x + 12f * scale;
+            float width = detailsRect.width - 24f * scale;
+            var name = selected.nodes[selected.root].name;
+            var cost = OutpostGUI.List(colony.PlaceCost(selected));
+            bool failed = Time.unscaledTime < flashUntil;
+            bool onMap = !OverUI(mouse);
+            bool blocked = failed || (onMap && (!fits || !affordable));
+            string status = failed ? flash : !onMap ? "Choose a site" : blocked ? Problem() : "Click to place";
+            GUI.Label(new Rect(left, detailsRect.y + 8f * scale, width, 20f * scale), name,
+                OutpostGUI.Text(14f * scale, TextAnchor.MiddleLeft, FrontierUi.Cream));
+            OutpostGUI.Panel(new Rect(left, detailsRect.y + 30f * scale, width, scale), FrontierUi.PanelLight);
+            GUI.Label(new Rect(left, detailsRect.y + 34f * scale, width, 18f * scale), "Cost  " + cost,
+                OutpostGUI.Text(12f * scale, TextAnchor.MiddleLeft, OutpostGUI.InstrumentSecondary));
+            GUI.Label(new Rect(left, detailsRect.y + 52f * scale, width, 20f * scale), status,
+                OutpostGUI.Text(12f * scale, TextAnchor.MiddleLeft,
+                    blocked ? OutpostGUI.InstrumentWarning : OutpostGUI.InstrumentSecondary));
+        }
+
         static void Label(Vector2 at, string text, float s)
         {
-            var style = OutpostGUI.Text(11 * s, TextAnchor.MiddleLeft, Color.white);
+            var style = OutpostGUI.Text(11 * s, TextAnchor.MiddleLeft, FrontierUi.Cream);
             var size = style.CalcSize(new GUIContent(text));
             var rect = new Rect(at.x, at.y, size.x + 12 * s, size.y + 6 * s);
             if (rect.xMax > Screen.width) rect.x = at.x - rect.width - 32 * s;
-            OutpostGUI.Panel(rect, new Color(0f, 0f, 0f, 0.75f));
+            if (rect.yMax > Screen.height) rect.y = Mathf.Max(0f, at.y - rect.height - 24f * s);
+            OutpostGUI.InstrumentFrame(rect, s);
             GUI.Label(new Rect(rect.x + 6 * s, rect.y + 3 * s, size.x, size.y), text, style);
         }
     }

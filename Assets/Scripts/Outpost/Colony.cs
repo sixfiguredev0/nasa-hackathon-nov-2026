@@ -160,9 +160,6 @@ namespace RedFrontier.Outpost
             if (!Ready) return;
             resourceTopBar.Draw(economy);
             DrawCrewFitness();
-            float s = OutpostGUI.Scale, pad = 6 * s;
-            GUI.Label(new Rect(pad, Screen.height - 24 * s, 600 * s, 20 * s), "B: Builder Mode    Right-click a building: upgrades",
-                OutpostGUI.Text(11 * s, TextAnchor.MiddleLeft, new Color(1f, 1f, 1f, 0.7f)));
         }
 
         void DrawCrewFitness()
@@ -170,7 +167,7 @@ namespace RedFrontier.Outpost
             if (Event.current.type != EventType.Repaint) return;
             if (crewFitnessLabel == null)
             {
-                crewFitnessArt = Resources.Load<Texture2D>("OutpostHud/Crew Fitness");
+                crewFitnessArt = Resources.Load<Texture2D>("OutpostHud/Crew Fitness Artwork");
                 crewFitnessSegments = Resources.Load<Texture2D>("OutpostHud/Crew Fitness Segments");
                 crewFitnessLabel = new GUIStyle(GUI.skin.label)
                 {
@@ -179,10 +176,9 @@ namespace RedFrontier.Outpost
                     padding = new RectOffset(),
                     richText = true
                 };
-                crewFitnessLabel.normal.textColor = new Color32(248, 232, 215, 255);
             }
 
-            const float width = 180f, height = 58f;
+            const float width = 176f, height = 72f;
             float scale = Mathf.Min(Mathf.Clamp(Screen.height / 720f, 1f, 1.5f), (Screen.width - 24f) / width);
             Rect resourceBar = resourceTopBar.Bounds;
             float panelWidth = Mathf.Round(width * scale);
@@ -194,37 +190,54 @@ namespace RedFrontier.Outpost
             var panel = new Rect(x, y, panelWidth, sameRow ? resourceBar.height : Mathf.Round(height * scale));
             CrewFitnessBounds = panel;
             float verticalScale = panel.height / height;
-            GUI.DrawTexture(panel, crewFitnessArt);
+            Rect Part(float left, float top, float w, float h) =>
+                new Rect(panel.x + left * scale, panel.y + top * verticalScale, w * scale, h * verticalScale);
+            OutpostGUI.InstrumentFrame(panel, scale);
 
             float fitness = economy.fitness;
+            DrawCrewFitnessArt(Part(8, 16, 54, 40), fitness);
+            OutpostGUI.Panel(Part(70, 31, 98, 1), FrontierUi.PanelLight);
+            crewFitnessLabel.normal.textColor = FrontierUi.Cream;
+            crewFitnessLabel.fontSize = Mathf.Max(1, Mathf.RoundToInt(14f * scale));
+            GUI.Label(Part(70, 10, 98, 18), $"<b>Fitness {fitness * 100f:0}%</b>", crewFitnessLabel);
+            crewFitnessLabel.fontSize = Mathf.Max(1, Mathf.RoundToInt(11f * scale));
+            crewFitnessLabel.normal.textColor = OutpostGUI.InstrumentSecondary;
+            GUI.Label(Part(70, 35, 98, 16), $"Work speed {economy.Efficiency * 100f:0}%", crewFitnessLabel);
+            string status = economy.lifeSupportShort ? $"Out of {economy.shortOf.ToString().ToLowerInvariant()}"
+                : economy.training != null && !economy.training.stalled ? "Training" : string.Empty;
+            crewFitnessLabel.normal.textColor = economy.lifeSupportShort ? OutpostGUI.InstrumentWarning : FrontierUi.Cream;
+            GUI.Label(Part(70, 51, 98, 15), status, crewFitnessLabel);
+        }
+
+        void DrawCrewFitnessArt(Rect area, float fitness)
+        {
+            // The base artwork is cropped to the helmet and gauge. The lit segments
+            // are still stored at their original coordinates in the full-size overlay.
+            const float sourceWidth = 180f, sourceHeight = 58f;
+            const float artX = 10f, artY = 9f, artWidth = 54f, artHeight = 40f;
+            Rect ArtUv(float top, float sliceHeight) =>
+                new Rect(artX / sourceWidth, 1f - (top + sliceHeight) / sourceHeight,
+                    artWidth / sourceWidth, sliceHeight / sourceHeight);
+
+            if (crewFitnessArt != null)
+                GUI.DrawTexture(area, crewFitnessArt);
+            if (crewFitnessSegments == null) return;
+
+            float verticalScale = area.height / artHeight;
             Color originalColor = GUI.color;
             int segmentCount = CrewSegmentEdges.Length - 1;
             for (int i = 0; i < segmentCount; i++)
             {
-                // Drain from the bottom. The current segment fades through its 20% range.
                 float lit = Mathf.Clamp01(fitness * segmentCount - i);
                 if (lit <= 0f) continue;
                 float top = CrewSegmentEdges[i];
                 float segmentHeight = CrewSegmentEdges[i + 1] - top;
-                var segment = new Rect(panel.x, panel.y + top * verticalScale, panel.width, segmentHeight * verticalScale);
-                var uv = new Rect(0f, 1f - (top + segmentHeight) / height, 1f, segmentHeight / height);
+                var segment = new Rect(area.x, area.y + (top - artY) * verticalScale, area.width,
+                    segmentHeight * verticalScale);
                 GUI.color = new Color(originalColor.r, originalColor.g, originalColor.b, originalColor.a * lit);
-                GUI.DrawTextureWithTexCoords(segment, crewFitnessSegments, uv);
+                GUI.DrawTextureWithTexCoords(segment, crewFitnessSegments, ArtUv(top, segmentHeight));
             }
             GUI.color = originalColor;
-
-            const float labelX = 68f, labelWidth = 102f;
-            crewFitnessLabel.fontSize = Mathf.Max(1, Mathf.RoundToInt(12f * scale));
-            GUI.Label(new Rect(panel.x + labelX * scale, panel.y + 7f * verticalScale, labelWidth * scale, 15f * scale),
-                $"<b>Fitness {fitness * 100f:0}%</b>", crewFitnessLabel);
-            crewFitnessLabel.fontSize = Mathf.Max(1, Mathf.RoundToInt(11f * scale));
-            GUI.Label(new Rect(panel.x + labelX * scale, panel.y + 22f * verticalScale, labelWidth * scale, 13f * scale),
-                $"<color=#cfb9b8>Work speed {economy.Efficiency * 100f:0}%</color>", crewFitnessLabel);
-
-            string status = economy.lifeSupportShort ? $"<color=#ff978e>Out of {economy.shortOf.ToString().ToLowerInvariant()}</color>"
-                : economy.training != null && !economy.training.stalled ? "<color=#a0e6b7>Training</color>" : string.Empty;
-            GUI.Label(new Rect(panel.x + labelX * scale, panel.y + 35f * verticalScale, labelWidth * scale, 13f * scale),
-                status, crewFitnessLabel);
         }
     }
 }
