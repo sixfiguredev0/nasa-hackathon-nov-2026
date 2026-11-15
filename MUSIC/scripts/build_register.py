@@ -23,7 +23,7 @@ META = {
     "MUS_SURFACE_C": ("'Quiet Machines': minimal analog textures, drifting arpeggio, long breaths (B minor/D)", "Outpost gameplay rotation", "MusicSelector after a rest", "As MUS_SURFACE_A"),
     "MUS_SURFACE_D": ("'Long Day': organ chorale answered by felt piano, gentle string lift", "Outpost gameplay rotation", "MusicSelector after a rest", "As MUS_SURFACE_A"),
     "MUS_SURFACE_E": ("'Solitude': lonely solo felt piano, distant string harmonics, warm turn at the end (E minor)", "Outpost gameplay rotation", "MusicSelector after a rest", "As MUS_SURFACE_A"),
-    "MUS_TENSION": ("'Thin Air': low organ drone, wavering strings, muted piano, never climaxes (D)", "Sustained life-support shortage", "Colony economy lifeSupportShort for >= 6 s", "4 s crossfade in; repeats after 3-6 s while short; leaves after 12 s recovered with a 6 s fade; 45 s lockout"),
+    "MUS_TENSION": ("'Thin Air': low organ drone, wavering strings, muted piano, never climaxes (D)", "Sustained life-support shortage", "Colony economy lifeSupportShort for >= 6 s", "4 s crossfade in; while short alternates with MUS_SURFACE_E after 12-25 s rests; leaves after 12 s recovered with a 6 s fade; 45 s lockout"),
     "SFX_UI_CONFIRM": ("Soft glassy felt-piano chime", "Any menu button without its own cue", "PixelButton click/submit (GameAudio.UiPress)", "One-shot, suppressed when the action plays a specific cue in the same frame"),
     "SFX_UI_BACK": ("Soft descending two-note blip", "Close/back/cancel", "MainMenu Close*, pause Esc-back, BuilderMode cancel, UpgradeBubbles Esc", "One-shot"),
     "SFX_UI_SELECT": ("Tiny muted tap", "Selections and slider steps", "Builder slot pick, bubble open/toggle, PixelSlider value step", "One-shot, 70 ms cooldown stops drag spam"),

@@ -63,6 +63,7 @@ namespace RedFrontier.Audio
         public const string Title = "MUS_TITLE";
         public const string Arrival = "MUS_ARRIVAL";
         public const string Tension = "MUS_TENSION";
+        public const string TensionAlternate = "MUS_SURFACE_E"; // played between tension cues during a long shortage
         public static readonly string[] Gameplay = { "MUS_SURFACE_A", "MUS_SURFACE_B", "MUS_SURFACE_C", "MUS_SURFACE_D", "MUS_SURFACE_E" };
     }
 

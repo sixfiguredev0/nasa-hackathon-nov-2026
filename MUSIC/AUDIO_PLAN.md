@@ -42,8 +42,9 @@ Controller rules (`GameAudio.UpdateMusic`):
   rotation is endless, so long sessions are fine.
 - Pitch is never altered. Separate generations are never layered as stems: only whole-section
   crossfades are used.
-- **Tension:** `lifeSupportShort` must hold for 6 s. Then a 4 s crossfade to `MUS_TENSION`,
-  which repeats after 3–6 s while still short. Recovery must hold for 12 s, then a 6 s fade-out
+- **Tension:** `lifeSupportShort` must hold for 6 s. Then a 4 s crossfade to `MUS_TENSION`.
+  While the shortage lasts, tension alternates with the lonely `MUS_SURFACE_E` (Solitude) with
+  12–25 s silences between them, so a long crisis never loops one cue. Recovery must hold for 12 s, then a 6 s fade-out
   and a 10–14 s rest before calm music returns. Tension is then locked out for 45 s. Brief
   fluctuations never switch the music; the alert cues still report them.
 - **Pause:** music ducks to 45% (0.5 s unscaled fade) and keeps playing. Ambience ducks to 60%.

@@ -51,7 +51,7 @@ namespace RedFrontier.Audio
         Track active;
         MusicMode mode;
         MusicSelector selector;
-        bool resting, gameplayRequested, shortage;
+        bool resting, gameplayRequested, shortage, tensionAlternate;
         float restUntil, shortageChangedAt, tensionLockUntil = -999f;
         string pendingId; float pendingFade, pendingSince;
 
@@ -440,7 +440,12 @@ namespace RedFrontier.Audio
             {
                 resting = false;
                 if (mode == MusicMode.Title) StartTrack(MusicIds.Title, 3f, 1f);
-                else if (mode == MusicMode.Tension) StartTrack(MusicIds.Tension, 3f, 1f);
+                else if (mode == MusicMode.Tension)
+                {
+                    // A long crisis alternates the tension cue with the lonely Solitude movement instead of looping one track.
+                    StartTrack(tensionAlternate ? MusicIds.TensionAlternate : MusicIds.Tension, 3f, 1f);
+                    tensionAlternate = !tensionAlternate;
+                }
                 else if (mode == MusicMode.Gameplay) StartTrack(selector.Next(), 1.5f, 1f);
             }
 
@@ -449,6 +454,7 @@ namespace RedFrontier.Audio
             {
                 mode = MusicMode.Tension;
                 resting = false;
+                tensionAlternate = true;
                 StartTrack(MusicIds.Tension, 4f, 4f);
             }
             else if (mode == MusicMode.Tension && !shortage && sinceChange >= CalmAfter)
@@ -517,7 +523,7 @@ namespace RedFrontier.Audio
                     else mode = MusicMode.None; // still landing; BeginGameplayMusic will continue
                     break;
                 case MusicMode.Gameplay: resting = true; restUntil = Time.unscaledTime + selector.RestSeconds(); break;
-                case MusicMode.Tension: Rest(3f, 6f); break;
+                case MusicMode.Tension: Rest(12f, 25f); break;
             }
         }
 
