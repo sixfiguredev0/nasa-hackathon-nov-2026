@@ -237,12 +237,9 @@ namespace RedFrontier.Outpost
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             canvas.sortingOrder = 23;
 
-            var frame = FrontierUi.Fill("Sol clock", root.transform, FrontierUi.PanelLight);
-            hudRect = frame.rectTransform;
+            hudRect = FrontierUi.Box("Sol clock", root.transform);
             hudRect.anchorMin = hudRect.anchorMax = hudRect.pivot = new Vector2(.5f, 1f);
             hudRect.sizeDelta = HudSize;
-            var face = FrontierUi.Fill("Face", hudRect, FrontierUi.Shadow);
-            FrontierUi.Place(face.rectTransform, HudSize, 1, 1, HudSize.x - 2, HudSize.y - 2);
             hudTop = HudText("Sol", hudRect, 18, 2, 4, HudSize.x - 4, 22, TextAnchor.MiddleCenter);
             hudBottom = HudText("Day", hudRect, 13, 2, 25, HudSize.x - 4, 18, TextAnchor.MiddleCenter);
 
