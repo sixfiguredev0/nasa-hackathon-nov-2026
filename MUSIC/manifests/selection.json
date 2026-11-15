@@ -1,0 +1,43 @@
+{
+  "notes": "Agent-selected takes and the edits applied to each. Selection used technical analysis only (scripts/analyze.py, sections.py, loudness and spectrum checks); no subjective listening was available. 'take' is the audition file stem in auditions/. Processing: scripts/process.py.",
+  "kinds": {
+    "music": "highpass 35 Hz; trim lead silence (keep 50 ms) and tail below -55 dBFS (keep 0.6 s); 30 ms fade-in, 1.5 s fade-out; gain = min(-18 LUFS - I, -14 LUFS - max short-term), true peak capped at -1.5 dBTP; Ogg Vorbis q8, 48 kHz stereo",
+    "sfx": "optional high/low-pass; trim lead silence (keep 5 ms) and tail below -60 dBFS (keep 30 ms); 3 ms fade-in, fade-out over last 40 ms (or 'fade_out' s); loudest 300 ms RMS normalised to -16 dBFS with sample peak capped at -1 dBFS; 16-bit PCM WAV",
+    "loop": "high-pass; no trims or fades (GameAudio crossfades two sources); RMS normalised to 'rms' dBFS with peak cap -1 dBFS; 16-bit PCM WAV"
+  },
+  "assets": [
+    {"id": "MUS_TITLE", "kind": "music", "takes": ["MUS_TITLE__take1__wtpQSg9bMdLCII5nTke6"]},
+    {"id": "MUS_ARRIVAL", "kind": "music", "takes": ["MUS_ARRIVAL__take1__MYmE8R8MvqHesPcxyEjA"]},
+    {"id": "MUS_SURFACE_A", "kind": "music", "takes": ["MUS_SURFACE_A__take1__EuFvpO5qDI8vXTKVTBEb"]},
+    {"id": "MUS_SURFACE_B", "kind": "music", "takes": ["MUS_SURFACE_B__take1__P4XlRSDEWmyOrkz8x6gc"], "highpass": 45},
+    {"id": "MUS_SURFACE_C", "kind": "music", "takes": ["MUS_SURFACE_C__take2__RGa81eOTXgTRdrbcED6y"]},
+    {"id": "MUS_SURFACE_D", "kind": "music", "takes": ["MUS_SURFACE_D__take2__ybxiksZTLi3XKNNLUpSE"]},
+    {"id": "MUS_SURFACE_E", "kind": "music", "takes": ["MUS_SURFACE_E__take1__gWrZDFh1m05iV0ow7rl3"]},
+    {"id": "MUS_TENSION", "kind": "music", "takes": ["MUS_TENSION__take1__cxDDzHqPOmhftjON4k86"]},
+
+    {"id": "SFX_UI_CONFIRM", "kind": "sfx", "takes": ["SFX_UI_CONFIRM__take3__o8IgL11k6TzGzeFIlZpH", "SFX_UI_CONFIRM__take2__xcXPVljqyPhfjcjoxguk", "SFX_UI_CONFIRM__take1__Tf0nPpFQpW49V4q0aXL7"], "fade_out": 0.12},
+    {"id": "SFX_UI_BACK", "kind": "sfx", "takes": ["SFX_UI_BACK__take2__BjKLvbqjSAD78e74uzuE", "SFX_UI_BACK__take3__Mc37L0jKldCNrHzM59bp"], "fade_out": 0.12},
+    {"id": "SFX_UI_SELECT", "kind": "sfx", "takes": ["SFX_UI_SELECT__take2__vNpi3kSBdckC5mmvfJOJ", "SFX_UI_SELECT__take4__tUPrTDiGbFbU9y3iE8i1"]},
+    {"id": "SFX_UI_PANEL_OPEN", "kind": "sfx", "takes": ["SFX_UI_PANEL_OPEN__take4__dHQdgK4kUiZEcyiX4wi5", "SFX_UI_PANEL_OPEN__take3__SyCW5JgAWavT3rITk5dg"], "highpass": 120, "lowpass": 9000},
+    {"id": "SFX_UI_PANEL_CLOSE", "kind": "sfx", "takes": ["SFX_UI_PANEL_CLOSE__take3__s7afa6oVYCtfyGJeD7eW", "SFX_UI_PANEL_CLOSE__take4__zfinbQTdEqDAZgFElk7p"], "highpass": 120},
+    {"id": "SFX_UI_DENIED", "kind": "sfx", "takes": ["SFX_UI_DENIED__take2__cIkOfOoVjGcY3iSM0cA1", "SFX_UI_DENIED__take3__NjXZwIyiqLxZZCfaMuAq"], "highpass": 60},
+    {"id": "SFX_LAUNCH_WHOOSH", "kind": "sfx", "takes": ["SFX_LAUNCH_WHOOSH__take1__wb5Y2EhKWhXvCeK0eszv"], "highpass": 40},
+    {"id": "SFX_ROCKET_DESCENT", "kind": "sfx", "takes": ["SFX_ROCKET_DESCENT__take2__iEvdRc1gcku5ihAp4B1s"], "highpass": 40, "max_len": 1.9, "fade_out": 0.3, "note": "cut to 1.9 s so the roar dies as the 1.8 s landing ends and SFX_ROCKET_TOUCHDOWN starts"},
+    {"id": "SFX_ROCKET_TOUCHDOWN", "kind": "sfx", "takes": ["SFX_ROCKET_TOUCHDOWN__take3__wEhHzFID91ie1VBnBxzc"], "highpass": 40, "fade_out": 0.4},
+    {"id": "SFX_HATCH", "kind": "sfx", "takes": ["SFX_HATCH__take1__50XLfSPB4ZIekcGXKMKA", "SFX_HATCH__take3__uSt5u3XhjV2UX1FziaV3"], "lowpass": 9000},
+    {"id": "SFX_BUILD_PLACE", "kind": "sfx", "takes": ["SFX_BUILD_PLACE__take1__Ut34EJFJ39HnXpJqXKLG", "SFX_BUILD_PLACE__take3__HVkJGYCAyaYI2XfPaQ0v", "SFX_BUILD_PLACE__take4__Lr8bjNz188zwSQ4ROlua"], "highpass": 50},
+    {"id": "SFX_CONSTRUCT_LOOP", "kind": "loop", "takes": ["SFX_CONSTRUCT_LOOP__take1__mHFM1kF94JvPxVwEU4DO"], "highpass": 60, "rms": -24},
+    {"id": "SFX_BUILD_COMPLETE", "kind": "sfx", "takes": ["SFX_BUILD_COMPLETE__take4__PnsMvZxjcUVAEhXlyY5w", "SFX_BUILD_COMPLETE__take1__fmmsBUkdU8dkPuxc9rtT"], "lowpass": 10000, "fade_out": 0.25},
+    {"id": "SFX_UPGRADE_PURCHASE", "kind": "sfx", "takes": ["SFX_UPGRADE_PURCHASE__take2__gqIEXs7G0CmkYUNqMqq6", "SFX_UPGRADE_PURCHASE__take1__NUHMLdes5QZ0UsH71BXZ"], "lowpass": 7000, "fade_out": 0.2},
+    {"id": "SFX_GUIDE_NOTIFY", "kind": "sfx", "takes": ["SFX_GUIDE_NOTIFY__take2__3YjVOa5DaddOwnVfCpDW"], "lowpass": 9000},
+    {"id": "SFX_GUIDE_NEXT", "kind": "sfx", "takes": ["SFX_GUIDE_NEXT__take1__ca5Kqs5MsiMguqqFn1JY", "SFX_GUIDE_NEXT__take4__J76pliSXdkULXtUmuP2o"]},
+    {"id": "SFX_ALERT_SHORTAGE", "kind": "sfx", "takes": ["SFX_ALERT_SHORTAGE__take4__yflwpw2oCviII2aXPWnk"], "fade_out": 0.2},
+    {"id": "SFX_ALERT_RECOVERED", "kind": "sfx", "takes": ["SFX_ALERT_RECOVERED__take4__xTXnOMnxWRTlFuCmjlY7"], "fade_out": 0.2},
+    {"id": "SFX_ALERT_STALL", "kind": "sfx", "takes": ["SFX_ALERT_STALL__take4__vtoI12Pto8dg8nWC7g4a", "SFX_ALERT_STALL__take1__Noa8XS48ljBtvFxb1mPA"], "highpass": 120, "fade_out": 0.2},
+    {"id": "SFX_ALERT_FITNESS", "kind": "sfx", "takes": ["SFX_ALERT_FITNESS__take4__T3ybeL2l29EYWExdEpg2"], "fade_out": 0.2},
+    {"id": "SFX_FOOTSTEP", "kind": "sfx", "takes": ["SFX_FOOTSTEP__take1__2LKqvjCLgHkuITYgAxeV", "SFX_FOOTSTEP__take2__IxuxQGetGIRC2EslXRzg", "SFX_FOOTSTEP__take3__X70l7CnRvT7phlbZBvVD", "SFX_FOOTSTEP__take4__FLfcyuV0pQ7Serd6WVFx"], "highpass": 80},
+    {"id": "SFX_GYM_LOOP", "kind": "loop", "takes": ["SFX_GYM_LOOP__take3__CtHZDkQm1uMBb4sUdNEd"], "highpass": 60, "rms": -24},
+    {"id": "AMB_MARS_WIND", "kind": "loop", "takes": ["AMB_MARS_WIND__take2__oLe2QgFibSbaUTSWiSzX"], "highpass": 100, "rms": -26, "note": "both prompt attempts produced sub-60 Hz-dominant wind; 100 Hz high-pass keeps the audible gusts and dust hiss"},
+    {"id": "AMB_COLONY_HUM", "kind": "loop", "takes": ["AMB_COLONY_HUM__take3__erlikz9nZqxkwUxyIabk"], "highpass": 60, "rms": -24}
+  ]
+}

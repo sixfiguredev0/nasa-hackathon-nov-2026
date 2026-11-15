@@ -1,0 +1,15 @@
+PlayMode tests, assembly RedFrontier.Audio.Tests, Unity 2022.3.18f1 batch -runTests (2026-11-15)
+total=13 passed=13 failed=0 skipped=0 result=Passed
+Passed  CooldownBlocksRapidRepeats
+Passed  GateUnit
+Passed  GenericPressSkippedAfterSpecificCue
+Passed  LevelsPersistInPlayerPrefs
+Passed  LoopStopsWhenOwnerIsDestroyed
+Passed  MissingClipsAndUnknownIdsAreSafe
+Passed  MusicStartsTitleAndRotatesGameplay
+Passed  PausePausesGameplayLoopsOnly
+Passed  SceneChangeClearsLoopsAndPause
+Passed  SecondManagerDestroysItself
+Passed  SelectorHandlesTinyPools
+Passed  SelectorNeverRepeatsRecentAndCoversAll
+Passed  VoiceLimitCapsSimultaneousCopies

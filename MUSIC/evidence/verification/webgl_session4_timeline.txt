@@ -1,0 +1,283 @@
+   30.18  media-play MUS_TITLE_01 at 0s
+   30.27  ctx    running
+   30.34  sfx    SFX_UI_PANEL_OPEN_01/SFX_UI_PANEL_OPEN_02
+   32.09  sfx    SFX_UI_BACK_01/SFX_UI_BACK_02/SFX_UI_CONFIRM_01/SFX_UI_CONFIRM_02/SFX_UI_CONFIRM_03/SFX_UI_DENIED_01/SFX_UI_DENIED_02
+   33.30  sfx    SFX_UI_BACK_01/SFX_UI_BACK_02/SFX_UI_CONFIRM_01/SFX_UI_CONFIRM_02/SFX_UI_CONFIRM_03/SFX_UI_DENIED_01/SFX_UI_DENIED_02
+   34.58  sfx    SFX_UI_PANEL_OPEN_01/SFX_UI_PANEL_OPEN_02
+   36.01  sfx    SFX_BUILD_COMPLETE_01/SFX_BUILD_COMPLETE_02/SFX_LAUNCH_WHOOSH_01
+   36.03  media-play MUS_ARRIVAL_01 at 0s
+   37.14  media-pause MUS_TITLE_01 at 6.9s
+   39.16  sfx    SFX_ROCKET_DESCENT_01
+   39.16  error  warning: 2 FS.syncfs operations in flight at once, probably just doing extra work
+   39.17  media-play AMB_MARS_WIND_01 at 0s
+   40.98  sfx    SFX_ROCKET_TOUCHDOWN_01
+   42.53  sfx    SFX_GUIDE_NOTIFY_01/SFX_UPGRADE_PURCHASE_01/SFX_UPGRADE_PURCHASE_02
+   59.70  media-pause MUS_ARRIVAL_01 at 23.66s
+   59.70  media-end MUS_ARRIVAL_01
+   64.25  media-play MUS_SURFACE_C_01 at 0s
+   66.62  media-play AMB_MARS_WIND_01 at 0s
+   69.07  media-pause AMB_MARS_WIND_01 at 29.89s
+   94.17  media-play AMB_MARS_WIND_01 at 0s
+   96.62  media-pause AMB_MARS_WIND_01 at 29.99s
+  121.71  media-play AMB_MARS_WIND_01 at 0s
+  121.90  sfx    SFX_UI_PANEL_OPEN_01/SFX_UI_PANEL_OPEN_02
+  122.65  error  warning: 2 FS.syncfs operations in flight at once, probably just doing extra work
+  122.66  sfx    SFX_UI_SELECT_02
+  124.17  media-pause AMB_MARS_WIND_01 at 30s
+  124.17  media-end AMB_MARS_WIND_01
+  138.00  sfx    SFX_UI_SELECT_01
+  149.24  media-play AMB_MARS_WIND_01 at 0s
+  151.71  media-pause AMB_MARS_WIND_01 at 30s
+  151.71  media-end AMB_MARS_WIND_01
+  152.41  media-pause MUS_SURFACE_C_01 at 88.17s
+  152.41  media-end MUS_SURFACE_C_01
+  162.29  sfx    SFX_UI_SELECT_02
+  163.16  sfx    SFX_BUILD_PLACE_02/SFX_GUIDE_NEXT_02
+  163.21  sfx    SFX_HATCH_02
+  163.79  sfx    SFX_UI_SELECT_01
+  164.56  sfx    SFX_BUILD_PLACE_03
+  166.02  sfx    SFX_ALERT_SHORTAGE_01
+  169.06  media-play MUS_SURFACE_E_01 at 0s
+  170.03  sfx    SFX_CONSTRUCT_LOOP_01/SFX_GYM_LOOP_01
+  172.05  media-play MUS_TENSION_01 at 0s
+  173.69  sfx    SFX_CONSTRUCT_LOOP_01/SFX_GYM_LOOP_01
+  174.57  sfx    SFX_BUILD_COMPLETE_01/SFX_BUILD_COMPLETE_02/SFX_LAUNCH_WHOOSH_01
+  174.58  media-play AMB_COLONY_HUM_01 at 0s
+  175.59  sfx    SFX_ALERT_FITNESS_01/SFX_ALERT_RECOVERED_01
+  176.01  media-pause MUS_SURFACE_E_01 at 6.95s
+  176.74  media-play AMB_MARS_WIND_01 at 0s
+  179.23  media-pause AMB_MARS_WIND_01 at 29.98s
+  179.80  sfx    SFX_CONSTRUCT_LOOP_01/SFX_GYM_LOOP_01
+  183.45  sfx    SFX_CONSTRUCT_LOOP_01/SFX_GYM_LOOP_01
+  185.79  sfx    SFX_BUILD_COMPLETE_01/SFX_BUILD_COMPLETE_02/SFX_LAUNCH_WHOOSH_01
+  192.08  media-play AMB_COLONY_HUM_01 at 0s
+  194.53  media-pause AMB_COLONY_HUM_01 at 19.94s
+  195.98  sfx    SFX_ALERT_SHORTAGE_01
+  201.78  sfx    SFX_ALERT_STALL_01/SFX_ALERT_STALL_02/SFX_HATCH_01
+  204.27  media-play AMB_MARS_WIND_01 at 0s
+  206.72  media-pause AMB_MARS_WIND_01 at 29.98s
+  209.63  media-play AMB_COLONY_HUM_01 at 0s
+  212.09  media-pause AMB_COLONY_HUM_01 at 20.01s
+  227.16  media-play AMB_COLONY_HUM_01 at 0s
+  229.64  media-pause AMB_COLONY_HUM_01 at 20.02s
+  229.64  media-end AMB_COLONY_HUM_01
+  231.80  media-play AMB_MARS_WIND_01 at 0s
+  234.12  sfx    SFX_UI_SELECT_02
+  234.27  media-pause AMB_MARS_WIND_01 at 30s
+  234.27  media-end AMB_MARS_WIND_01
+  244.70  media-play AMB_COLONY_HUM_01 at 0s
+  247.14  media-pause AMB_COLONY_HUM_01 at 19.97s
+  251.65  media-pause MUS_TENSION_01 at 79.6s
+  251.65  media-end MUS_TENSION_01
+  256.02  sfx    SFX_ALERT_SHORTAGE_01
+  256.08  media-play MUS_TENSION_01 at 0s
+  257.59  sfx    SFX_BUILD_PLACE_02/SFX_GUIDE_NEXT_02
+  257.64  sfx    SFX_HATCH_02
+  259.17  sfx    SFX_UI_BACK_01/SFX_UI_BACK_02/SFX_UI_CONFIRM_01/SFX_UI_CONFIRM_02/SFX_UI_CONFIRM_03/SFX_UI_DENIED_01/SFX_UI_DENIED_02
+  259.32  media-play AMB_MARS_WIND_01 at 0s
+  259.88  sfx    SFX_UI_PANEL_OPEN_01/SFX_UI_PANEL_OPEN_02
+  261.79  media-pause AMB_MARS_WIND_01 at 29.98s
+  262.24  media-play AMB_COLONY_HUM_01 at 0s
+  263.05  sfx    SFX_UI_PANEL_CLOSE_02
+  264.71  media-pause AMB_COLONY_HUM_01 at 20.01s
+  275.26  sfx    SFX_CONSTRUCT_LOOP_01/SFX_GYM_LOOP_01
+  278.91  sfx    SFX_UI_PANEL_OPEN_01/SFX_UI_PANEL_OPEN_02
+  279.74  media-play AMB_COLONY_HUM_01 at 0s
+  282.22  media-pause AMB_COLONY_HUM_01 at 19.99s
+  286.85  media-play AMB_MARS_WIND_01 at 0s
+  289.32  media-pause AMB_MARS_WIND_01 at 30s
+  297.28  media-play AMB_COLONY_HUM_01 at 0s
+  299.75  media-pause AMB_COLONY_HUM_01 at 20s
+  306.96  sfx    SFX_CONSTRUCT_LOOP_01/SFX_GYM_LOOP_01
+  306.96  sfx    SFX_BUILD_PLACE_01/SFX_UI_PANEL_CLOSE_01
+  309.36  sfx    SFX_BUILD_COMPLETE_01/SFX_BUILD_COMPLETE_02/SFX_LAUNCH_WHOOSH_01
+  314.37  media-play AMB_MARS_WIND_01 at 0s
+  314.80  media-play AMB_COLONY_HUM_01 at 0s
+  316.84  media-pause AMB_MARS_WIND_01 at 30s
+  316.84  media-end AMB_MARS_WIND_01
+  317.27  media-pause AMB_COLONY_HUM_01 at 19.98s
+  323.61  sfx    SFX_ALERT_STALL_01/SFX_ALERT_STALL_02/SFX_HATCH_01
+  332.34  media-play AMB_COLONY_HUM_01 at 0s
+  334.80  media-pause AMB_COLONY_HUM_01 at 20.01s
+  335.68  media-pause MUS_TENSION_01 at 79.6s
+  335.68  media-end MUS_TENSION_01
+  339.91  sfx    SFX_UI_PANEL_OPEN_01/SFX_UI_PANEL_OPEN_02
+  340.65  sfx    SFX_UI_SELECT_01
+  340.98  media-play MUS_TENSION_01 at 0s
+  341.88  media-play AMB_MARS_WIND_01 at 0s
+  344.32  media-pause AMB_MARS_WIND_01 at 29.95s
+  349.85  media-play AMB_COLONY_HUM_01 at 0s
+  352.33  media-pause AMB_COLONY_HUM_01 at 19.98s
+  352.48  sfx    SFX_ALERT_STALL_01/SFX_ALERT_STALL_02/SFX_HATCH_01
+  365.20  sfx    SFX_BUILD_PLACE_03
+  365.25  sfx    SFX_HATCH_02
+  366.45  sfx    SFX_UI_BACK_01/SFX_UI_BACK_02/SFX_UI_CONFIRM_01/SFX_UI_CONFIRM_02/SFX_UI_CONFIRM_03/SFX_UI_DENIED_01/SFX_UI_DENIED_02
+  367.38  media-play AMB_COLONY_HUM_01 at 0s
+  369.41  media-play AMB_MARS_WIND_01 at 0s
+  369.84  media-pause AMB_COLONY_HUM_01 at 19.99s
+  369.85  media-pause AMB_COLONY_HUM_01 at 19.99s
+  371.88  media-pause AMB_MARS_WIND_01 at 30s
+  371.88  media-end AMB_MARS_WIND_01
+  374.14  sfx    SFX_CONSTRUCT_LOOP_01/SFX_GYM_LOOP_01
+  377.82  sfx    SFX_CONSTRUCT_LOOP_01/SFX_GYM_LOOP_01
+  380.15  sfx    SFX_BUILD_COMPLETE_01/SFX_BUILD_COMPLETE_02/SFX_LAUNCH_WHOOSH_01
+  381.23  sfx    SFX_ALERT_STALL_01/SFX_ALERT_STALL_02/SFX_HATCH_01
+  384.91  media-play AMB_COLONY_HUM_01 at 0s
+  387.36  media-pause AMB_COLONY_HUM_01 at 19.98s
+  388.83  sfx    SFX_ALERT_STALL_01/SFX_ALERT_STALL_02/SFX_HATCH_01
+  396.95  media-play AMB_MARS_WIND_01 at 0s
+  399.40  media-pause AMB_MARS_WIND_01 at 30s
+  399.40  media-end AMB_MARS_WIND_01
+  402.43  media-play AMB_COLONY_HUM_01 at 0s
+  404.87  media-pause AMB_COLONY_HUM_01 at 19.97s
+  419.96  media-play AMB_COLONY_HUM_01 at 0s
+  420.58  media-pause MUS_TENSION_01 at 79.6s
+  420.58  media-end MUS_TENSION_01
+  422.42  media-pause AMB_COLONY_HUM_01 at 19.99s
+  424.50  media-play AMB_MARS_WIND_01 at 0s
+  426.59  media-play MUS_TENSION_01 at 0s
+  426.95  media-pause AMB_MARS_WIND_01 at 30s
+  426.95  media-end AMB_MARS_WIND_01
+  437.49  media-play AMB_COLONY_HUM_01 at 0s
+  439.97  media-pause AMB_COLONY_HUM_01 at 20s
+  452.05  media-play AMB_MARS_WIND_01 at 0s
+  454.50  media-pause AMB_MARS_WIND_01 at 30s
+  454.50  media-end AMB_MARS_WIND_01
+  455.01  media-play AMB_COLONY_HUM_01 at 0s
+  457.47  media-pause AMB_COLONY_HUM_01 at 19.97s
+  472.54  media-play AMB_COLONY_HUM_01 at 0s
+  474.99  media-pause AMB_COLONY_HUM_01 at 19.98s
+  479.59  media-play AMB_MARS_WIND_01 at 0s
+  482.04  media-pause AMB_MARS_WIND_01 at 29.98s
+  490.10  media-play AMB_COLONY_HUM_01 at 0s
+  492.54  media-pause AMB_COLONY_HUM_01 at 19.99s
+  498.28  sfx    SFX_UI_PANEL_OPEN_01/SFX_UI_PANEL_OPEN_02
+  498.99  sfx    SFX_UI_SELECT_02
+  506.18  media-pause MUS_TENSION_01 at 79.6s
+  506.18  media-end MUS_TENSION_01
+  507.14  media-play AMB_MARS_WIND_01 at 0s
+  507.61  media-play AMB_COLONY_HUM_01 at 0s
+  509.59  media-pause AMB_MARS_WIND_01 at 30s
+  509.59  media-end AMB_MARS_WIND_01
+  510.08  media-pause AMB_COLONY_HUM_01 at 19.99s
+  511.59  media-play MUS_TENSION_01 at 0s
+  525.14  media-play AMB_COLONY_HUM_01 at 0s
+  527.60  media-pause AMB_COLONY_HUM_01 at 20s
+  534.64  media-play AMB_MARS_WIND_01 at 0s
+  537.10  media-pause AMB_MARS_WIND_01 at 29.96s
+  542.65  media-play AMB_COLONY_HUM_01 at 0s
+  545.12  media-pause AMB_COLONY_HUM_01 at 19.99s
+  554.00  sfx    SFX_BUILD_PLACE_01/SFX_UI_BACK_01/SFX_UI_BACK_02/SFX_UI_CONFIRM_01/SFX_UI_CONFIRM_02/SFX_UI_CONFIRM_03/SFX_UI_DENIED_01/SFX_UI_DENIED_02
+  554.05  sfx    SFX_HATCH_02
+  554.69  sfx    SFX_UI_BACK_01/SFX_UI_BACK_02/SFX_UI_CONFIRM_01/SFX_UI_CONFIRM_02/SFX_UI_CONFIRM_03/SFX_UI_DENIED_01/SFX_UI_DENIED_02
+  560.18  media-play AMB_COLONY_HUM_01 at 0s
+  562.15  media-play AMB_MARS_WIND_01 at 0s
+  562.66  media-pause AMB_COLONY_HUM_01 at 20s
+  564.60  media-pause AMB_MARS_WIND_01 at 29.96s
+  570.96  sfx    SFX_CONSTRUCT_LOOP_01/SFX_GYM_LOOP_01
+  574.64  sfx    SFX_CONSTRUCT_LOOP_01/SFX_GYM_LOOP_01
+  576.99  sfx    SFX_BUILD_COMPLETE_01/SFX_BUILD_COMPLETE_02/SFX_LAUNCH_WHOOSH_01
+  577.70  media-play AMB_COLONY_HUM_01 at 0s
+  580.17  media-pause AMB_COLONY_HUM_01 at 19.99s
+  589.67  media-play AMB_MARS_WIND_01 at 0s
+  591.19  media-pause MUS_TENSION_01 at 79.6s
+  591.19  media-end MUS_TENSION_01
+  592.14  media-pause AMB_MARS_WIND_01 at 30s
+  592.14  media-end AMB_MARS_WIND_01
+  593.68  sfx    SFX_ALERT_STALL_01/SFX_ALERT_STALL_02/SFX_HATCH_01
+  595.26  media-play AMB_COLONY_HUM_01 at 0s
+  596.53  media-play MUS_TENSION_01 at 0s
+  597.71  media-pause AMB_COLONY_HUM_01 at 20.01s
+  612.77  media-play AMB_COLONY_HUM_01 at 0s
+  615.23  media-pause AMB_COLONY_HUM_01 at 19.97s
+  617.19  media-play AMB_MARS_WIND_01 at 0s
+  619.65  media-pause AMB_MARS_WIND_01 at 29.98s
+  630.28  media-play AMB_COLONY_HUM_01 at 0s
+  632.74  media-pause AMB_COLONY_HUM_01 at 19.96s
+  644.69  media-play AMB_MARS_WIND_01 at 0s
+  647.17  media-pause AMB_MARS_WIND_01 at 29.98s
+  647.83  media-play AMB_COLONY_HUM_01 at 0s
+  650.30  media-pause AMB_COLONY_HUM_01 at 20.01s
+  665.37  media-play AMB_COLONY_HUM_01 at 0s
+  667.85  media-pause AMB_COLONY_HUM_01 at 20.02s
+  667.85  media-end AMB_COLONY_HUM_01
+  672.20  media-play AMB_MARS_WIND_01 at 0s
+  674.67  media-pause AMB_MARS_WIND_01 at 29.97s
+  676.13  media-pause MUS_TENSION_01 at 79.6s
+  676.13  media-end MUS_TENSION_01
+  680.98  media-play MUS_TENSION_01 at 0s
+  682.90  media-play AMB_COLONY_HUM_01 at 0s
+  685.35  media-pause AMB_COLONY_HUM_01 at 19.98s
+  699.75  media-play AMB_MARS_WIND_01 at 0s
+  700.44  media-play AMB_COLONY_HUM_01 at 0s
+  702.20  media-pause AMB_MARS_WIND_01 at 30s
+  702.20  media-end AMB_MARS_WIND_01
+  702.90  media-pause AMB_COLONY_HUM_01 at 20s
+  717.95  media-play AMB_COLONY_HUM_01 at 0s
+  720.42  media-pause AMB_COLONY_HUM_01 at 19.98s
+  727.27  media-play AMB_MARS_WIND_01 at 0s
+  729.72  media-pause AMB_MARS_WIND_01 at 29.96s
+  735.50  media-play AMB_COLONY_HUM_01 at 0s
+  737.96  media-pause AMB_COLONY_HUM_01 at 20.01s
+  753.00  media-play AMB_COLONY_HUM_01 at 0s
+  754.78  media-play AMB_MARS_WIND_01 at 0s
+  755.47  media-pause AMB_COLONY_HUM_01 at 19.96s
+  757.23  media-pause AMB_MARS_WIND_01 at 29.96s
+  760.58  media-pause MUS_TENSION_01 at 79.6s
+  760.58  media-end MUS_TENSION_01
+  764.06  media-play MUS_TENSION_01 at 0s
+  770.52  media-play AMB_COLONY_HUM_01 at 0s
+  772.99  media-pause AMB_COLONY_HUM_01 at 19.98s
+  782.28  media-play AMB_MARS_WIND_01 at 0s
+  784.73  media-pause AMB_MARS_WIND_01 at 29.95s
+  788.08  media-play AMB_COLONY_HUM_01 at 0s
+  790.52  media-pause AMB_COLONY_HUM_01 at 20s
+  805.61  media-play AMB_COLONY_HUM_01 at 0s
+  808.09  media-pause AMB_COLONY_HUM_01 at 20.01s
+  809.83  media-play AMB_MARS_WIND_01 at 0s
+  812.28  media-pause AMB_MARS_WIND_01 at 30s
+  812.28  media-end AMB_MARS_WIND_01
+  823.13  media-play AMB_COLONY_HUM_01 at 0s
+  825.60  media-pause AMB_COLONY_HUM_01 at 20s
+  837.36  media-play AMB_MARS_WIND_01 at 0s
+  839.81  media-pause AMB_MARS_WIND_01 at 29.99s
+  840.64  media-play AMB_COLONY_HUM_01 at 0s
+  843.10  media-pause AMB_COLONY_HUM_01 at 19.97s
+  843.65  media-pause MUS_TENSION_01 at 79.6s
+  843.65  media-end MUS_TENSION_01
+  849.36  media-play MUS_TENSION_01 at 0s
+  858.15  media-play AMB_COLONY_HUM_01 at 0s
+  860.59  media-pause AMB_COLONY_HUM_01 at 19.95s
+  864.89  media-play AMB_MARS_WIND_01 at 0s
+  867.35  media-pause AMB_MARS_WIND_01 at 29.98s
+  875.68  media-play AMB_COLONY_HUM_01 at 0s
+  878.13  media-pause AMB_COLONY_HUM_01 at 19.99s
+  892.43  media-play AMB_MARS_WIND_01 at 0s
+  893.19  media-play AMB_COLONY_HUM_01 at 0s
+  894.87  media-pause AMB_MARS_WIND_01 at 29.98s
+  895.64  media-pause AMB_COLONY_HUM_01 at 19.96s
+  910.72  media-play AMB_COLONY_HUM_01 at 0s
+  913.17  media-pause AMB_COLONY_HUM_01 at 19.97s
+  919.94  media-play AMB_MARS_WIND_01 at 0s
+  922.40  media-pause AMB_MARS_WIND_01 at 29.96s
+  928.23  media-play AMB_COLONY_HUM_01 at 0s
+  928.96  media-pause MUS_TENSION_01 at 79.6s
+  928.96  media-end MUS_TENSION_01
+  930.67  media-pause AMB_COLONY_HUM_01 at 19.95s
+  934.46  media-play MUS_TENSION_01 at 0s
+  945.79  media-play AMB_COLONY_HUM_01 at 0s
+  947.44  media-play AMB_MARS_WIND_01 at 0s
+  948.25  media-pause AMB_COLONY_HUM_01 at 20.02s
+  948.25  media-end AMB_COLONY_HUM_01
+  949.90  media-pause AMB_MARS_WIND_01 at 29.97s
+  963.29  media-play AMB_COLONY_HUM_01 at 0s
+  965.75  media-pause AMB_COLONY_HUM_01 at 19.97s
+  974.94  media-play AMB_MARS_WIND_01 at 0s
+  977.41  media-pause AMB_MARS_WIND_01 at 29.98s
+  980.84  media-play AMB_COLONY_HUM_01 at 0s
+  983.30  media-pause AMB_COLONY_HUM_01 at 20.01s
+  998.39  media-play AMB_COLONY_HUM_01 at 0s
+ 1000.86  media-pause AMB_COLONY_HUM_01 at 20.02s
+ 1000.86  media-end AMB_COLONY_HUM_01
+ 1002.45  media-play AMB_MARS_WIND_01 at 0s
+ 1004.92  media-pause AMB_MARS_WIND_01 at 29.98s
