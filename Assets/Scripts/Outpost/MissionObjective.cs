@@ -9,7 +9,7 @@ namespace RedFrontier.Outpost
     internal sealed class MissionObjective : MonoBehaviour
     {
         const float BannerSeconds = 3.2f, DoneSeconds = 5f;
-        static readonly Vector2 BannerSize = new Vector2(340, 82), TrackerSize = new Vector2(220, 48);
+        static readonly Vector2 BannerSize = new Vector2(340, 82), TrackerSize = new Vector2(224, 72);
         static readonly Color32 Complete = new Color32(160, 230, 183, 255);
 
         const float TrainingLinger = 6f; // keep the exercise result on screen before the story moves on
@@ -19,8 +19,8 @@ namespace RedFrontier.Outpost
         StoryArc story;
         Canvas canvas;
         CanvasGroup banner, tracker;
-        RectTransform trackerRect;
-        PixelLabel goal, bannerGoal;
+        RectTransform bannerRect, trackerRect;
+        Text goal, bannerGoal;
         Image check;
         float started, completedAt = -1f, trainingDoneAt = -1f;
         internal enum Step
@@ -32,7 +32,7 @@ namespace RedFrontier.Outpost
         internal string Caption => Captions[(int)Stage];
         static readonly string[] Captions =
         {
-            "Restore power", "Drill for water", "Grow food", "Power life support",
+            "Build solar panels", "Drill for water", "Grow food", "Power life support",
             "Supply oxygen", "Historical exercise", "Salvage metal", "Store power", "Repair the radio",
             "Wait for the orbiter", "Repair the ship", "Make rocket fuel", "Make your choice", "Keep exploring"
         };
@@ -80,30 +80,33 @@ namespace RedFrontier.Outpost
             training = GetComponent<HistoricalTraining>();
             story = GetComponent<StoryArc>();
             started = Time.time;
-            var root = new GameObject("Mission Objective Canvas", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler));
+            var root = new GameObject("Mission Objective Canvas", typeof(RectTransform), typeof(Canvas));
             canvas = root.GetComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             canvas.sortingOrder = 24;
-            FrontierUi.Resize((RectTransform)root.transform, new Vector2(960, 540));
 
-            var bannerRect = Panel("New objective", root.transform, new Vector2(.5f, 1f), new Vector2(0f, -112f), BannerSize);
+            bannerRect = Panel("New objective", root.transform, new Vector2(.5f, 1f), new Vector2(0f, -112f), BannerSize);
             banner = bannerRect.gameObject.AddComponent<CanvasGroup>();
             banner.alpha = 0f;
-            Label(bannerRect, BannerSize, "New objective", 2, FrontierUi.CoralLight, 0, 10, BannerSize.x, 22);
-            bannerGoal = Label(bannerRect, BannerSize, Caption, 4, FrontierUi.Cream, 0, 32, BannerSize.x, 40);
+            Label(bannerRect, BannerSize, "New objective", 13, OutpostGUI.InstrumentAccent, 12, 8, 316, 18);
+            FrontierUi.Place(FrontierUi.Fill("Header rule", bannerRect, FrontierUi.PanelLight).rectTransform,
+                BannerSize, 8, 29, 324, 1);
+            bannerGoal = Label(bannerRect, BannerSize, Caption, 23, FrontierUi.Cream, 12, 37, 316, 32);
 
             trackerRect = Panel("Objective", root.transform, Vector2.one, new Vector2(-12f, -12f), TrackerSize);
             tracker = trackerRect.gameObject.AddComponent<CanvasGroup>();
             tracker.alpha = 0f;
-            Label(trackerRect, TrackerSize, "Objective", 1, FrontierUi.CreamDark, 12, 7, 120, 10, 0f);
-            var box = PixelArt.Sliced("Checkbox", trackerRect, PixelArt.Frame(FrontierUi.Shadow, FrontierUi.Cream, FrontierUi.PanelDark, FrontierUi.Shadow));
-            box.pixelsPerUnitMultiplier = 1f;
-            FrontierUi.Place(box.rectTransform, TrackerSize, 12, 21, 16, 16);
+            Label(trackerRect, TrackerSize, "Objective", 12, FrontierUi.Cream, 8, 6, 208, 16);
+            FrontierUi.Place(FrontierUi.Fill("Header rule", trackerRect, FrontierUi.PanelLight).rectTransform,
+                TrackerSize, 8, 24, 208, 1);
+            var box = FrontierUi.Fill("Checkbox", trackerRect, FrontierUi.CreamDark);
+            FrontierUi.Place(box.rectTransform, TrackerSize, 10, 42, 12, 12);
+            var inset = FrontierUi.Fill("Inset", box.transform, FrontierUi.Shadow);
+            FrontierUi.Place(inset.rectTransform, new Vector2(12, 12), 1, 1, 10, 10);
             check = FrontierUi.Fill("Check", box.transform, Complete);
-            check.rectTransform.offsetMin = new Vector2(4f, 4f);
-            check.rectTransform.offsetMax = new Vector2(-4f, -4f);
+            FrontierUi.Place(check.rectTransform, new Vector2(12, 12), 3, 3, 6, 6);
             check.enabled = false;
-            goal = Label(trackerRect, TrackerSize, "Restore power", 2, FrontierUi.Cream, 36, 19, 172, 20, 0f);
+            goal = Label(trackerRect, TrackerSize, Caption, 16, FrontierUi.Cream, 30, 33, 184, 30);
         }
 
         void Update()
@@ -151,11 +154,11 @@ namespace RedFrontier.Outpost
             RefreshLiveGoal();
             if (before == Stage) return;
             started = Time.time;
-            bannerGoal.Text = goal.Text = Caption;
+            bannerGoal.text = goal.text = Caption;
             RefreshLiveGoal();
             if (Stage != Step.Sandbox) return;
             completedAt = Time.time;
-            goal.Color = Complete;
+            goal.color = Complete;
             check.enabled = true;
         }
 
@@ -171,8 +174,8 @@ namespace RedFrontier.Outpost
         void RefreshLiveGoal()
         {
             if (story == null) return;
-            if (Stage == Step.Signal) goal.Text = "Orbiter in " + Mathf.CeilToInt(story.OrbiterIn) + "s";
-            else if (Stage == Step.Fuel) goal.Text = "Rocket fuel " + Mathf.FloorToInt(story.Fuel * 100f) + "%";
+            if (Stage == Step.Signal) goal.text = "Orbiter in " + Mathf.CeilToInt(story.OrbiterIn) + "s";
+            else if (Stage == Step.Fuel) goal.text = "Rocket fuel " + Mathf.FloorToInt(story.Fuel * 100f) + "%";
         }
 
         void LateUpdate()
@@ -180,10 +183,24 @@ namespace RedFrontier.Outpost
             canvas.enabled = !MissionPauseMenu.BlocksGameplayInput && !StoryArc.Cinematic;
             // Top right, level with the resource bar, or tucked under it when the screen is too narrow.
             Rect bar = colony.resourceTopBar.Bounds;
-            float scale = canvas.scaleFactor, margin = 12f * scale;
-            bool beside = bar.width <= 0f || bar.xMax + margin + TrackerSize.x * scale <= Screen.width - margin;
-            float top = bar.width <= 0f ? margin : beside ? bar.yMin : bar.yMax + 8f * scale;
-            trackerRect.anchoredPosition = new Vector2(-12f, -top / scale);
+            float preferred = Mathf.Clamp(Screen.height / 720f, 1f, 1.5f);
+            float margin = 12f * preferred;
+            float trackerScale = Mathf.Min(preferred, Mathf.Max(1f, Screen.width - 2f * margin) / TrackerSize.x);
+            bool beside = bar.width <= 0f || bar.xMax + margin + TrackerSize.x * trackerScale <= Screen.width - margin;
+            float top = bar.width <= 0f ? margin : beside ? bar.yMin : bar.yMax + 8f * preferred;
+            Rect crew = colony.CrewFitnessBounds;
+            if (!beside && crew.yMax > top)
+            {
+                float availableScale = (Screen.width - margin - crew.xMax - 8f * preferred) / TrackerSize.x;
+                if (availableScale >= .7f) trackerScale = Mathf.Min(trackerScale, availableScale);
+                else top = crew.yMax + 8f * preferred;
+            }
+            trackerRect.localScale = Vector3.one * trackerScale;
+            trackerRect.anchoredPosition = new Vector2(-margin, -top);
+            float bannerScale = Mathf.Min(preferred, Mathf.Max(1f, Screen.width - 2f * margin) / BannerSize.x);
+            float bannerTop = Mathf.Max(112f * preferred, Mathf.Max(bar.yMax, crew.yMax) + margin);
+            bannerRect.localScale = Vector3.one * bannerScale;
+            bannerRect.anchoredPosition = new Vector2(0f, -bannerTop);
         }
 
         void OnDestroy()
@@ -193,18 +210,28 @@ namespace RedFrontier.Outpost
 
         static RectTransform Panel(string name, Transform parent, Vector2 anchor, Vector2 position, Vector2 size)
         {
-            var panel = FrontierUi.PanelFrame(name, parent);
+            var frame = FrontierUi.Fill(name, parent, FrontierUi.PanelLight);
+            var panel = frame.rectTransform;
             panel.anchorMin = panel.anchorMax = panel.pivot = anchor;
             panel.sizeDelta = size;
             panel.anchoredPosition = position;
+            FrontierUi.Place(FrontierUi.Fill("Face", panel, FrontierUi.Shadow).rectTransform,
+                size, 1, 1, size.x - 2, size.y - 2);
             return panel;
         }
 
-        static PixelLabel Label(RectTransform panel, Vector2 size, string text, int scale, Color color,
-            float x, float y, float w, float h, float align = .5f)
+        static Text Label(RectTransform panel, Vector2 size, string text, int fontSize, Color color,
+            float x, float y, float w, float h)
         {
-            var label = PixelLabel.Create(text, panel, text, scale, color, align, true);
-            FrontierUi.Place(label.Rect, size, x, y, w, h);
+            var box = FrontierUi.Box(text, panel);
+            var label = box.gameObject.AddComponent<Text>();
+            label.text = text;
+            label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            label.fontSize = fontSize;
+            label.color = color;
+            label.alignment = TextAnchor.MiddleLeft;
+            label.raycastTarget = false;
+            FrontierUi.Place(box, size, x, y, w, h);
             return label;
         }
     }
