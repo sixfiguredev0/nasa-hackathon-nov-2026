@@ -410,7 +410,7 @@ public sealed class MainMenu : MonoBehaviour
         }
 
         launchError.gameObject.SetActive(false);
-        Crew.Picked = new[] { Astronaut.Female };
+        Crew.Picked = new[] { Astronaut.Male };
         launching = true;
         GameAudio.Launch(reduced); // whoosh follows the 1.45 s flight; Reduce Motion skips it, arrival music plays either way
         start.HoldPressed = true;
