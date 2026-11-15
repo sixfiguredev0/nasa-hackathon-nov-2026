@@ -112,6 +112,7 @@ namespace RedFrontier.Mars
             var view = MapWorldRect;
             if (sky != null)
             {
+                sky.groundTexture = tex;
                 sky.Build(newSeed, MapWorldRect);
                 view.yMax = sky.SpaceTopY;
             }

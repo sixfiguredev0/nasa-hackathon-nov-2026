@@ -23,6 +23,8 @@ namespace RedFrontier.Outpost
         public string nodeId;
         public bool stalled;
         public Res missing;
+        /// <summary>Output multiplier from where it stands (<see cref="SiteSurvey"/>). Battery: also scales storage. Gym: training.</summary>
+        public float yield = 1f;
 
         public BuildingState(BuildingDef d) { def = d; nodeId = d.root; }
 
@@ -77,7 +79,7 @@ namespace RedFrontier.Outpost
         {
             Array.Clear(cap, 0, ResCount);
             foreach (var b in buildings)
-                foreach (var a in b.Node.storage) cap[(int)a.res] += a.value;
+                foreach (var a in b.Node.storage) cap[(int)a.res] += a.value * (b.def.kind == BuildingKind.Battery ? b.yield : 1f);
             for (int i = 0; i < ResCount; i++) stock[i] = Mathf.Min(stock[i], cap[i]);
         }
 
@@ -104,7 +106,7 @@ namespace RedFrontier.Outpost
                 else { stock[i] = 0f; lifeSupportShort = true; shortOf = a.res; }
             }
             float f = fitness - (lifeSupportShort ? ShortageLoss : FitnessLoss) * dt;
-            if (training != null && !training.stalled && !lifeSupportShort && buildings.Contains(training)) f += training.Node.train * dt;
+            if (training != null && !training.stalled && !lifeSupportShort && buildings.Contains(training)) f += training.Node.train * training.yield * dt;
             fitness = Mathf.Clamp01(f);
         }
 
@@ -114,7 +116,7 @@ namespace RedFrontier.Outpost
             return false;
         }
 
-        /// <summary>Output is scaled by crew efficiency; what a building uses is not.</summary>
+        /// <summary>Output is scaled by crew efficiency and the site's yield; what a building uses is not.</summary>
         void Run(BuildingState b, float dt, float eff)
         {
             var rates = b.Node.rates;
@@ -124,7 +126,7 @@ namespace RedFrontier.Outpost
             foreach (var a in rates)
             {
                 int i = (int)a.res;
-                float v = a.value > 0 ? a.value * eff : a.value;
+                float v = a.value > 0 ? a.value * eff * b.yield : a.value;
                 stock[i] = Mathf.Min(stock[i] + v * dt, cap[i]);
                 net[i] += v;
             }

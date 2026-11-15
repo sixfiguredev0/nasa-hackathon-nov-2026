@@ -5,7 +5,9 @@ namespace RedFrontier.Outpost
 {
     /// <summary>
     /// RTS-style Builder Mode. B or the bottom-right button opens a building list on the right.
-    /// Pick one and a ghost follows the mouse, snapped to the lattice: green = can place, red = blocked or too expensive.
+    /// Pick one and a ghost follows the mouse anywhere on the map, snapped to the lattice: green = can place, red = blocked or too expensive.
+    /// A grid draped over the ground follows the cursor; its dots show how well this building would do on each cell
+    /// (green = more output, red = less, see <see cref="SiteSurvey"/>), and the label lists why.
     /// Left-click places (hold Shift to keep placing), right-click or Esc cancels, Esc / B again closes the menu.
     /// Placing pays up front; the crew then walks over and builds it. Upgrades work like any building (right-click it).
     /// </summary>
@@ -21,6 +23,12 @@ namespace RedFrontier.Outpost
         SpriteRenderer ghost;
         RectInt cells;
         bool fits, affordable;
+        float yield = 1f;
+        readonly List<SiteEffect> why = new List<SiteEffect>();
+        const int GridRadius = 8;
+        Vector2Int heatCenter = new Vector2Int(int.MinValue, 0);
+        BuildingDef heatDef;
+        readonly float[] heat = new float[(2 * GridRadius + 1) * (2 * GridRadius + 1)];
         Rect buttonRect, panelRect;
         Texture2D panelArt, buttonArt;
         GUIStyle buttonStyle, slotLabel;
@@ -88,9 +96,15 @@ namespace RedFrontier.Outpost
             cells = new RectInt(Mathf.RoundToInt(l.x - fp.x / 2f), Mathf.RoundToInt(l.y - fp.y / 2f), fp.x, fp.y);
             fits = colony.Fits(cells);
             affordable = colony.economy.CanAfford(colony.PlaceCost(selected));
+            var site = colony.SiteAt(cells);
+            why.Clear();
+            yield = SiteSurvey.Yield(selected.kind, site, why);
             var frames = BuildingArt.Get(selected, selected.nodes[selected.root], fp);
             ghost.sprite = frames[frames.Length - 1];
-            ghost.transform.position = colony.map.LatticeToWorld(cells.center.x, cells.center.y);
+            ghost.transform.position = colony.FootprintWorld(cells, site);
+
+            var hc = new Vector2Int(Mathf.FloorToInt(l.x), Mathf.FloorToInt(l.y));
+            if (hc != heatCenter || heatDef != selected) RefreshHeat(hc);
             ghost.color = fits && affordable ? new Color(0.55f, 1f, 0.55f, 0.75f) : new Color(1f, 0.35f, 0.3f, 0.6f);
         }
 
@@ -154,6 +168,20 @@ namespace RedFrontier.Outpost
             GUI.depth = priorDepth;
         }
 
+        /// <summary>Per-cell yield of the selected building around the cursor (1x1 survey: terrain only, not the footprint's slope).</summary>
+        void RefreshHeat(Vector2Int c)
+        {
+            heatCenter = c; heatDef = selected;
+            int n = 2 * GridRadius + 1;
+            for (int y = 0; y < n; y++)
+                for (int x = 0; x < n; x++)
+                {
+                    var site = colony.SiteAt(new RectInt(c.x - GridRadius + x, c.y - GridRadius + y, 1, 1));
+                    site.uneven = 0f;
+                    heat[y * n + x] = SiteSurvey.Yield(selected.kind, site);
+                }
+        }
+
         void Place(bool keepGoing)
         {
             if (colony.TryPlace(selected, cells) == null) { flash = Problem(); flashUntil = Time.unscaledTime + 1.5f; return; }
@@ -162,7 +190,7 @@ namespace RedFrontier.Outpost
 
         string Problem()
         {
-            if (!Colony.Fits(colony.BuildArea, cells, new RectInt[0])) return "Outside the build area";
+            if (!Colony.Fits(colony.BuildArea, cells, new RectInt[0])) return "Off the edge of the map";
             if (!fits) return "Overlaps another building";
             var cost = colony.PlaceCost(selected);
             var need = new List<Amount>();
@@ -174,7 +202,8 @@ namespace RedFrontier.Outpost
             return need.Count > 0 ? "Need " + OutpostGUI.List(need.ToArray()) + " more" : "Can't build here";
         }
 
-        Vector2 G(float i, float j) => OutpostGUI.WorldToGui(cam, colony.map.LatticeToWorld(i, j));
+        // grid points sit on the terrain surface so the grid drapes over hills, mesas and craters
+        Vector2 G(float i, float j) => OutpostGUI.WorldToGui(cam, colony.map.SurfaceToWorld(i, j));
 
         void Outline(RectInt r, float width, Color c)
         {
@@ -185,16 +214,43 @@ namespace RedFrontier.Outpost
 
         void DrawPlacement(float s, Vector2 mouse)
         {
-            var area = colony.BuildArea;
-            var grid = new Color(1f, 1f, 1f, 0.12f);
-            for (int x = area.xMin + 1; x < area.xMax; x++) OutpostGUI.Line(G(x, area.yMin), G(x, area.yMax), s, grid);
-            for (int y = area.yMin + 1; y < area.yMax; y++) OutpostGUI.Line(G(area.xMin, y), G(area.xMax, y), s, grid);
-            Outline(area, 2 * s, new Color(1f, 1f, 1f, 0.45f));
+            if (Event.current.type == EventType.Repaint) DrawGrid(s);
             foreach (var b in colony.buildings) Outline(b.cells, 1.5f * s, new Color(1f, 0.4f, 0.3f, 0.5f));
             bool ok = fits && affordable;
             Outline(cells, 2 * s, ok ? new Color(0.4f, 1f, 0.4f) : new Color(1f, 0.3f, 0.25f));
             if (Time.unscaledTime >= flashUntil)
-                Label(mouse + new Vector2(16 * s, 12 * s), ok ? "<b>" + selected.name + "</b>  " + OutpostGUI.List(colony.PlaceCost(selected)) : "<color=#f88>" + Problem() + "</color>", s);
+            {
+                string head = ok ? "<b>" + selected.name + "</b>  " + OutpostGUI.List(colony.PlaceCost(selected)) : "<color=#f88>" + Problem() + "</color>";
+                Label(mouse + new Vector2(16 * s, 12 * s), head + "\n" + SiteSurvey.Describe(yield, why), s);
+            }
+        }
+
+        /// <summary>Grid cells around the cursor, fading out with distance, each with a dot coloured by its yield.</summary>
+        void DrawGrid(float s)
+        {
+            var area = colony.BuildArea;
+            var c = heatCenter;
+            int n = 2 * GridRadius + 1;
+            float dot = 4 * s;
+            for (int y = c.y - GridRadius; y <= c.y + GridRadius; y++)
+                for (int x = c.x - GridRadius; x <= c.x + GridRadius; x++)
+                {
+                    if (x < area.xMin || y < area.yMin || x >= area.xMax || y >= area.yMax) continue;
+                    float fade = 1f - Mathf.Sqrt((x - c.x) * (x - c.x) + (y - c.y) * (y - c.y)) / (GridRadius + 0.5f);
+                    if (fade <= 0f) continue;
+                    var line = new Color(1f, 1f, 1f, 0.22f * fade);
+                    Vector2 a = G(x, y), b = G(x + 1, y), d = G(x, y + 1);
+                    OutpostGUI.Line(a, b, s, line);
+                    OutpostGUI.Line(a, d, s, line);
+                    float h = heat[(y - c.y + GridRadius) * n + (x - c.x + GridRadius)];
+                    var col = h >= 1f ? Color.Lerp(Color.white, new Color(0.3f, 1f, 0.35f), (h - 1f) / 0.4f)
+                                      : Color.Lerp(Color.white, new Color(1f, 0.25f, 0.2f), (1f - h) / 0.4f);
+                    col.a = 0.85f * fade;
+                    var p = G(x + 0.5f, y + 0.5f);
+                    GUI.color = col;
+                    GUI.DrawTexture(new Rect(p.x - dot / 2, p.y - dot / 2, dot, dot), OutpostGUI.Circle);
+                    GUI.color = Color.white;
+                }
         }
 
         BuildingDef DrawPanel(float scale, Vector2 mouse)

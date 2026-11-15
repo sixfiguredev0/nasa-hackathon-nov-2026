@@ -8,7 +8,7 @@ namespace RedFrontier.Outpost
     {
         static readonly string[] Lines =
         {
-            "We've landed. Open Build and choose Solar Panels for power.",
+            "Restore power first. Open Build and choose Solar Panels.",
             "Find a clear spot. Click when the blueprint turns green.",
             "The crew will build it. Right-click a building to see upgrades."
         };

@@ -17,6 +17,7 @@ namespace RedFrontier.Outpost
         static readonly Dictionary<string, Vector2> ArtPivots = new Dictionary<string, Vector2>
         {
             { "Rocket", new Vector2(64, 21) }, // centre of the base on the last (landed) frame
+            { "rocket2", new Vector2(64, 21) }, // same landing base as Rocket.png (assumed, check in Play)
         };
 
         public static Sprite[] Get(BuildingDef def, UpgradeNode node, Vector2Int footprint)

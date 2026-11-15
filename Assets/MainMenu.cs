@@ -33,7 +33,10 @@ public sealed class MainMenu : MonoBehaviour
     private string gameplayScene = "SampleScene";
 
     private RectTransform canvas, layout, overlay;
-    private RawImage title, titleStar, planet, satellite, stars, blackHole;
+    private RawImage title, titleStar, planet, satellite, stars, blackHole, rocket;
+    private RectTransform flame;
+    private Vector2 rocketPos;
+    private float rocketSize;
     private Image fade, dim;
     private PixelButton start, options;
     private PixelLabel launchArrow, launchError;
@@ -71,6 +74,7 @@ public sealed class MainMenu : MonoBehaviour
         if (titleStarArt != null)
             titleStar = Art("Title star", title.transform, titleStarArt);
 
+        BuildRocket();
         start = FrontierUi.Button("Start", layout, true, titleAction: true);
         options = FrontierUi.Button("Options", layout, false, titleAction: true);
         launchArrow = PixelLabel.Create("Launch arrow", start.face, ">", 4, Background, 1);
@@ -97,6 +101,37 @@ public sealed class MainMenu : MonoBehaviour
         events.firstSelectedGameObject = start.gameObject;
         start.Select();
         ApplyLayout(IsNarrow);
+    }
+
+    // The landed frame of the real rocket art, flying nose-up with an animated pixel flame.
+    private void BuildRocket()
+    {
+        var art = Resources.Load<Texture2D>("Buildings/Rocket");
+        int frames = Mathf.Max(1, art.width / art.height);
+        rocket = Art("Rocket", layout, art);
+        rocket.uvRect = new Rect((frames - 1f) / frames, 0, 1f / frames, 1);
+
+        var tex = new Texture2D(7, 14, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp };
+        for (int y = 0; y < 14; y++)
+            for (int x = 0; x < 7; x++)
+            {
+                float reach = 3.5f * y / 13f, d = Mathf.Abs(x - 3);
+                tex.SetPixel(x, y, d > reach ? Color.clear : d < reach * .45f ? (Color)Cream
+                    : d < reach * .8f ? (Color)new Color32(255, 170, 60, 255) : (Color)Coral);
+            }
+        tex.Apply(false, true);
+        var image = Art("Flame", rocket.transform, tex);
+        flame = image.rectTransform;
+        flame.anchorMin = new Vector2(.38f, -.12f);
+        flame.anchorMax = new Vector2(.62f, .2f);
+        flame.pivot = new Vector2(.5f, 1);
+    }
+
+    private void PlaceRocket(Vector2 at, float frame, float angle)
+    {
+        Place(rocket.rectTransform, size, Mathf.Round(at.x - frame / 2), Mathf.Round(at.y - frame / 2), frame, frame);
+        rocket.rectTransform.localRotation = Quaternion.Euler(0, 0, angle);
+        flame.localScale = new Vector3(1, 1 + (reduced ? 0 : .18f * Mathf.Sin(Time.unscaledTime * 30f)), 1);
     }
 
     private void BuildOptions()
@@ -249,11 +284,13 @@ public sealed class MainMenu : MonoBehaviour
         logoSize = new Vector2(logoWidth, logoHeight);
 
         float logoEnd = top + (LogoBottom - LogoTop) * logoHeight;
-        float launchWidth = narrow ? 260 : 270, optionsWidth = narrow ? 172 : 178;
-        float launchHeight = narrow ? 60 : 62, secondaryHeight = 44;
+        float launchWidth = narrow ? 290 : 310, optionsWidth = narrow ? 196 : 210;
+        float launchHeight = narrow ? 68 : 72, secondaryHeight = 52;
         const float gap = 12;
         float startY = narrow ? size.y - 48 - launchHeight - gap - secondaryHeight : logoEnd + 35;
         float secondaryY = startY + launchHeight + gap;
+        rocketSize = narrow ? 170 : 300;
+        rocketPos = narrow ? new Vector2(110, (logoEnd + startY) / 2) : new Vector2(540, startY + 70);
         float actionLeft = narrow ? (size.x - launchWidth) / 2 : left;
         float optionsLeft = narrow ? (size.x - optionsWidth) / 2 : left;
         Place((RectTransform)start.transform, size, actionLeft, startY, launchWidth, launchHeight);
@@ -338,6 +375,10 @@ public sealed class MainMenu : MonoBehaviour
             satellite.transform.SetSiblingIndex(behind);
         else if (!near && relay > behind)
             satellite.transform.SetSiblingIndex(behind);
+
+        if (!launching)
+            PlaceRocket(rocketPos + new Vector2(0, reduced ? 0 : Mathf.Round(5f * Mathf.Sin(motionTime * 1.6f))),
+                rocketSize, 0);
 
         if (titleStar != null)
         {
@@ -473,21 +514,15 @@ public sealed class MainMenu : MonoBehaviour
 
     private IEnumerator FlyToMars(string destination)
     {
-        const float arrowSeconds = .70f, approachSeconds = 1.45f;
-        Vector3 arrowWorld = launchArrow.Rect.TransformPoint(
-            new Vector3(launchArrow.Rect.rect.xMax - 7f, launchArrow.Rect.rect.center.y));
-        Vector3 local = layout.InverseTransformPoint(arrowWorld);
-        Vector2 origin = new Vector2((local.x / layout.rect.width + layout.pivot.x) * size.x,
-            (1f - local.y / layout.rect.height - layout.pivot.y) * size.y);
+        const float approachSeconds = 1.45f, turnSeconds = .4f;
         Vector2 entry = center + new Vector2(-size.x * .065f, -size.y * .105f);
-        Vector2 bend = new Vector2(Mathf.Lerp(origin.x, entry.x, .55f), Mathf.Min(origin.y, entry.y) - 12f);
 
-        var flyingArrow = PixelLabel.Create("Launch arrow in flight", layout, ">", 9, Cream, .5f, true);
         var menuArt = title.gameObject.AddComponent<CanvasGroup>();
         var navigation = new[] { start.group, options.group };
         launchArrow.gameObject.SetActive(false);
         float planetSize = planet.rectTransform.rect.width / layout.rect.width * size.x;
         Vector2 viewportCenter = size / 2f;
+        Vector2 rocketStart = rocketPos;
 
         for (float elapsed = 0f; elapsed < approachSeconds; elapsed += Time.unscaledDeltaTime)
         {
@@ -500,13 +535,10 @@ public sealed class MainMenu : MonoBehaviour
             Place(planet.rectTransform, size, imageCenter.x - diameter / 2f, imageCenter.y - diameter / 2f,
                 diameter, diameter);
 
-            float flight = Mathf.Clamp01(elapsed / arrowSeconds);
-            Vector2 arrow = Vector2.Lerp(Vector2.Lerp(origin, bend, flight), Vector2.Lerp(bend, focus, flight), flight);
-            float arrowSize = Mathf.Lerp(32f, 86f, Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(flight * 3f)));
-            Place(flyingArrow.Rect, size, Mathf.Round(arrow.x - arrowSize / 2f),
-                Mathf.Round(arrow.y - arrowSize / 2f), arrowSize, arrowSize);
-            flyingArrow.Color = new Color(Cream.r / 255f, Cream.g / 255f, Cream.b / 255f,
-                1f - Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(.75f, 1f, flight)));
+            // The camera follows the rocket: it flips nose-down, then stays on the focus point as the planet swells.
+            float turn = Mathf.SmoothStep(0f, 1f, elapsed / turnSeconds);
+            Vector2 at = Vector2.Lerp(rocketStart, focus, Mathf.SmoothStep(0f, 1f, elapsed / .55f));
+            PlaceRocket(at, Mathf.Lerp(rocketSize, rocketSize * .4f, zoom), 180f * turn);
 
             float opacity = 1f - Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(.43f, .83f, elapsed));
             menuArt.alpha = opacity;

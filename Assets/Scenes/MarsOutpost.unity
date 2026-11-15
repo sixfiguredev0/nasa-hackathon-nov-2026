@@ -597,6 +597,8 @@ MonoBehaviour:
   hillsFollow: 0.4
   phobosCrossSeconds: 90
   shootingStarInterval: {x: 5, y: 12}
+  horizonCurve: 22
+  farGroundHeight: 56
 --- !u!4 &1807158867
 Transform:
   m_ObjectHideFlags: 0
