@@ -7,18 +7,17 @@ namespace RedFrontier.Outpost
     {
         private enum Gauge { Single, Food, Water }
 
-        private static readonly Color32 Edge = new Color32(76, 62, 76, 255);
-        private static readonly Color32 Secondary = new Color32(225, 216, 208, 255);
+        private static readonly Color32 Edge = FrontierUi.PanelLight;
+        private static readonly Color32 Secondary = OutpostGUI.InstrumentSecondary;
         private static readonly string SecondaryHex = ColorUtility.ToHtmlStringRGB(Secondary);
-        private static readonly Color32 Fill = new Color32(217, 170, 106, 255);
-        private static readonly Color32 Warning = new Color32(246, 190, 175, 255);
-        private static readonly Res[] VisibleResources = { Res.Energy, Res.Oxygen, Res.Metal, Res.Food, Res.Water };
-        // Single-arc dial cards, left to right; Metal is here because every building costs it.
-        private static readonly Res[] DialResources = { Res.Energy, Res.Oxygen, Res.Metal };
+        private static readonly Color32 Fill = OutpostGUI.InstrumentAccent;
+        private static readonly Color32 Warning = OutpostGUI.InstrumentWarning;
+        private static readonly Res[] VisibleResources = { Res.Energy, Res.Oxygen, Res.Food, Res.Water, Res.Metal };
 
         private const float DialWidth = 132f, ResourcesWidth = 232f, CardHeight = 72f, Gap = 8f;
-        private const float DialRowWidth = DialWidth * 3f + Gap * 2f;
-        private const float WideWidth = DialRowWidth + Gap + ResourcesWidth;
+        private const float DialRowWidth = DialWidth * 2f + Gap;
+        private const float SuppliesRowWidth = ResourcesWidth + Gap + DialWidth;
+        private const float WideWidth = DialRowWidth + Gap + SuppliesRowWidth;
         private const int GaugeSteps = 40, TileSize = 48, AtlasColumns = 8;
         private const int TilesPerGauge = GaugeSteps + 1;
         private const int AtlasRows = (3 * TilesPerGauge + AtlasColumns - 1) / AtlasColumns;
@@ -27,6 +26,7 @@ namespace RedFrontier.Outpost
         private readonly float[] displayedStock = new float[ColonyEconomy.ResCount];
         private readonly float[] displayedFill = new float[ColonyEconomy.ResCount];
         private static Texture2D gaugeAtlas;
+        private Texture2D suppliesIcon;
         private GUIStyle text;
         private int lastFrame = -1;
 
@@ -45,6 +45,7 @@ namespace RedFrontier.Outpost
                 };
                 foreach (Res resource in VisibleResources)
                     icons[(int)resource] = Resources.Load<Texture2D>("ResourceIcons/" + resource);
+                suppliesIcon = Resources.Load<Texture2D>("OutpostHud/Instrument Supplies");
                 if (gaugeAtlas == null) gaugeAtlas = CreateGaugeAtlas();
             }
 
@@ -53,14 +54,16 @@ namespace RedFrontier.Outpost
 
             float left = Bounds.x;
             float top = Bounds.y;
-            for (int i = 0; i < DialResources.Length; i++)
-                DrawDial(new Rect(left + i * (DialWidth + Gap) * scale, top, DialWidth * scale, CardHeight * scale),
-                    DialResources[i], economy, scale);
+            float dialX = stacked ? left + (SuppliesRowWidth - DialRowWidth) * .5f * scale : left;
+            DrawDial(new Rect(dialX, top, DialWidth * scale, CardHeight * scale), Res.Energy, economy, scale);
+            DrawDial(new Rect(dialX + (DialWidth + Gap) * scale, top, DialWidth * scale, CardHeight * scale),
+                Res.Oxygen, economy, scale);
 
-            float resourcesX = stacked ? left + (DialRowWidth - ResourcesWidth) * .5f * scale
-                : left + (DialRowWidth + Gap) * scale;
+            float resourcesX = stacked ? left : left + (DialRowWidth + Gap) * scale;
             float resourcesY = stacked ? top + (CardHeight + Gap) * scale : top;
             DrawResources(new Rect(resourcesX, resourcesY, ResourcesWidth * scale, CardHeight * scale), economy, scale);
+            DrawDial(new Rect(resourcesX + (ResourcesWidth + Gap) * scale, resourcesY, DialWidth * scale, CardHeight * scale),
+                Res.Metal, economy, scale);
         }
 
         internal static Rect Layout(int screenWidth, int screenHeight, out bool stacked, out float scale)
@@ -68,7 +71,7 @@ namespace RedFrontier.Outpost
             float preferredScale = Mathf.Clamp(screenHeight / 720f, 1f, 1.5f);
             float available = Mathf.Max(1f, screenWidth - 2f * Gap);
             stacked = available < WideWidth * preferredScale * .9f;
-            float width = stacked ? DialRowWidth : WideWidth;
+            float width = stacked ? SuppliesRowWidth : WideWidth;
             float height = stacked ? 2f * CardHeight + Gap : CardHeight;
             scale = Mathf.Min(preferredScale, available / width);
             return new Rect(Mathf.Round((screenWidth - width * scale) * .5f), 12f,
@@ -110,8 +113,10 @@ namespace RedFrontier.Outpost
         private void DrawResources(Rect card, ColonyEconomy economy, float scale)
         {
             DrawCard(card, scale);
-            Label(DialRect(card, 8, 6, ResourcesWidth - 16, 16, scale),
-                "Resources", 12f * scale, FrontierUi.Cream, TextAnchor.MiddleCenter);
+            if (suppliesIcon != null)
+                GUI.DrawTexture(DialRect(card, 8, 6, 16, 16, scale), suppliesIcon);
+            Label(DialRect(card, 28, 6, ResourcesWidth - 36, 16, scale),
+                "Supplies", 12f * scale, FrontierUi.Cream);
 
             var dial = DialRect(card, 96, 28, 40, 40, scale);
             DrawSupply(card, dial, 10, Gauge.Food, Res.Food, economy, scale);
@@ -175,7 +180,7 @@ namespace RedFrontier.Outpost
 
         private static void DrawCard(Rect card, float scale)
         {
-            OutpostGUI.Frame(card, FrontierUi.Shadow, Edge, scale);
+            OutpostGUI.InstrumentFrame(card, scale);
             var rule = DialRect(card, 8, 24, card.width / scale - 16f, 1f, scale);
             OutpostGUI.Panel(rule, Edge);
         }

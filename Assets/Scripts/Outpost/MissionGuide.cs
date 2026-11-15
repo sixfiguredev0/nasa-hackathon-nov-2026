@@ -57,7 +57,7 @@ namespace RedFrontier.Outpost
             FrontierUi.Resize(root, Reference, layout);
 
             var portraitArt = Resources.Load<Texture2D>("OutpostHud/Mission Guide Portrait");
-            notification = BlueButton("", root);
+            notification = FrontierUi.Button("", root, false, titleAction: true);
             notification.name = "Marlonis notification";
             notificationRect = (RectTransform)notification.transform;
             notificationRect.anchorMin = notificationRect.anchorMax = notificationRect.pivot = new Vector2(0f, 1f);
@@ -65,22 +65,22 @@ namespace RedFrontier.Outpost
             notificationRect.anchoredPosition = new Vector2(12, -60);
             notification.onClick.AddListener(ToggleDialogue);
 
-            FrontierUi.Art("Notification frame", notification.face,
-                Resources.Load<Texture2D>("OutpostHud/Marlonis Notification"));
-            notification.face.GetComponent<Image>().enabled = false;
+            var notificationFace = notification.face.GetComponent<Image>();
+            notificationFace.sprite = PixelArt.Frame(FrontierUi.Shadow, FrontierUi.PanelLight,
+                FrontierUi.Shadow, FrontierUi.Shadow);
+            notificationFace.pixelsPerUnitMultiplier = 1f;
             var avatar = FrontierUi.Art("Marlonis", notification.face, portraitArt);
             FrontierUi.Place(avatar.rectTransform, NotificationSize, 5, 1, 32, 32);
             notification.focus.shine = null;
             var focus = (Image)notification.focus.ring;
+            focus.sprite = PixelArt.Ring(OutpostGUI.InstrumentAccent);
             focus.pixelsPerUnitMultiplier = 1f;
             focus.rectTransform.offsetMin = new Vector2(2, 2);
             focus.rectTransform.offsetMax = new Vector2(-2, -2);
 
-            var badge = PixelArt.Sliced("Unread message", notificationRect,
-                PixelArt.Frame(Cyan, BlueFace, Cyan, BlueEdge));
-            badge.pixelsPerUnitMultiplier = 1f;
-            FrontierUi.Place(badge.rectTransform, NotificationSize, 27, -4, 16, 16);
-            PixelLabel.Create("Notification mark", badge.transform, "!", 1, BlueFace);
+            var badge = FrontierUi.Fill("Unread message", notificationRect, OutpostGUI.InstrumentAccent);
+            FrontierUi.Place(badge.rectTransform, NotificationSize, 29, -3, 12, 12);
+            PixelLabel.Create("Notification mark", badge.transform, "!", 1, FrontierUi.Shadow);
             unread = badge.gameObject;
 
             panel = FrontierUi.Box("Marlonis dialogue", layout);
@@ -188,7 +188,9 @@ namespace RedFrontier.Outpost
                 RefreshDialogue();
             Rect fitness = colony.CrewFitnessBounds;
             if (fitness.width <= 0f) return;
-            notificationRect.anchoredPosition = new Vector2(fitness.xMin, -fitness.yMax - 6f) / canvas.scaleFactor;
+            float scale = canvas.scaleFactor;
+            notificationRect.localScale = Vector3.one * (Mathf.Max(.75f, scale) / scale);
+            notificationRect.anchoredPosition = new Vector2(fitness.xMin, -fitness.yMax - 6f) / scale;
         }
 
         void ToggleDialogue()

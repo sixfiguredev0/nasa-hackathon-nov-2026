@@ -129,8 +129,7 @@ namespace RedFrontier.Outpost
         {
             yield return Until(() => FindObjectOfType<MainMenu>() != null);
             var menu = FindObjectOfType<MainMenu>();
-            Click(menu, "start");
-            Click(menu, "pickFemale");
+            Click(menu, "start"); // Start launches the mission directly (no astronaut pick)
             yield return Until(() => FindObjectOfType<OpeningCutscene>() != null);
             typeof(OpeningCutscene).GetMethod("Finish", Fields).Invoke(FindObjectOfType<OpeningCutscene>(), new object[] { true });
             yield return Until(() => Colony.Instance != null && Colony.Instance.Ready);

@@ -122,7 +122,8 @@ namespace RedFrontier.Outpost
             yield return Until(() => FindObjectOfType<MainMenu>() != null);
             var menu = FindObjectOfType<MainMenu>();
             Click(menu, "start");
-            Click(menu, "pickFemale");
+            Check(Field<bool>(menu, "launching") && GameObject.Find("Crew panel") == null,
+                "Start launches directly without showing an astronaut picker");
             yield return Until(() => FindObjectOfType<OpeningCutscene>() != null);
             Check(FindObjectOfType<HistoricalTraining>() == null, "opening has no training event or guide interruption");
             if (!fullOpening)
