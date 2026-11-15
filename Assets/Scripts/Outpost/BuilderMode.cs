@@ -122,6 +122,7 @@ namespace RedFrontier.Outpost
             float s = OutpostGUI.Scale;
             var e = Event.current;
             var mouse = e.mousePosition;
+            if (e.isMouse && MissionGuide.PointerOverUI(mouse)) { e.Use(); return; }
 
             float scale = Mathf.Min(Mathf.Clamp(Screen.height / 720f, 1f, 1.5f),
                 Screen.width / 320f, Screen.height / 460f);

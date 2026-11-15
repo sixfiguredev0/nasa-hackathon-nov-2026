@@ -1,0 +1,10 @@
+{
+  "retrievedAtUtc": "2026-11-15T01:31:19.3708101Z",
+  "endpoint": "https://ccmc.gsfc.nasa.gov/DONKI-API/get/SEP?startDate=2024-05-01&endDate=2024-05-20",
+  "httpStatus": 200,
+  "rawRecordCount": 14,
+  "curatedRecordCount": 3,
+  "rawSha256": "30C225B9A0FABEE1ECE4E0B56D0CCDBFE54F0B85E2A58815A885517DB1FE4CFE",
+  "credentialsUsed": false,
+  "selection": "Three GOES-P SEISS instrument records on separate days; MODEL-labelled records excluded. These can still belong to a related period of solar activity and are not asserted to be independent storms."
+}
