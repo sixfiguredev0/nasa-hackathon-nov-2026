@@ -132,7 +132,8 @@ internal static class FrontierUi
     // Every button shares one shape. Primary is a coral face with charcoal text; secondary is charcoal
     // with a coral border and cream text. The hit area is the whole visible button, lip included,
     // so the rocket cursor's tip enters the button exactly at its drawn edge.
-    public static PixelButton Button(string caption, Transform parent, bool primary, bool titleAction = false)
+    public static PixelButton Button(string caption, Transform parent, bool primary, bool titleAction = false,
+        bool leftAligned = false)
     {
         var hit = Fill(caption, parent, Color.clear);
         hit.raycastTarget = true;
@@ -154,11 +155,12 @@ internal static class FrontierUi
             : PixelArt.Sliced("Face", hit.transform, PixelArt.Frame(Panel, secondaryBorder, PanelLight, PanelDark));
         var shine = PixelArt.Sliced("Shine", face.transform, PixelArt.Solid(Color.white));
 
-        bool leftAligned = titleAction && primary;
+        bool launchAction = titleAction && primary;
+        leftAligned |= launchAction;
         var label = PixelLabel.Create("Label", face.transform, caption, primary ? 4 : 3,
             primary ? (Color)Background : Cream, leftAligned ? 0 : .5f, !primary);
         label.Rect.offsetMin = new Vector2(leftAligned ? 24 : 4 * PixelArt.Texel, 0);
-        label.Rect.offsetMax = new Vector2(leftAligned ? -64 : -4 * PixelArt.Texel, 0);
+        label.Rect.offsetMax = new Vector2(launchAction ? -64 : -4 * PixelArt.Texel, 0);
 
         button.focus = hit.gameObject.AddComponent<FocusRing>();
         button.focus.ring = ring;

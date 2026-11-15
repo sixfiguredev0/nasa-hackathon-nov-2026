@@ -263,24 +263,45 @@ namespace RedFrontier.Mars
             float dune = Mathf.Clamp01(s.duneAmount);
             float maxH = 0f;
 
+            // per-pixel invariants of SampleCoarse hoisted out of the loop (same arithmetic, so identical results)
+            int cw = TexW / Coarse + 2;
+            var cx0 = new int[TexW];
+            var cfx = new float[TexW];
+            for (int gx = 0; gx < TexW; gx++)
+            {
+                int x0 = gx / Coarse;
+                cx0[gx] = x0;
+                cfx[gx] = (gx - x0 * Coarse) / (float)Coarse;
+            }
+            var craterList = Craters;
+            var rockList = Rocks;
+
             for (int gy = 0; gy < rows; gy++)
+            {
+                int y0 = gy / Coarse;
+                float fy = (gy - y0 * Coarse) / (float)Coarse;
+                int rowC = y0 * cw;
+                float ly = gy - OriginY;          // GroundToLattice, row part
+                float j = ly / CellH;
                 for (int gx = 0; gx < TexW; gx++)
                 {
-                    GroundToLattice(gx, gy, out float i, out float j);
+                    float i = ((float)(gx - OriginX) - ly) / CellW;
                     int idx = gy * TexW + gx;
-                    float f = SampleCoarse(cFlat, gx, gy);
-                    float roll = (SampleCoarse(cRoll, gx, gy) - 0.5f) * 26f * variation;
-                    float m = SampleCoarse(cMesa, gx, gy) + (nDetail.Fbm(i * 0.4f, j * 0.6f, 2) - 0.5f) * 0.05f - (1f - f) * 0.5f;
+                    int c00 = rowC + cx0[gx];
+                    float fx = cfx[gx];
+                    float f = Bilerp(cFlat, c00, cw, fx, fy);
+                    float roll = (Bilerp(cRoll, c00, cw, fx, fy) - 0.5f) * 26f * variation;
+                    float m = Bilerp(cMesa, c00, cw, fx, fy) + (nDetail.Fbm(i * 0.4f, j * 0.6f, 2) - 0.5f) * 0.05f - (1f - f) * 0.5f;
                     float mesa = (m > mesaT0 ? 12f : 0f) + (m > mesaT0 + 0.075f ? 9f : 0f); // hard steps: one clean cliff face per column
                     float h = roll * f + mesa;
-                    float sd = MarsMath.Smooth(0.55f, 0.72f, SampleCoarse(cSand, gx, gy)) + MarsMath.Smooth(-3f, -9f, roll) * 0.45f;
+                    float sd = MarsMath.Smooth(0.55f, 0.72f, Bilerp(cSand, c00, cw, fx, fy)) + MarsMath.Smooth(-3f, -9f, roll) * 0.45f;
                     float ej = 0f;
 
                     var cb = Bucket(craterBuckets, i, j);
                     if (cb != null)
-                        foreach (int id in cb)
+                        for (int q = 0; q < cb.Count; q++)
                         {
-                            var c = Craters[id];
+                            var c = craterList[cb[q]];
                             float di = i - c.i, dj = j - c.j;
                             float t = Mathf.Sqrt(di * di + dj * dj) / c.r;
                             if (t >= 3f) continue;
@@ -301,7 +322,7 @@ namespace RedFrontier.Mars
                     sd = Mathf.Clamp01(sd) * (mesa > 1f ? 0.2f : 1f);
                     if (sd > 0.2f && dune > 0f)
                     {
-                        float u = (i * 0.55f - j * 1.1f) * 1.6f + SampleCoarse(cWarp, gx, gy) * 5f;
+                        float u = (i * 0.55f - j * 1.1f) * 1.6f + Bilerp(cWarp, c00, cw, fx, fy) * 5f;
                         float fr = u - Mathf.Floor(u);
                         float tri = fr < 0.75f ? fr / 0.75f : (1f - fr) / 0.25f;
                         float breakup = MarsMath.Smooth(0.35f, 0.6f, nDetail.Sample(i * 0.7f + 50f, j * 1.4f));
@@ -311,9 +332,9 @@ namespace RedFrontier.Mars
                     float rh = 0f;
                     var rb = Bucket(rockBuckets, i, j);
                     if (rb != null)
-                        foreach (int id in rb)
+                        for (int q = 0; q < rb.Count; q++)
                         {
-                            var r = Rocks[id];
+                            var r = rockList[rb[q]];
                             float di = i - r.i, dj = j - r.j;
                             float d2 = di * di + dj * dj;
                             if (d2 > r.r * r.r * 2.2f) continue;
@@ -330,18 +351,67 @@ namespace RedFrontier.Mars
                     mesaMask[idx] = mesa;
                     if (h > maxH) maxH = h;
                 }
+            }
             MaxHeight = maxH;
+        }
+
+        // SampleCoarse with the cell index and fractions precomputed by the caller (identical Lerp order)
+        static float Bilerp(float[] a, int c00, int cw, float fx, float fy)
+        {
+            float a0 = Mathf.Lerp(a[c00], a[c00 + 1], fx);
+            float a1 = Mathf.Lerp(a[c00 + cw], a[c00 + cw + 1], fx);
+            return Mathf.Lerp(a0, a1, fy);
         }
 
         float[] CastShadows()
         {
             const float rise = 0.62f;
+            const int Reach = 64, Blk = 16;
             var sh = new float[TexW * rows];
+
+            // Local occluder bound. The ray from (gx, gy) only samples sx in [gx-64, gx-1], sy in [gy, gy+32].
+            // A hit at step k needs height(s) - h0 > k*rise, so no step beyond ceil((localMax - h0)/rise) can hit:
+            // marching only that far gives exactly the same result as marching up to the global MaxHeight bound.
+            int nb = (TexW + Blk - 1) / Blk, back = Reach / Blk, up = Reach >> 1;
+            var span = new float[rows * nb];   // per row: max over blocks b-back..b (covers [gx-64, gx-1] for gx in block b)
+            var rowBlk = new float[nb];
+            for (int gy = 0; gy < rows; gy++)
+            {
+                int row = gy * TexW;
+                for (int b = 0; b < nb; b++)
+                {
+                    float mx = float.NegativeInfinity;
+                    int x1 = Mathf.Min(TexW, (b + 1) * Blk);
+                    for (int x = b * Blk; x < x1; x++) { float v = height[row + x]; if (v > mx) mx = v; }
+                    rowBlk[b] = mx;
+                }
+                for (int b = 0; b < nb; b++)
+                {
+                    float mx = float.NegativeInfinity;
+                    for (int bb = Mathf.Max(0, b - back); bb <= b; bb++) if (rowBlk[bb] > mx) mx = rowBlk[bb];
+                    span[gy * nb + b] = mx;
+                }
+            }
+            var local = new float[rows * nb];  // span maxed over rows gy..gy+32
+            for (int gy = 0; gy < rows; gy++)
+            {
+                int y1 = Mathf.Min(rows - 1, gy + up);
+                for (int b = 0; b < nb; b++)
+                {
+                    float mx = float.NegativeInfinity;
+                    for (int y = gy; y <= y1; y++) { float v = span[y * nb + b]; if (v > mx) mx = v; }
+                    local[gy * nb + b] = mx;
+                }
+            }
+
             for (int gy = 0; gy < rows; gy++)
                 for (int gx = 0; gx < TexW; gx++)
                 {
                     float h0 = height[gy * TexW + gx];
-                    int maxK = Mathf.Min(64, Mathf.CeilToInt((MaxHeight - h0) / rise));
+                    int maxK = Mathf.Min(Reach, Mathf.CeilToInt((MaxHeight - h0) / rise));
+                    float lm = local[gy * nb + gx / Blk];
+                    if (lm - h0 <= rise) maxK = 0; // nothing in reach rises above even the first step
+                    else maxK = Mathf.Min(maxK, Mathf.CeilToInt((lm - h0) / rise));
                     float lit = 1f;
                     for (int k = 1; k <= maxK; k++)
                     {

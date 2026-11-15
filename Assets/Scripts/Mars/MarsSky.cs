@@ -60,9 +60,11 @@ namespace RedFrontier.Mars
         static readonly int[] Bayer = { 0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5 };
 
         // a textured strip cut into 1 px columns so each column can drop to bend the horizon
-        class Strip { public Transform t; public Mesh mesh; public Vector3[] baseV, v; public float pivotPx; public int cols; }
+        // drop[] holds the drop (px) currently applied to each column so only columns whose drop changes are rewritten
+        class Strip { public Transform t; public Mesh mesh; public Vector3[] baseV, v; public float[] drop; public float pivotPx; public int cols; }
         readonly List<Strip> strips = new List<Strip>();
         int curveKey = int.MinValue;
+        float curveHalfW = float.NaN, curveSource = float.NaN, curveDepth; // invariants of the arc, recomputed only when the view width changes
         static readonly Color32[] StarCols = Hex("4c3d7a", "7262a6", "9f95cf", "d6d0f5", "ffe9b8", "ffffff");
         static readonly Color32[] Milky = Hex("26173f", "321f55");
 
@@ -349,7 +351,7 @@ namespace RedFrontier.Mars
             var mr = go.AddComponent<MeshRenderer>();
             mr.sharedMaterial = mat;
             mr.sortingOrder = order;
-            strips.Add(new Strip { t = go.transform, mesh = mesh, baseV = verts, v = (Vector3[])verts.Clone(), pivotPx = half, cols = w });
+            strips.Add(new Strip { t = go.transform, mesh = mesh, baseV = verts, v = (Vector3[])verts.Clone(), drop = new float[w], pivotPx = half, cols = w });
         }
 
         // drop each column by the planet's curvature, measured from the camera so the arc stays centred on screen
@@ -360,18 +362,31 @@ namespace RedFrontier.Mars
             if (key == curveKey) return;
             curveKey = key;
             // shortcut: depth scales down when zoomed in so close views don't exaggerate it; capped so the hills' glow still hides the ground's edge
-            float depth = horizonCurve * Mathf.Clamp(halfW / 400f, 0.35f, 1f);
-            foreach (var s in strips)
+            if (halfW != curveHalfW || horizonCurve != curveSource)
             {
+                curveHalfW = halfW;
+                curveSource = horizonCurve;
+                curveDepth = horizonCurve * Mathf.Clamp(halfW / 400f, 0.35f, 1f);
+            }
+            float depth = curveDepth;
+            for (int si = 0; si < strips.Count; si++)
+            {
+                var s = strips[si];
                 float leftPx = s.t.position.x * Ppu - s.pivotPx - camX * Ppu;
+                bool dirty = false;
                 for (int c = 0; c < s.cols; c++)
                 {
                     float d = (leftPx + c + 0.5f) / halfW;
-                    float drop = Mathf.Min(30f, Mathf.Round(depth * d * d)) / Ppu;
+                    float dropPx = Mathf.Min(30f, Mathf.Round(depth * d * d));
+                    // the drop is a whole-pixel step function: a one-pixel pan changes only the few columns at step edges
+                    if (dropPx == s.drop[c]) continue;
+                    s.drop[c] = dropPx;
+                    float drop = dropPx / Ppu;
                     int k = c * 4;
                     for (int j = 0; j < 4; j++) s.v[k + j].y = s.baseV[k + j].y - drop;
+                    dirty = true;
                 }
-                s.mesh.vertices = s.v;
+                if (dirty) s.mesh.SetVertices(s.v); // reuses the cached array; skipped entirely when no column moved
             }
         }
 

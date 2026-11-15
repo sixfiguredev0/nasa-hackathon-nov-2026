@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using RedFrontier.Audio;
 using RedFrontier.Outpost;
@@ -82,6 +81,7 @@ public sealed class MainMenu : MonoBehaviour
     private PixelSlider volume;
     private AudioMixRow mix;
     private readonly List<Vector2Int> resolutions = new List<Vector2Int>();
+    private readonly List<Texture2D> createdTextures = new List<Texture2D>();
     private int resolutionIndex;
     private bool fullscreenOn;
 
@@ -106,7 +106,7 @@ public sealed class MainMenu : MonoBehaviour
         BuildRocket();
         fx = new TitleFx(gameObject, starStreams, exhaust, Box("Telemetry", layout));
         start = FrontierUi.Button("Start", layout, true, titleAction: true);
-        options = FrontierUi.Button("Options", layout, false, titleAction: true);
+        options = FrontierUi.Button("Options", layout, false, titleAction: true, leftAligned: true);
         launchArrow = PixelLabel.Create("Launch arrow", start.face, ">", 4, Background, 1);
         launchArrow.Rect.offsetMax = new Vector2(-22, 0);
         launchError = PixelLabel.Create("Launch error", layout,
@@ -139,9 +139,20 @@ public sealed class MainMenu : MonoBehaviour
         var art = Resources.Load<Texture2D>("Menu/RocketFlight"); // landed rocket art, boarding stairs removed
         int frames = Mathf.Max(1, art.width / art.height);
         rocket = Art("Rocket", layout, art);
-        rocket.uvRect = new Rect((frames - 1f) / frames, 0, 1f / frames, 1);
+        if (art != null)
+        {
+            int frames = Mathf.Max(1, art.width / Mathf.Max(1, art.height));
+            rocket.uvRect = new Rect((frames - 1f) / frames, 0, 1f / frames, 1);
+        }
+        else
+        {
+            // Keep the menu working without the rocket art: an invisible placeholder still anchors the flame and launch.
+            Debug.LogWarning("MainMenu: Resources/Buildings/Rocket texture is missing; the rocket art is skipped.");
+            rocket.color = Color.clear;
+        }
 
         var tex = new Texture2D(7, 14, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp };
+        createdTextures.Add(tex);
         for (int y = 0; y < 14; y++)
             for (int x = 0; x < 7; x++)
             {
@@ -155,6 +166,7 @@ public sealed class MainMenu : MonoBehaviour
         flame.anchorMin = new Vector2(.42f, -.12f);
         flame.anchorMax = new Vector2(.63f, .2f);
         flame.pivot = new Vector2(.5f, 1);
+        flame.gameObject.SetActive(false);
     }
 
     private void PlaceRocket(Vector2 at, float frame, float angle)
@@ -479,11 +491,9 @@ public sealed class MainMenu : MonoBehaviour
 
         if (titleStar != null)
         {
-            // Keep the star tethered to the orbit. During each cycle it lifts a few design pixels.
-            float lift = reduced ? 0f : Mathf.Round(4f * (1f - Mathf.Cos(motionTime * tau / 5f)));
             // Crop bounds in the original 1774 x 887 wordmark artwork.
             Place(titleStar.rectTransform, logoSize, logoSize.x * (1140f / 1774f),
-                logoSize.y * (20f / 887f) - lift, logoSize.x * (252f / 1774f), logoSize.y * (290f / 887f));
+                logoSize.y * (20f / 887f), logoSize.x * (252f / 1774f), logoSize.y * (290f / 887f));
         }
     }
 
@@ -567,14 +577,14 @@ public sealed class MainMenu : MonoBehaviour
         }
 
         launchError.gameObject.SetActive(false);
-        Crew.Picked = new[] { Astronaut.Female };
+        Crew.Picked = new[] { Astronaut.Male };
         launching = true;
         GameAudio.Launch(reduced); // launch whoosh over the ignition; arrival music scores the entry cutscene (Reduce Motion skips the whoosh)
         start.HoldPressed = true;
         SetMenuInteractable(false);
         fade.raycastTarget = true;
         if (reduced)
-            SceneManager.LoadSceneAsync(destination);
+            MissionArrival.Load(destination, rocket.texture, rocket.uvRect);
         else
             StartCoroutine(FlyToMars(destination));
     }
@@ -637,15 +647,33 @@ public sealed class MainMenu : MonoBehaviour
     }
 
     // Binary alpha so the scaled-down relay has no soft fringe over the sky or Mars.
-    private static Texture2D Crisp(Texture2D source)
+    // Falls back to the source texture (soft alpha) when it is missing or not CPU-readable.
+    private Texture2D Crisp(Texture2D source)
     {
-        var pixels = source.GetPixels32();
+        if (source == null || !source.isReadable)
+        {
+            if (source != null)
+                Debug.LogWarning($"MainMenu: '{source.name}' is not readable; using it without crisp alpha.");
+            return source;
+        }
+
+        Color32[] pixels;
+        try
+        {
+            pixels = source.GetPixels32();
+        }
+        catch (UnityException error)
+        {
+            Debug.LogWarning($"MainMenu: could not read '{source.name}' ({error.Message}); using it without crisp alpha.");
+            return source;
+        }
         for (int i = 0; i < pixels.Length; i++)
             pixels[i].a = (byte)(pixels[i].a < 128 ? 0 : 255);
         var crisp = new Texture2D(source.width, source.height, TextureFormat.RGBA32, false)
             { filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp };
         crisp.SetPixels32(pixels);
         crisp.Apply(false, true);
+        createdTextures.Add(crisp);
         return crisp;
     }
 }
