@@ -8,7 +8,8 @@ namespace RedFrontier.Outpost
     internal sealed class HistoricalTraining : MonoBehaviour
     {
         internal const string SelectedId = "2024-05-10T13:35:00-SEP-001";
-        internal const float ExerciseSeconds = 20f, FitnessDip = .08f;
+        // Hard mode: shelter costs 25 s of lost building time, working costs a 15-point fitness dip, and not choosing in time means working.
+        internal const float ExerciseSeconds = MissionPlan.SepShelterSeconds, FitnessDip = MissionPlan.SepFitnessDip, ChoiceSeconds = MissionPlan.SepChoiceSeconds;
         internal enum Phase { Waiting, Choice, Sheltering, Working, Resolved, Unavailable }
 
         [Serializable] internal sealed class Instrument { public string displayName; }
@@ -29,11 +30,27 @@ namespace RedFrontier.Outpost
         internal string ObservationDate { get; private set; }
         internal float Remaining { get; private set; }
         internal bool ChoseShelter { get; private set; }
+        /// <summary>The player did not decide in time, so the crew kept working.</summary>
+        internal bool Hesitated { get; private set; }
         internal string DataError { get; private set; }
         Colony colony;
         Crew crew;
         MissionObjective objective;
-        float readyAge, removedFitness;
+        float choiceAge, removedFitness;
+        /// <summary>Off only in the integration tests, so scripted steps can sit on the choice screen.</summary>
+        internal bool autoDefault = true;
+        /// <summary>True once the mission director has raised the warning (it never repeats in one mission).</summary>
+        internal bool Triggered => State != Phase.Waiting;
+        /// <summary>Seconds left to decide before the crew carries on working by default.</summary>
+        internal float ChoiceRemaining => Mathf.Max(0f, ChoiceSeconds - choiceAge);
+
+        /// <summary>Called by <see cref="MissionDirector"/> when the scheduled solar particle event arrives.</summary>
+        internal void Trigger()
+        {
+            if (State != Phase.Waiting) return;
+            choiceAge = 0f;
+            State = Observation != null ? Phase.Choice : Phase.Unavailable;
+        }
 
         internal static bool TryRead(string json, out Record record, out string date)
         {
@@ -82,11 +99,11 @@ namespace RedFrontier.Outpost
         internal void Tick(float dt)
         {
             if (dt <= 0f || colony == null || !colony.Ready || objective == null) return;
-            if (State == Phase.Waiting)
+            if (State == Phase.Waiting) return; // the director decides when the event strikes
+            if (State == Phase.Choice)
             {
-                if (objective.Stage != MissionObjective.Step.Training) return;
-                readyAge += dt;
-                if (readyAge >= 4f) State = Observation != null ? Phase.Choice : Phase.Unavailable;
+                choiceAge += dt;
+                if (autoDefault && choiceAge >= ChoiceSeconds) { Hesitated = true; Apply(false); } // no decision is a decision: the crew kept working
                 return;
             }
             if (State != Phase.Sheltering && State != Phase.Working) return;
@@ -101,6 +118,11 @@ namespace RedFrontier.Outpost
         internal void Choose(bool shelter)
         {
             if (State != Phase.Choice || Time.timeScale <= 0f || MissionPauseMenu.BlocksGameplayInput) return;
+            Apply(shelter);
+        }
+
+        void Apply(bool shelter)
+        {
             ChoseShelter = shelter;
             Remaining = ExerciseSeconds;
             if (shelter)
@@ -126,7 +148,7 @@ namespace RedFrontier.Outpost
         void OnDisable()
         {
             ClearConsequences();
-            Remaining = readyAge = 0f;
+            Remaining = choiceAge = 0f;
             State = Phase.Waiting;
         }
 

@@ -40,6 +40,7 @@ namespace RedFrontier.Outpost.EditorTools
 
             // catalog: links resolve, every node reachable, costs fit the storage the Rocket gives at that tier
             var rocketDef = BuildingCatalog.Get(BuildingKind.Rocket);
+            float rocketMetal = rocketDef.nodes[rocketDef.root].rates[0].value; // Lander cargo per second at full efficiency
             float RocketCap(int tier)
             {
                 foreach (var n in rocketDef.nodes.Values) if (n.level == tier) return n.storage[0].value;
@@ -109,7 +110,7 @@ namespace RedFrontier.Outpost.EditorTools
             ce.RecomputeCaps();
             ce[Res.Oxygen] = 10; ce[Res.Food] = 10; ce[Res.Water] = 10; ce[Res.Energy] = 0;
             ce.Tick(1f);
-            Check(Near(ce[Res.Oxygen], 9.7f) && !ce.lifeSupportShort && Near(ce.fitness, 1f - ColonyEconomy.FitnessLoss), "crew breathe 0.3 O2/s and lose fitness");
+            Check(Near(ce[Res.Oxygen], 10f - 0.15f * ColonyEconomy.UpkeepScale * 2f) && !ce.lifeSupportShort && Near(ce.fitness, 1f - ColonyEconomy.FitnessLoss), "crew breathe scaled O2 and lose fitness");
             ce.training = gym; ce.fitness = 0.5f;
             ce.Tick(1f);
             Check(gym.stalled && ce.fitness < 0.5f, "stalled gym gives no training");
@@ -121,7 +122,7 @@ namespace RedFrontier.Outpost.EditorTools
             Check(ce.lifeSupportShort && ce.shortOf == Res.Oxygen && Near(ce.fitness, 1f - ColonyEconomy.ShortageLoss), "running out of oxygen hurts");
             float metalBefore = ce[Res.Metal]; ce.fitness = 0f; ce[Res.Oxygen] = 50;
             ce.Tick(1f);
-            Check(Near(ce[Res.Metal] - metalBefore, 0.2f), "unfit crew halves output");
+            Check(Near(ce[Res.Metal] - metalBefore, 0.5f * rocketMetal), "unfit crew halves output");
 
             // site yield: terrain changes output, clamped, and the economy applies it to output only
             var flat = new Site();
@@ -139,7 +140,53 @@ namespace RedFrontier.Outpost.EditorTools
             ye.RecomputeCaps(); ye[Res.Energy] = 10; ye[Res.Water] = 0;
             float metal0 = ye[Res.Metal];
             ye.Tick(1f);
-            Check(Near(ye[Res.Water], 1.5f) && Near(ye[Res.Energy], 9f) && Near(ye[Res.Metal] - metal0, 0.4f), "yield scales output, not use");
+            Check(Near(ye[Res.Water], 1.5f) && Near(ye[Res.Energy], 9f) && Near(ye[Res.Metal] - metal0, rocketMetal), "yield scales output, not use");
+
+            // hard mode: solar factor, deprivation deaths, resupply delay
+            var he = new ColonyEconomy { crew = 2 };
+            var hs = new BuildingState(BuildingCatalog.Get(BuildingKind.Solar));
+            he.buildings.Add(new BuildingState(rocketDef)); he.buildings.Add(hs);
+            he.RecomputeCaps(); he[Res.Energy] = 0; he[Res.Oxygen] = 50; he[Res.Food] = 50; he[Res.Water] = 50;
+            he.solarFactor = 0.25f; he.Tick(1f);
+            Check(Near(he[Res.Energy], 0.5f), "solar factor scales solar energy only");
+            he.solarFactor = 1f; he.resupplyFactor = 0f; float m0 = he[Res.Metal]; he.Tick(1f);
+            Check(Near(he[Res.Metal], m0), "resupply delay stops lander metal");
+            he.resupplyFactor = 1f;
+            int lost = 0; Res lostRes = Res.Metal; he.CrewLost += r => { lost++; lostRes = r; };
+            he[Res.Oxygen] = 0;
+            for (int s = 0; s < 24; s++) he.Tick(1f);
+            Check(lost == 0 && he.crew == 2, "no death before the oxygen limit");
+            he.Tick(2f);
+            Check(lost == 1 && lostRes == Res.Oxygen && he.crew == 1 && he.crewLost == 1, "oxygen out for 25 s costs one astronaut");
+            he[Res.Oxygen] = 50; he.Tick(1f);
+            Check(he.deprived[(int)Res.Oxygen] == 0f, "supply resets the death timer");
+
+            // mission plan: deterministic per seed, varied across seeds, always playable
+            var plan1 = new MissionPlan(42); var plan2 = new MissionPlan(42);
+            bool same = plan1.events.Count == plan2.events.Count;
+            for (int i = 0; same && i < plan1.events.Count; i++)
+                same = plan1.events[i].kind == plan2.events[i].kind && Near(plan1.events[i].at, plan2.events[i].at) && Near(plan1.events[i].duration, plan2.events[i].duration);
+            Check(same, "same seed gives the same mission");
+            var signatures = new System.Collections.Generic.HashSet<string>();
+            bool sane = true;
+            for (int seed = 1; seed <= 100; seed++)
+            {
+                var mp = new MissionPlan(seed);
+                var sig = new StringBuilder();
+                bool sep = false, dust = false; float lastEnd = -1f;
+                foreach (var ev in mp.events)
+                {
+                    sig.Append(ev.kind).Append((int)ev.at).Append(';');
+                    sep |= ev.kind == MissionEventKind.SolarParticle; dust |= ev.kind == MissionEventKind.DustStorm;
+                    sane &= ev.at >= MissionPlan.SolSeconds && ev.End <= mp.Length - 20f && ev.at - ev.warning >= lastEnd - MissionPlan.SolSeconds;
+                    lastEnd = ev.at;
+                }
+                sane &= sep && dust && mp.events.Count >= 3 && mp.events.Count <= 4;
+                signatures.Add(sig.ToString());
+            }
+            Check(sane, "every mission has the NASA event and a dust storm, 3-4 events, none in the first sol or the final seconds");
+            Check(signatures.Count >= 90, "missions differ between seeds (" + signatures.Count + " of 100 distinct)");
+            Check(Near(MissionPlan.DaylightFactor(MissionPlan.SolSeconds * 0.8f), 0f) && MissionPlan.DaylightFactor(MissionPlan.SolSeconds * 0.3f) > 1f, "no sun at night, peak sun at noon");
 
             sb.AppendLine(fails == 0 ? "ALL PASS" : fails + " FAILED");
             return sb.ToString();

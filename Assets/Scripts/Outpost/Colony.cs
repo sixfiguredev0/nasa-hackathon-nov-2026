@@ -16,6 +16,9 @@ namespace RedFrontier.Outpost
         [Tooltip("Starting stock in Res order: Energy, Water, Food, Oxygen, Metal")]
         public float[] startStock = { 30, 40, 50, 50, 60 };
 
+        [Tooltip("Play the archived 30 s opening instead of the short 15 s one")]
+        public bool useLegacyOpening;
+
         public readonly ColonyEconomy economy = new ColonyEconomy();
         public readonly List<Building> buildings = new List<Building>();
         public static Colony Instance { get; private set; }
@@ -46,22 +49,35 @@ namespace RedFrontier.Outpost
             var c = zi >= 0 ? map.placement.zones[zi].cells.center : BuildArea.center;
             var fp = rocketDef.footprint;
             var rocket = Spawn(rocketDef, new RectInt(Mathf.RoundToInt(c.x - fp.x / 2f), Mathf.RoundToInt(c.y - fp.y / 2f), fp.x, fp.y), false);
-            var opening = OpeningCutscene.Begin(this, rocket);
-            while (!opening.Done) yield return null;
+            Vector3 playerStart;
+            if (useLegacyOpening)
+            {
+                var legacy = OpeningCutsceneLegacy.Begin(this, rocket); // archived 30 s version
+                while (!legacy.Done) yield return null;
+                playerStart = legacy.PlayerPosition;
+            }
+            else
+            {
+                var opening = OpeningCutscene.Begin(this, rocket);
+                while (!opening.Done) yield return null;
+                playerStart = opening.PlayerPosition;
+            }
             var crew = gameObject.AddComponent<Crew>();
             crew.Init(rocket);
-            crew.StartOutside(opening.PlayerPosition);
+            crew.StartOutside(playerStart);
             economy.crew = Crew.Picked.Length;
             if (GetComponent<BuilderMode>() == null) gameObject.AddComponent<BuilderMode>();
 
             economy.RecomputeCaps();
-            for (int i = 0; i < ColonyEconomy.ResCount && i < startStock.Length; i++)
-                economy.stock[i] = Mathf.Min(startStock[i], economy.cap[i]);
+            // Mission rules own the starting stock (ColonyEconomy.MissionStart); the serialized startStock is no longer used.
+            for (int i = 0; i < ColonyEconomy.ResCount && i < ColonyEconomy.MissionStart.Length; i++)
+                economy.stock[i] = Mathf.Min(ColonyEconomy.MissionStart[i], economy.cap[i]);
             gameObject.AddComponent<MissionPauseMenu>();
             Ready = true;
             gameObject.AddComponent<MissionGuide>();
             gameObject.AddComponent<MissionObjective>();
             gameObject.AddComponent<HistoricalTraining>();
+            gameObject.AddComponent<MissionDirector>();
         }
 
         void Update()
