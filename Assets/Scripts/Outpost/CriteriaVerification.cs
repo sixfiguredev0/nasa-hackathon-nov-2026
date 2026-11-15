@@ -232,12 +232,18 @@ namespace RedFrontier.Outpost
             Check(objective.Stage == MissionObjective.Step.Power && Field<RectTransform>(guide, "panel").gameObject.activeSelf,
                 "guide reopens and its Hide button cannot advance objectives");
             yield return Basics();
-            yield return new WaitForEndOfFrame();
-            ScreenCapture.CaptureScreenshot("Logs/criteria-choice.png");
+            if (!Application.isBatchMode)
+            {
+                yield return new WaitForEndOfFrame();
+                ScreenCapture.CaptureScreenshot("Logs/criteria-choice.png");
+            }
             Click(guide, "source");
             Check(Field<Text>(guide, "dialogue").text.Contains(record.link), "source view exposes provenance inside Marlonis");
-            yield return new WaitForEndOfFrame();
-            ScreenCapture.CaptureScreenshot("Logs/criteria-source.png");
+            if (!Application.isBatchMode)
+            {
+                yield return new WaitForEndOfFrame();
+                ScreenCapture.CaptureScreenshot("Logs/criteria-source.png");
+            }
             yield return null;
             Click(guide, "next");
             yield return null; // let re-enabled choice graphics enter the UI raycast registry
