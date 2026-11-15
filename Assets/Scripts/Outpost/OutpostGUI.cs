@@ -8,6 +8,9 @@ namespace RedFrontier.Outpost
     {
         static Texture2D white, circle;
         static GUIStyle style;
+        internal static readonly Color32 InstrumentAccent = new Color32(217, 170, 106, 255);
+        internal static readonly Color32 InstrumentWarning = new Color32(246, 190, 175, 255);
+        internal static readonly Color32 InstrumentSecondary = new Color32(225, 216, 208, 255);
 
         /// <summary>UI scale relative to the 540 px reference height.</summary>
         public static float Scale => Mathf.Max(1f, Screen.height / 540f);
@@ -65,6 +68,11 @@ namespace RedFrontier.Outpost
             Panel(new Rect(rect.x + pixel, rect.y, rect.width - 2f * pixel, rect.height), edge);
             Panel(new Rect(rect.x, rect.y + pixel, rect.width, rect.height - 2f * pixel), edge);
             Panel(new Rect(rect.x + pixel, rect.y + pixel, rect.width - 2f * pixel, rect.height - 2f * pixel), face);
+        }
+
+        internal static void InstrumentFrame(Rect rect, float scale, bool active = false)
+        {
+            Frame(rect, active ? FrontierUi.PanelDark : FrontierUi.Shadow, FrontierUi.PanelLight, scale);
         }
 
         public static void Disc(Vector2 center, float radius, Color c)
