@@ -73,11 +73,11 @@ namespace RedFrontier.Outpost
         public static readonly List<BuildingDef> Defs = new List<BuildingDef>
         {
             new BuildingDef(BuildingKind.Rocket, "Rocket", new Vector2Int(4, 4),
-                new UpgradeNode { id = "rocket1", name = "Lander", blurb = "Your crew's ride from Earth and the heart of the base. It stores supplies and gets cargo (Metal) from Earth.",
+                new UpgradeNode { id = "rocket1", name = "Crashed Ship", blurb = "Your wrecked ship and the heart of the base. It still stores supplies, and a salvage drone pulls Metal from the debris.",
                     rates = A((M, 1.0f)), storage = All(100), next = new[] { "rocket2" } },
-                new UpgradeNode { id = "rocket2", name = "Supply Rocket", blurb = "A bigger rocket: more cargo and more storage. Unlocks level 2 upgrades.",
+                new UpgradeNode { id = "rocket2", name = "Repaired Ship", blurb = "Patch the hull and raise the antenna: the ship stands again. More storage and salvage. Unlocks level 2 upgrades.",
                     cost = A((M, 60), (F, 20)), rates = A((M, 1.8f)), storage = All(200), next = new[] { "rocket3" } },
-                new UpgradeNode { id = "rocket3", name = "Starship Hub", blurb = "A giant reusable ship lands here now. Unlocks level 3 upgrades.",
+                new UpgradeNode { id = "rocket3", name = "Launch Tower", blurb = "A launch tower and fuel depot for big ships. Unlocks level 3 upgrades.",
                     cost = A((M, 150), (E, 80), (F, 40), (O, 40)), rates = A((M, 3.5f)), storage = All(400) }),
 
             new BuildingDef(BuildingKind.Solar, "Solar Arrays", new Vector2Int(4, 2),

@@ -12,21 +12,29 @@ namespace RedFrontier.Outpost
         static readonly Vector2 BannerSize = new Vector2(340, 82), TrackerSize = new Vector2(220, 48);
         static readonly Color32 Complete = new Color32(160, 230, 183, 255);
 
+        const float TrainingLinger = 6f; // keep the exercise result on screen before the story moves on
+
         Colony colony;
         HistoricalTraining training;
+        StoryArc story;
         Canvas canvas;
         CanvasGroup banner, tracker;
         RectTransform trackerRect;
         PixelLabel goal, bannerGoal;
         Image check;
-        float started, completedAt = -1f;
-        internal enum Step { Power, Water, Food, SupportPower, Oxygen, Training, Sandbox }
+        float started, completedAt = -1f, trainingDoneAt = -1f;
+        internal enum Step
+        {
+            Power, Water, Food, SupportPower, Oxygen, Training,
+            Salvage, StorePower, RepairRadio, Signal, RepairHull, Fuel, Decide, Sandbox
+        }
         internal Step Stage { get; private set; }
         internal string Caption => Captions[(int)Stage];
         static readonly string[] Captions =
         {
             "Restore power", "Drill for water", "Grow food", "Power life support",
-            "Supply oxygen", "Historical exercise", "Survive the mission"
+            "Supply oxygen", "Historical exercise", "Salvage metal", "Store power", "Repair the radio",
+            "Wait for the orbiter", "Repair the ship", "Make rocket fuel", "Make your choice", "Keep exploring"
         };
 
         internal string Guidance
@@ -40,8 +48,28 @@ namespace RedFrontier.Outpost
                     case Step.Food: return "Build a Greenhouse for food. Air runs low fast, so a Habitat must follow soon.";
                     case Step.SupportPower: return "Add Solar Panels on a good site. Life support needs more power.";
                     case Step.Oxygen: return "Build a Habitat Dome for oxygen. Its air machine needs power.";
-                    case Step.Training: return "Supplies are ready. Build a Gym and batteries before trouble finds you.";
-                    default: return "Survive " + MissionPlan.DefaultSols + " sols. Solar stops at night, so keep batteries and a Gym. Right-click buildings to upgrade.";
+                    case Step.Training: return "Supplies are ready. A historical training exercise is next.";
+                    case Step.Salvage: return "That old broadcast? Just noise. Let's fix the ship. Build an ISRU: it turns Mars rock into Metal.";
+                    case Step.StorePower: return "The ship needs stored power to restart its systems. Build a Battery Pack.";
+                    case Step.RepairRadio:
+                        if (story != null && story.RadioRepairing) return "The crew is fixing the radio at the ship.";
+                        return "You want the radio. Earth is far away; the ship matters more. ...Fine. Repair it: " +
+                            StoryArc.RadioMetal + " Metal, " + StoryArc.RadioEnergy + " Energy.";
+                    case Step.Signal:
+                        return "Our radio can't reach Earth alone. Orbiters like MRO pass overhead a few times a sol and carry messages. Next pass in " +
+                            Mathf.CeilToInt(story != null ? story.OrbiterIn : 0f) + " s.";
+                    case Step.RepairHull: return "Right-click the wrecked ship and buy Repaired Ship. Then I can take you home.";
+                    case Step.Fuel:
+                        if (story == null) return "";
+                        string fuel = "Fuel " + Mathf.FloorToInt(story.Fuel * 100f) + "%. ";
+                        return story.FuelStalled
+                            ? fuel + "Paused: we need more " + story.FuelMissing.ToString().ToLowerInvariant() + ". Build or upgrade to make more."
+                            : fuel + "The ship makes fuel from Mars air and ice water, like NASA's MOXIE. It uses Water and Energy.";
+                    case Step.Decide: return "The tank is full. Go home with me, or stay and switch me off. Press Make your choice.";
+                    default:
+                        return story != null && story.MarlonisOffline
+                            ? "Earth is free. Keep your base running until our ship arrives. Right-click buildings for upgrades."
+                            : "Build freely. Right-click buildings for upgrades.";
                 }
             }
         }
@@ -50,6 +78,7 @@ namespace RedFrontier.Outpost
         {
             colony = GetComponent<Colony>();
             training = GetComponent<HistoricalTraining>();
+            story = GetComponent<StoryArc>();
             started = Time.time;
             var root = new GameObject("Mission Objective Canvas", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler));
             canvas = root.GetComponent<Canvas>();
@@ -103,22 +132,52 @@ namespace RedFrontier.Outpost
         {
             if (colony == null || !colony.Ready || Time.timeScale <= 0f) return;
             var before = Stage;
+            // The story runs the solar particle exercise as its own step; MissionDirector's scheduled burst then skips it.
+            if (Stage == Step.Training && training != null && !training.Triggered && Time.time - started >= 4f) training.Trigger();
             while ((Stage == Step.Power && Has(BuildingKind.Solar)) ||
                    (Stage == Step.Water && Has(BuildingKind.Water)) ||
                    (Stage == Step.Food && Has(BuildingKind.Greenhouse)) ||
                    (Stage == Step.SupportPower && HasSupportPower()) ||
                    (Stage == Step.Oxygen && Has(BuildingKind.Habitat)) ||
-                   Stage == Step.Training) // the solar particle event now arrives on the mission schedule, not as a tutorial step
+                   (Stage == Step.Training && TrainingDone()) ||
+                   (Stage == Step.Salvage && Has(BuildingKind.Workshop)) ||
+                   (Stage == Step.StorePower && Has(BuildingKind.Battery)) ||
+                   (story != null && Stage == Step.RepairRadio && story.RadioFixed) ||
+                   (story != null && Stage == Step.Signal && story.SignalHeard) ||
+                   (story != null && Stage == Step.RepairHull && story.HullRepaired) ||
+                   (story != null && Stage == Step.Fuel && story.Fuel >= 1f) ||
+                   (story != null && Stage == Step.Decide && story.Chosen != StoryArc.Ending.None))
                 Stage++;
+            RefreshLiveGoal();
             if (before == Stage) return;
             started = Time.time;
             bannerGoal.Text = goal.Text = Caption;
-            // The last objective ("Survive the mission") stays on screen, unticked, until the mission director ends the run.
+            RefreshLiveGoal();
+            if (Stage != Step.Sandbox) return;
+            completedAt = Time.time;
+            goal.Color = Complete;
+            check.enabled = true;
+        }
+
+        bool TrainingDone()
+        {
+            if (training == null || training.State == HistoricalTraining.Phase.Unavailable) return true;
+            if (training.State != HistoricalTraining.Phase.Resolved) return false;
+            if (trainingDoneAt < 0f) trainingDoneAt = Time.time;
+            return Time.time - trainingDoneAt >= TrainingLinger;
+        }
+
+        // Counting goals show their number in the tracker.
+        void RefreshLiveGoal()
+        {
+            if (story == null) return;
+            if (Stage == Step.Signal) goal.Text = "Orbiter in " + Mathf.CeilToInt(story.OrbiterIn) + "s";
+            else if (Stage == Step.Fuel) goal.Text = "Rocket fuel " + Mathf.FloorToInt(story.Fuel * 100f) + "%";
         }
 
         void LateUpdate()
         {
-            canvas.enabled = !MissionPauseMenu.BlocksGameplayInput;
+            canvas.enabled = !MissionPauseMenu.BlocksGameplayInput && !StoryArc.Cinematic;
             // Top right, level with the resource bar, or tucked under it when the screen is too narrow.
             Rect bar = colony.resourceTopBar.Bounds;
             float scale = canvas.scaleFactor, margin = 12f * scale;

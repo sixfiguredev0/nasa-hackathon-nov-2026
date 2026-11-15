@@ -66,7 +66,8 @@ namespace RedFrontier.Outpost
 
         IEnumerator Shelter()
         {
-            yield return All((m, i) => Enter(m, i * 0.3f, RocketPoint(DoorPx), RocketPoint(LadderFootPx)));
+            yield return All((m, i) => Enter(m, i * 0.3f, RocketPoint(rocket.Wrecked ? rocket.WreckDoorPx : DoorPx),
+                RocketPoint(rocket.Wrecked ? rocket.WreckFootPx : LadderFootPx)));
             Sheltered = true;
         }
 
@@ -130,12 +131,16 @@ namespace RedFrontier.Outpost
             return true;
         }
 
+        /// <summary>True while a job on this building is queued or under way.</summary>
+        internal bool Busy(Building b) => b != null && jobs.Contains(b);
+
         IEnumerator Work()
         {
             while (true)
             {
                 while (rocket.Animating) yield return null;
-                Vector3 door = RocketPoint(DoorPx), foot = RocketPoint(LadderFootPx);
+                Vector3 door = RocketPoint(rocket.Wrecked ? rocket.WreckDoorPx : DoorPx),
+                    foot = RocketPoint(rocket.Wrecked ? rocket.WreckFootPx : LadderFootPx);
 
                 if (jobs.Count > 0)
                 {
