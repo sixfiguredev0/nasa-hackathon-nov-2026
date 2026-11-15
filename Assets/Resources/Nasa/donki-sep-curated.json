@@ -1,0 +1,150 @@
+{
+  "schemaVersion": 1,
+  "source": "NASA CCMC DONKI, M2M_CATALOG",
+  "endpoint": "https://ccmc.gsfc.nasa.gov/DONKI-API/get/SEP?startDate=2024-05-01&endDate=2024-05-20",
+  "dataMode": "archived",
+  "records": [
+    {
+      "sepID": "2024-05-10T13:35:00-SEP-001",
+      "eventTime": "2024-05-10T13:35Z",
+      "instruments": [
+        {
+          "displayName": "GOES-P: SEISS >10 MeV"
+        }
+      ],
+      "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/SEP/30677/-1",
+      "linkedEvents": [
+        {
+          "activityID": "2024-05-08T04:20:00-FLR-001"
+        },
+        {
+          "activityID": "2024-05-08T04:37:00-FLR-001"
+        },
+        {
+          "activityID": "2024-05-08T05:36:00-CME-001"
+        },
+        {
+          "activityID": "2024-05-08T11:26:00-FLR-001"
+        },
+        {
+          "activityID": "2024-05-08T12:24:00-CME-001"
+        },
+        {
+          "activityID": "2024-05-08T21:08:00-FLR-001"
+        },
+        {
+          "activityID": "2024-05-08T22:05:00-FLR-001"
+        },
+        {
+          "activityID": "2024-05-08T22:24:00-CME-001"
+        },
+        {
+          "activityID": "2024-05-09T08:45:00-FLR-001"
+        },
+        {
+          "activityID": "2024-05-09T09:24:00-CME-001"
+        },
+        {
+          "activityID": "2024-05-09T17:23:00-FLR-001"
+        },
+        {
+          "activityID": "2024-05-09T18:23:00-CME-001"
+        },
+        {
+          "activityID": "2024-05-10T06:27:00-FLR-001"
+        },
+        {
+          "activityID": "2024-05-10T07:12:00-CME-001"
+        }
+      ],
+      "sentNotifications": [
+        {
+          "messageID": "20240510-AL-004",
+          "messageIssueTime": "2024-05-10T13:46Z",
+          "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30678/1"
+        },
+        {
+          "messageID": "20240510-AL-005",
+          "messageIssueTime": "2024-05-10T14:12Z",
+          "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30679/1"
+        }
+      ],
+      "submissionTime": "2024-05-10T13:46Z",
+      "versionId": 1
+    },
+    {
+      "sepID": "2024-05-11T02:10:00-SEP-001",
+      "eventTime": "2024-05-11T02:10Z",
+      "instruments": [
+        {
+          "displayName": "GOES-P: SEISS >100 MeV"
+        }
+      ],
+      "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/SEP/30714/-1",
+      "linkedEvents": [
+        {
+          "activityID": "2024-05-11T01:10:00-FLR-001"
+        },
+        {
+          "activityID": "2024-05-11T01:36:00-CME-001"
+        }
+      ],
+      "sentNotifications": [
+        {
+          "messageID": "20240511-AL-006",
+          "messageIssueTime": "2024-05-11T02:30Z",
+          "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30715/1"
+        },
+        {
+          "messageID": "20240511-AL-007",
+          "messageIssueTime": "2024-05-11T02:46Z",
+          "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30716/1"
+        }
+      ],
+      "submissionTime": "2024-05-11T02:30Z",
+      "versionId": 1
+    },
+    {
+      "sepID": "2024-05-13T14:00:00-SEP-001",
+      "eventTime": "2024-05-13T14:00Z",
+      "instruments": [
+        {
+          "displayName": "GOES-P: SEISS >10 MeV"
+        }
+      ],
+      "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/SEP/30817/-1",
+      "linkedEvents": [
+        {
+          "activityID": "2024-05-13T08:06:00-FLR-001"
+        },
+        {
+          "activityID": "2024-05-13T08:23:00-FLR-001"
+        },
+        {
+          "activityID": "2024-05-13T08:47:00-FLR-001"
+        },
+        {
+          "activityID": "2024-05-13T09:12:00-CME-001"
+        },
+        {
+          "activityID": "2024-05-13T09:36:00-FLR-001"
+        }
+      ],
+      "sentNotifications": [
+        {
+          "messageID": "20240513-AL-008",
+          "messageIssueTime": "2024-05-13T14:09Z",
+          "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30818/1"
+        },
+        {
+          "messageID": "20240513-AL-009",
+          "messageIssueTime": "2024-05-13T14:16Z",
+          "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30819/1"
+        }
+      ],
+      "submissionTime": "2024-05-13T14:09Z",
+      "versionId": 1
+    }
+  ],
+  "interpretation": "Observed at the listed instruments, not measurements at Mars. Event selection can drive a fictional training scenario; timing compression, warning lead time, exposure and protection effects are authored gameplay assumptions. No flux, Mars dose or severity ranking is supplied by this fixture."
+}
