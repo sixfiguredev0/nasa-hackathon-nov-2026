@@ -26,7 +26,7 @@ namespace RedFrontier.Outpost
         static readonly string[] Captions =
         {
             "Restore power", "Drill for water", "Grow food", "Power life support",
-            "Supply oxygen", "Historical exercise", "Keep exploring"
+            "Supply oxygen", "Historical exercise", "Survive the mission"
         };
 
         internal string Guidance
@@ -37,11 +37,11 @@ namespace RedFrontier.Outpost
                 {
                     case Step.Power: return "Build Solar Panels for power. In Build, place a green blueprint.";
                     case Step.Water: return "Build an Ice Drill for drinking water. It needs power from your Solar Panels.";
-                    case Step.Food: return "Build a Greenhouse for food. It uses water and power to grow plants.";
+                    case Step.Food: return "Build a Greenhouse for food. Air runs low fast, so a Habitat must follow soon.";
                     case Step.SupportPower: return "Add Solar Panels on a good site. Life support needs more power.";
                     case Step.Oxygen: return "Build a Habitat Dome for oxygen. Its air machine needs power.";
-                    case Step.Training: return "Supplies are ready. A historical training exercise is next.";
-                    default: return "Build freely; Metal arrives by lander. Right-click buildings for upgrades.";
+                    case Step.Training: return "Supplies are ready. Build a Gym and batteries before trouble finds you.";
+                    default: return "Survive " + MissionPlan.DefaultSols + " sols. Solar stops at night, so keep batteries and a Gym. Right-click buildings to upgrade.";
                 }
             }
         }
@@ -108,16 +108,12 @@ namespace RedFrontier.Outpost
                    (Stage == Step.Food && Has(BuildingKind.Greenhouse)) ||
                    (Stage == Step.SupportPower && HasSupportPower()) ||
                    (Stage == Step.Oxygen && Has(BuildingKind.Habitat)) ||
-                   (Stage == Step.Training && training != null &&
-                       (training.State == HistoricalTraining.Phase.Resolved || training.State == HistoricalTraining.Phase.Unavailable)))
+                   Stage == Step.Training) // the solar particle event now arrives on the mission schedule, not as a tutorial step
                 Stage++;
             if (before == Stage) return;
             started = Time.time;
             bannerGoal.Text = goal.Text = Caption;
-            if (Stage != Step.Sandbox) return;
-            completedAt = Time.time;
-            goal.Color = Complete;
-            check.enabled = true;
+            // The last objective ("Survive the mission") stays on screen, unticked, until the mission director ends the run.
         }
 
         void LateUpdate()

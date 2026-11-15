@@ -51,6 +51,8 @@ namespace RedFrontier.Mars
         [Tooltip("Artist ground grain (ground8 + scatter variants), 24x12 per variant, Read/Write enabled")]
         public Texture2D grainTexture;
 
+        /// <summary>Set before the scene loads to force the next generated map (and mission) seed. Cleared when used.</summary>
+        public static int? SeedOverride;
         public int LastSeed { get; private set; }
         public string MapHash { get; private set; }
         public MarsTerrain Terrain { get; private set; }
@@ -74,7 +76,8 @@ namespace RedFrontier.Mars
         [ContextMenu("Generate (new random seed)")]
         public void GenerateNew()
         {
-            if (useRandomSeed) seed = Environment.TickCount ^ (int)(DateTime.UtcNow.Ticks & 0x7FFFFFFF);
+            if (SeedOverride.HasValue) { seed = SeedOverride.Value; SeedOverride = null; } // mission retry: same or fresh seed chosen on the debrief
+            else if (useRandomSeed) seed = Environment.TickCount ^ (int)(DateTime.UtcNow.Ticks & 0x7FFFFFFF);
             Generate(seed);
         }
 

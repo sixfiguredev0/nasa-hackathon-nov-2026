@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Runs the real economy + mission plan headless. Needs any Unity install for UnityEngine.CoreModule.dll.
+       dotnet run --project Tools/EconomySim -p:UnityManaged="D:/Apps/Unity/6000.6.6f1/Editor/Data/Managed/UnityEngine" -- 1000 -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <UnityManaged Condition="'$(UnityManaged)' == ''">D:/Apps/Unity/6000.6.6f1/Editor/Data/Managed/UnityEngine</UnityManaged>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+    <Compile Include="../../Assets/Scripts/Outpost/ColonyEconomy.cs" />
+    <Compile Include="../../Assets/Scripts/Outpost/BuildingCatalog.cs" />
+    <Compile Include="../../Assets/Scripts/Outpost/MissionPlan.cs" />
+    <Compile Include="../../Assets/Scripts/Outpost/Editor/EconomySim.cs" />
+    <Reference Include="UnityEngine.CoreModule"><HintPath>$(UnityManaged)/UnityEngine.CoreModule.dll</HintPath></Reference>
+  </ItemGroup>
+</Project>

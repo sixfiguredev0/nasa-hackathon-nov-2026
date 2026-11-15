@@ -73,6 +73,20 @@ namespace RedFrontier.Outpost
         void Awake() => Instance = this;
         void OnDestroy() { if (Instance == this) Instance = null; }
 
+        /// <summary>An astronaut died: remove their sprite and let the rest carry on with the saved job queue.</summary>
+        internal void LoseOne()
+        {
+            if (members.Count == 0) return;
+            StopAllCoroutines();
+            GameAudio.StopLoop(Sfx.ConstructLoop, this);
+            GameAudio.StopLoop(Sfx.GymLoop, this);
+            eco.training = null;
+            var lost = members[members.Count - 1];
+            members.RemoveAt(members.Count - 1);
+            if (lost.sr != null) Destroy(lost.sr.gameObject);
+            if (members.Count > 0 && isActiveAndEnabled) StartCoroutine(Sheltering ? Shelter() : Work());
+        }
+
         public void Init(Building rocketBuilding)
         {
             rocket = rocketBuilding;
