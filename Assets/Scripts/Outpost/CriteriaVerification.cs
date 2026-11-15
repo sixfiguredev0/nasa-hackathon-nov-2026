@@ -132,6 +132,8 @@ namespace RedFrontier.Outpost
             colony = Colony.Instance;
             objective = colony.GetComponent<MissionObjective>();
             training = colony.GetComponent<HistoricalTraining>();
+            training.autoDefault = false; // scripted steps may wait on the choice screen
+            colony.GetComponent<MissionDirector>().enabled = false; // the seeded event schedule would otherwise interrupt scripted steps
             guide = colony.GetComponent<MissionGuide>();
             crew = colony.GetComponent<Crew>();
             Check(objective.Stage == MissionObjective.Step.Power && training.State == HistoricalTraining.Phase.Waiting &&
@@ -183,9 +185,11 @@ namespace RedFrontier.Outpost
             for (int i = 0; i < 8 && objective.Stage == MissionObjective.Step.SupportPower; i++) yield return Build(BuildingKind.Solar);
             Check(objective.Stage == MissionObjective.Step.Oxygen, "actual solar capacity satisfies the support power goal");
             yield return Build(BuildingKind.Habitat);
+            Check(objective.Stage == MissionObjective.Step.Sandbox && training.State == HistoricalTraining.Phase.Waiting,
+                "completed life support leads to the survive goal; the NASA event waits for the mission schedule");
+            training.Trigger(); // the director would do this on its seeded schedule
             yield return Until(() => training.State == HistoricalTraining.Phase.Choice);
             yield return null; // allow LateUpdate to present the warning and its choices
-            Check(objective.Stage == MissionObjective.Step.Training, "completed life support unlocks the single historical exercise");
             Time.timeScale = 1f;
         }
 
@@ -295,6 +299,7 @@ namespace RedFrontier.Outpost
             training.enabled = false;
             Check(Mathf.Abs(colony.economy.fitness - beforeFitness) < .01f, "clearing an active event restores only its temporary fitness dip");
             training.enabled = true;
+            training.Trigger();
             yield return Until(() => training.State == HistoricalTraining.Phase.Choice);
             yield return null;
             Click(guide, "work");
@@ -302,7 +307,7 @@ namespace RedFrontier.Outpost
             yield return Until(() => !first.UnderConstruction);
             Check(training.State == HistoricalTraining.Phase.Working, "working choice retains real construction progress during the exercise");
             yield return Until(() => training.State == HistoricalTraining.Phase.Resolved);
-            Check(Field<float>(training, "removedFitness") == 0f && !crew.Sheltering, "working consequence expires and clears after 20 game seconds");
+            Check(Field<float>(training, "removedFitness") == 0f && !crew.Sheltering, "working consequence expires and clears after the exercise's game seconds");
             Time.timeScale = 1f;
             yield return ReturnToMenu();
             yield return Launch(false);

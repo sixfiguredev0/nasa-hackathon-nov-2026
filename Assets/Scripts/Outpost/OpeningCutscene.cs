@@ -9,17 +9,18 @@ using UnityEngine.UI;
 namespace RedFrontier.Outpost
 {
     /// <summary>
-    /// The 30 s opening, played on the live outpost before the player gets control:
-    /// 0-6 s the rocket shakes down with alarms going, 6-12 s black then waking in the wreckage,
-    /// 12-26 s Marlonis on the damaged radio, 26-30 s a recorder plays the player's own voice while the camera
-    /// pulls back to the outpost. Holding Esc skips it at any point.
+    /// The 15 s opening, played on the live outpost before the player gets control:
+    /// 0-3.5 s the rocket shakes down with alarms going, 3.5-6.5 s black then waking in the wreckage,
+    /// 6.6-12.7 s Marlonis on the damaged radio gives the mission (survive the sols, solar stops at night),
+    /// 12.9-15 s the camera pulls back to the outpost. Any key or click skips it (after a moment); holding Esc also works.
+    /// The original 30 s version is kept in Archive/OpeningCutsceneLegacy.cs (Colony.useLegacyOpening).
     /// There is no cutscene art yet, so it is built from the scene, the rocket and crew sprites, flat pixel shapes and
     /// synthesized sound. This object stays behind afterwards as the smouldering crash site.
     /// </summary>
     internal sealed class OpeningCutscene : MonoBehaviour
     {
-        const float Duration = 30f, EngineOut = 4.5f, Impact = 6f, Wake = 8f, Stand = 10.8f;
-        const float RadioOn = 12f, PageTwo = 21f, RadioOff = 26f, RecorderOn = 26.3f, PullBack = 27.4f, Release = 29.2f;
+        const float Duration = 15f, EngineOut = 2f, Impact = 3.5f, Wake = 4.4f, Stand = 5.9f;
+        const float RadioOn = 6.6f, PageTwo = 9.7f, RadioOff = 12.7f, RecorderOn = 999f, PullBack = 12.9f, Release = 14.4f; // RecorderOn: beat cut from the short version
         const float StartHeight = 17f, StallHeight = 7f;
         const float SkipSeconds = 1f, Bars = .09f, Ppu = 16f, CharsPerSecond = 30f;
         const int South = 0, SouthEast = 1, SouthWest = 7, MaxPuffs = 260, Rate = 22050;
@@ -33,16 +34,16 @@ namespace RedFrontier.Outpost
 
         static readonly Cue[][] RadioLines =
         {
-            new[] { new Cue(12.4f, "You're alive. We crashed on Mars."), new Cue(15.4f, " I'm Marlonis. I can help you survive.") },
-            new[] { new Cue(21.1f, "Contact with Earth is lost."), new Cue(22.8f, " Don't repair the radio yet. Power comes first.") },
+            new[] { new Cue(6.8f, "You're alive. We crashed on Mars."), new Cue(8.1f, " I'm Marlonis. Earth can't hear us.") },
+            new[] { new Cue(9.8f, "Survive " + MissionPlan.DefaultSols + " sols. Solar dies at night,"), new Cue(11.1f, " so build batteries and a Gym.") },
         };
         static readonly Cue[] RecorderLines = { new Cue(26.6f, "\"Check the communications log.\"") };
 
         // Eyelid openness keyframes (time, 0 shut .. 1 open): two heavy blinks before the eyes stay open.
         static readonly Vector2[] Blink =
         {
-            new Vector2(8f, 0f), new Vector2(8.6f, .35f), new Vector2(8.9f, .05f),
-            new Vector2(9.7f, .7f), new Vector2(9.85f, .45f), new Vector2(10.7f, 1f)
+            new Vector2(4.4f, 0f), new Vector2(4.85f, .35f), new Vector2(5.05f, .05f),
+            new Vector2(5.5f, .7f), new Vector2(5.6f, .45f), new Vector2(6.2f, 1f)
         };
 
         // Hull colours picked from Rocket.png so the debris reads as pieces of it.
@@ -154,7 +155,8 @@ namespace RedFrontier.Outpost
             if (!Done)
             {
                 hold = Input.GetKey(KeyCode.Escape) ? hold + dt : Mathf.Max(0f, hold - 3f * dt);
-                if (hold >= SkipSeconds) Finish(true);
+                bool tap = t > .6f && Input.anyKeyDown && !Input.GetKey(KeyCode.Escape); // any key or click skips; Esc still works by holding
+                if (hold >= SkipSeconds || tap) Finish(true);
                 else
                 {
                     last = t;
@@ -183,7 +185,7 @@ namespace RedFrontier.Outpost
         {
             bool calm = FrontierUi.ReduceMotion;
 
-            // 0-6 s: the rocket shakes down with the alarms going.
+            // 0-3.5 s: the rocket shakes down with the alarms going.
             bool falling = t < Impact;
             warning.gameObject.SetActive(falling && t > .25f);
             alarm.color = new Color(1f, .16f, .12f, falling ? (calm ? .1f : .26f) * (.4f + .6f * Pulse(1.25f)) : 0f);
@@ -194,21 +196,21 @@ namespace RedFrontier.Outpost
             flash.color = new Color(1f, 1f, 1f, !calm && t >= Impact && t < Impact + .12f ? 1f : 0f);
             black.color = new Color(0f, 0f, 0f, t >= Impact && t < Wake && (calm || t >= Impact + .12f) ? 1f : 0f);
 
-            // 6-12 s: the eyes open on the wreckage and the astronaut gets up.
+            // 3.5-6.5 s: the eyes open on the wreckage and the astronaut gets up.
             float open = Openness();
             bool lids = t >= Wake && open < 1f;
             lidTop.gameObject.SetActive(lids);
             lidBottom.gameObject.SetActive(lids);
             Edge(lidTop, .5f * (1f - open) + .002f, true);
             Edge(lidBottom, .5f * (1f - open) + .002f, false);
-            vision.color = new Color(.25f, .05f, .06f, t >= Wake ? .65f * (1f - Mathf.InverseLerp(Wake, 11.5f, t)) : 0f);
+            vision.color = new Color(.25f, .05f, .06f, t >= Wake ? .65f * (1f - Mathf.InverseLerp(Wake, 6.3f, t)) : 0f);
             Pose(calm);
 
-            // 12-26 s: Marlonis on the damaged radio. 26-30 s: the recorder, then back out to the outpost.
+            // 6.6-12.7 s: Marlonis on the damaged radio, then back out to the outpost (the recorder beat is cut).
             Radio(calm);
             Recorder();
             if (t >= PullBack)
-                Aim(Vector3.Lerp(shotB, home, calm ? 1f : Mathf.SmoothStep(0f, 1f, (t - PullBack) / 2.2f)), 1);
+                Aim(Vector3.Lerp(shotB, home, calm ? 1f : Mathf.SmoothStep(0f, 1f, (t - PullBack) / 1.8f)), 1);
 
             float bars = Bars * (1f - Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(Release, Release + .7f, t)));
             Edge(barTop, bars, true);
@@ -234,8 +236,8 @@ namespace RedFrontier.Outpost
             bed.volume = .3f + .5f * severity;
 
             warningTitle.gameObject.SetActive(calm || Pulse(1.25f) > .3f);
-            warningStatus.Text = t < 1.6f ? "Hull breach" : t < 3.2f ? "Cabin pressure low" : t < EngineOut ? "Thrusters failing"
-                : t < 5.2f ? "Engine failure" : "Brace for impact";
+            warningStatus.Text = t < .8f ? "Hull breach" : t < 1.4f ? "Cabin pressure low" : t < EngineOut ? "Thrusters failing"
+                : t < 2.9f ? "Engine failure" : "Brace for impact";
             warningAltitude.Text = "Altitude " + Mathf.RoundToInt(h / StartHeight * 180f) * 10 + " m";
 
             float shake = calm ? 0f : (1f + 2.5f * severity * severity) / Ppu;
@@ -279,7 +281,7 @@ namespace RedFrontier.Outpost
             float rise = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(Stand, Stand + .4f, t));
             if (calm) rise = t >= Stand ? 1f : 0f;
             astronaut.transform.rotation = Quaternion.Euler(0f, 0f, 90f * (1f - rise)); // lying on their back, head to the left
-            int facing = t < 11.5f ? South : t < 11.9f ? SouthWest : t < 12.3f ? SouthEast : t < RadioOff + .1f ? South : SouthEast;
+            int facing = t < 6.3f ? South : t < 6.6f ? SouthWest : t < 6.9f ? SouthEast : t < RadioOff + .1f ? South : SouthEast;
             astronaut.sprite = facings[facing];
         }
 
@@ -660,7 +662,7 @@ namespace RedFrontier.Outpost
             skipFill = FrontierUi.Fill("Fill", track, FrontierUi.Coral).rectTransform;
             skipFill.anchorMax = new Vector2(0f, 1f);
             PixelLabel.Create("Key", key.transform, "Esc", 2, FrontierUi.Cream);
-            Label(prompt, PromptSize, "to skip", 2, FrontierUi.Cream, 110, 0, 78, 24, 0f);
+            Label(prompt, PromptSize, "or click", 2, FrontierUi.Cream, 110, 0, 78, 24, 0f);
         }
 
         static RectTransform Anchored(string name, Transform parent, Vector2 anchor, Vector2 pivot, Vector2 position, Vector2 size)

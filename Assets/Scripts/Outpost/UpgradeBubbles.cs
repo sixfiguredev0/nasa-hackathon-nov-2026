@@ -250,7 +250,8 @@ namespace RedFrontier.Outpost
             if (st.def.kind != BuildingKind.Rocket) text += "\n<color=#aaa>Site output " + (st.yield * 100f).ToString("0") + "%</color>";
             if (b.UnderConstruction) text += "\n<color=#9cf>Blueprint: waiting for the crew to build it</color>";
             else text += "\n<color=#aaa>Right-click for upgrades</color>";
-            if (st.stalled) text += "\n<color=#f88>Stopped: needs " + st.missing + "</color>";
+            if (st.broken) text += "\n<color=#f88>Offline: equipment failure</color>";
+            else if (st.stalled) text += "\n<color=#f88>Stopped: needs " + st.missing + "</color>";
             var style = OutpostGUI.Text(11 * s, TextAnchor.UpperLeft, Color.white);
             var size = style.CalcSize(new GUIContent(text));
             var m = Event.current.mousePosition;
