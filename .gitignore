@@ -34,3 +34,7 @@ Desktop.ini
 # Plastic SCM
 .plastic/
 /Assets/Plugins/PlasticSCM*
+
+# Python
+__pycache__/
+*.pyc

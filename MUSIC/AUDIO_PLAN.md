@@ -12,7 +12,7 @@ This replaces the earlier proposal. Every row below is wired in code, or deliber
 | `AudioCatalog` | `Assets/Scripts/Audio/AudioCatalog.cs` | Stable sound IDs (`Sfx.*`, `MusicIds.*`). Per ID: bus, variation count, gain, cooldown, max voices, priority, pitch jitter. |
 | `MusicSelector` | `Assets/Scripts/Audio/MusicSelector.cs` | Next gameplay movement (never one of the last two) and rest length. |
 | `AudioPrefs` | `Assets/Scripts/Audio/AudioPrefs.cs` | `MusicVolume` 0.7, `EffectsVolume` 0.9, `AmbienceVolume` 0.7 in PlayerPrefs. **`FrontierUi.MasterVolume` (`AudioListener.volume`, key `MasterVolume`) is unchanged.** Category levels multiply on top of it. |
-| `AudioMixRow` | `Assets/AudioMixRow.cs` | Three compact sliders (Music / Effects / Ambience) under Master volume in title Options and in pause Settings. |
+| `AudioMixRow` | `Assets/Scripts/Menu/AudioMixRow.cs` | Three compact sliders (Music / Effects / Ambience) under Master volume in title Options and in pause Settings. |
 | `OutpostAudio` | `Assets/Scripts/Outpost/OutpostAudio.cs` | Reads colony state, never writes it. Edge-triggered alerts, colony hum level, shortage signal for music. Added by `Colony.Start`. |
 | Import rules | `Assets/Scripts/Audio/Editor/AudioImportRules.cs` | Music: Compressed In Memory, Vorbis q0.7, not preloaded, load in background. SFX: Decompress On Load. Ambience: Compressed In Memory. No Streaming, no AudioMixer. WebGL transcodes to AAC itself. |
 
