@@ -406,7 +406,7 @@ public sealed class MainMenu : MonoBehaviour
         float texel = narrow ? 4.2f : 5.4f;
         rocketSize = 120 * texel;
         startSize = new Vector2(264, 68);
-        optionsSize = new Vector2(236, 52);
+        optionsSize = new Vector2(236, 55); // pressed glass must stay >= 4 * 9 px tall or the lettering drops a scale
         hullCenter = narrow ? new Vector2(250, size.y - 40 - 31 * texel) : new Vector2(360, logoEnd + 175);
         rocketPos = hullCenter + new Vector2(6, -3) * texel; // cylinder below the nose dome: rows 40-92
         float rocketTop = hullCenter.y - 32 * texel, rocketBottom = hullCenter.y + 31 * texel;

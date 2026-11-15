@@ -18,6 +18,23 @@ oxygen and metal.
 | Yasen Katevski | [@sixfiguredev0](https://github.com/sixfiguredev0) |
 | pulserr3 | — |
 
+## Play it
+
+**Browser build (WebGL):** download `red-frontier-webgl.zip` from the
+[latest release](https://github.com/sixfiguredev0/nasa-hackathon-nov-2026/releases/latest),
+unzip it into a folder and serve that folder locally (browsers block WebGL from `file://`):
+
+```bash
+cd red-frontier-webgl
+python -m http.server 8000
+```
+
+Then open <http://localhost:8000>. Use a desktop browser (Chrome, Edge or Firefox) with about 1 GB of free RAM.
+
+**From source:** open the repository in Unity 2022.3.18f1 and press Play (see "Run it" below).
+
+**Trailer:** <https://youtu.be/LjNSOd4UZqo>
+
 ## Run it
 
 1. Open the repository folder in **Unity 2022.3.18f1** (Unity Hub → Add project from disk).
