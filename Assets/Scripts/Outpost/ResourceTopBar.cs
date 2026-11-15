@@ -5,24 +5,26 @@ namespace RedFrontier.Outpost
 {
     internal sealed class ResourceTopBar
     {
-        private static readonly Color32 Capacity = new Color32(207, 185, 184, 255);
-        private static readonly Color32 Cream = new Color32(248, 232, 215, 255);
-        private static readonly Color32 Gain = new Color32(160, 230, 183, 255);
-        private static readonly Color32 Loss = new Color32(255, 151, 142, 255);
-        private static readonly Color32[] StockColors =
-        {
-            new Color32(255, 193, 94, 255),
-            new Color32(121, 192, 255, 255),
-            new Color32(170, 230, 136, 255),
-            new Color32(125, 235, 225, 255),
-            new Color32(225, 206, 239, 255)
-        };
-        private static readonly string[] Names = System.Enum.GetNames(typeof(Res));
+        private enum Gauge { Single, Food, Water }
 
-        private Texture2D resourceBarArt;
-        private readonly Texture2D[] icons = new Texture2D[Names.Length];
-        private readonly float[] displayedStock = new float[Names.Length];
-        private readonly float[] displayedFill = new float[Names.Length];
+        private static readonly Color32 Edge = new Color32(76, 62, 76, 255);
+        private static readonly Color32 Secondary = new Color32(225, 216, 208, 255);
+        private static readonly string SecondaryHex = ColorUtility.ToHtmlStringRGB(Secondary);
+        private static readonly Color32 Fill = new Color32(217, 170, 106, 255);
+        private static readonly Color32 Warning = new Color32(246, 190, 175, 255);
+        private static readonly Res[] VisibleResources = { Res.Energy, Res.Oxygen, Res.Food, Res.Water };
+
+        private const float DialWidth = 132f, ResourcesWidth = 232f, CardHeight = 72f, Gap = 8f;
+        private const float DialRowWidth = DialWidth * 2f + Gap;
+        private const float WideWidth = DialRowWidth + Gap + ResourcesWidth;
+        private const int GaugeSteps = 40, TileSize = 48, AtlasColumns = 8;
+        private const int TilesPerGauge = GaugeSteps + 1;
+        private const int AtlasRows = (3 * TilesPerGauge + AtlasColumns - 1) / AtlasColumns;
+
+        private readonly Texture2D[] icons = new Texture2D[ColonyEconomy.ResCount];
+        private readonly float[] displayedStock = new float[ColonyEconomy.ResCount];
+        private readonly float[] displayedFill = new float[ColonyEconomy.ResCount];
+        private static Texture2D gaugeAtlas;
         private GUIStyle text;
         private int lastFrame = -1;
 
@@ -33,116 +35,216 @@ namespace RedFrontier.Outpost
             if (Event.current.type != EventType.Repaint) return;
             if (text == null)
             {
-                resourceBarArt = Resources.Load<Texture2D>("OutpostHud/Resource Bar");
                 text = new GUIStyle(GUI.skin.label)
                 {
                     clipping = TextClipping.Clip,
                     padding = new RectOffset(),
                     richText = true
                 };
-                for (int i = 0; i < icons.Length; i++)
-                    icons[i] = Resources.Load<Texture2D>("ResourceIcons/" + Names[i]);
+                foreach (Res resource in VisibleResources)
+                    icons[(int)resource] = Resources.Load<Texture2D>("ResourceIcons/" + resource);
+                if (gaugeAtlas == null) gaugeAtlas = CreateGaugeAtlas();
             }
 
             UpdateReadouts(economy);
-            const float width = 640f, height = 44f;
-            float baseScale = Mathf.Clamp(Screen.height / 720f, 1f, 1.5f);
-            float scale = Mathf.Min(1.1f * baseScale, (Screen.width - 16f) / width);
-            bool compact = scale < 0.85f;
-            float panelHeight = compact ? height * 1.7f : 58f * baseScale;
-            float verticalScale = Mathf.Round(panelHeight) / height;
-            float panelWidth = Mathf.Round(width * scale);
-            var panel = new Rect(Mathf.Round((Screen.width - panelWidth) / 2f), 12f,
-                panelWidth, Mathf.Round(panelHeight));
+            Bounds = Layout(Screen.width, Screen.height, out bool stacked, out float scale);
 
-            Bounds = panel;
-            GUI.DrawTexture(panel, resourceBarArt);
-            // These dimensions match the recessed compartments and tracks painted into the sprite.
-            for (int i = 0; i < Names.Length; i++)
-            {
-                float left = panel.x + (15f + i * 121f) * scale;
-                float cellWidth = (i == Names.Length - 1 ? 126f : 116f) * scale;
-                DrawCell(new Rect(left, panel.y, cellWidth, panel.height), i, economy, scale, verticalScale, compact);
-            }
+            float left = Bounds.x;
+            float top = Bounds.y;
+            DrawDial(new Rect(left, top, DialWidth * scale, CardHeight * scale), Res.Energy, economy, scale);
+            DrawDial(new Rect(left + (DialWidth + Gap) * scale, top, DialWidth * scale, CardHeight * scale),
+                Res.Oxygen, economy, scale);
+
+            float resourcesX = stacked ? left + (DialRowWidth - ResourcesWidth) * .5f * scale
+                : left + (DialRowWidth + Gap) * scale;
+            float resourcesY = stacked ? top + (CardHeight + Gap) * scale : top;
+            DrawResources(new Rect(resourcesX, resourcesY, ResourcesWidth * scale, CardHeight * scale), economy, scale);
+        }
+
+        internal static Rect Layout(int screenWidth, int screenHeight, out bool stacked, out float scale)
+        {
+            float preferredScale = Mathf.Clamp(screenHeight / 720f, 1f, 1.5f);
+            float available = Mathf.Max(1f, screenWidth - 2f * Gap);
+            stacked = available < WideWidth * preferredScale * .9f;
+            float width = stacked ? DialRowWidth : WideWidth;
+            float height = stacked ? 2f * CardHeight + Gap : CardHeight;
+            scale = Mathf.Min(preferredScale, available / width);
+            return new Rect(Mathf.Round((screenWidth - width * scale) * .5f), 12f,
+                Mathf.Round(width * scale), Mathf.Round(height * scale));
         }
 
         private void UpdateReadouts(ColonyEconomy economy)
         {
             if (lastFrame == Time.frameCount) return;
-            // IMGUI may repaint more than once per frame. Animate from real time once per frame.
             float blend = lastFrame < 0 || FrontierUi.ReduceMotion
                 ? 1f
                 : 1f - Mathf.Exp(-12f * Time.unscaledDeltaTime);
             lastFrame = Time.frameCount;
-            for (int i = 0; i < Names.Length; i++)
+            foreach (Res resource in VisibleResources)
             {
-                float stock = economy.stock[i];
-                float cap = economy.cap[i];
-                float fill = cap > 0 ? Mathf.Clamp01(stock / cap) : 0;
-                displayedStock[i] = Mathf.Lerp(displayedStock[i], stock, blend);
-                displayedFill[i] = Mathf.Lerp(displayedFill[i], fill, blend);
+                int index = (int)resource;
+                float stock = economy.stock[index];
+                float capacity = economy.cap[index];
+                float fill = capacity > 0 ? Mathf.Clamp01(stock / capacity) : 0f;
+                displayedStock[index] = Mathf.Lerp(displayedStock[index], stock, blend);
+                displayedFill[index] = Mathf.Lerp(displayedFill[index], fill, blend);
             }
         }
 
-        private void DrawCell(Rect cell, int index, ColonyEconomy economy, float scale, float verticalScale, bool compact)
+        private void DrawDial(Rect card, Res resource, ColonyEconomy economy, float scale)
         {
-            float textScale = Mathf.Max(0.8f, scale);
-            float iconSize = Mathf.Round(16f * textScale);
-            float iconX = compact ? cell.center.x - iconSize / 2f : cell.x + scale;
-            float iconY = cell.y + (compact ? 3f : 10f) * verticalScale;
-            if (icons[index] != null)
-                GUI.DrawTexture(new Rect(Mathf.Round(iconX), Mathf.Round(iconY), iconSize, iconSize), icons[index]);
+            DrawCard(card, scale);
+            DrawName(DialRect(card, 8, 6, 116, 16, scale), resource, 16, 12, scale);
+            string status = Status(resource, economy);
+            var dial = DialRect(card, 10, 28, 40, 40, scale);
+            DrawGauge(dial, Gauge.Single, resource, status != null);
+            if (status != null)
+                Label(dial, status, 9f * scale, Warning, TextAnchor.MiddleCenter);
 
-            Color tint = StockColors[index];
-            string count = ColorText($"<b>{displayedStock[index]:0}</b>", 14f, tint, textScale);
-            string cap = ColorText($"/{economy.cap[index]:0}", 11f, Capacity, textScale);
-            float rate = economy.net[index];
-            string rateLabel = Mathf.Abs(rate) >= 0.05f
-                ? ColorText(rate.ToString("+0.0;-0.0", CultureInfo.InvariantCulture) + "/s", 10f,
-                    rate > 0 ? Gain : Loss, textScale)
-                : string.Empty;
-
-            if (compact)
-            {
-                Label(new Rect(cell.x, cell.y + 11.5f * verticalScale, cell.width, 12f * textScale),
-                    Names[index], textScale, TextAnchor.MiddleCenter);
-                Label(new Rect(cell.x, cell.y + 18f * verticalScale, cell.width, 13f * textScale),
-                    count + cap, textScale, TextAnchor.MiddleCenter);
-                Label(new Rect(cell.x, cell.y + 25f * verticalScale, cell.width, 10f * textScale),
-                    rateLabel, textScale, TextAnchor.MiddleCenter);
-            }
-            else
-            {
-                float left = cell.x + 21f * scale;
-                float available = cell.xMax - left;
-                string readout = Names[index] + "  " + count + cap;
-                string inlineRate = readout + "  " + rateLabel;
-                text.fontSize = Mathf.RoundToInt(11f * textScale);
-                bool rateFits = rateLabel.Length == 0 || text.CalcSize(new GUIContent(inlineRate)).x <= available;
-                Label(new Rect(left, cell.y + (rateFits ? 8f : 5f) * verticalScale, available, 18f * scale),
-                    rateFits ? inlineRate : readout, textScale, TextAnchor.MiddleLeft);
-                if (!rateFits)
-                    Label(new Rect(left, cell.y + 19f * verticalScale, available, 10f * scale), rateLabel,
-                        textScale, TextAnchor.MiddleLeft);
-            }
-
-            float fillX = Mathf.Round(cell.x + 2f * scale);
-            float fillY = Mathf.Round(cell.y + 31f * verticalScale);
-            float fillWidth = Mathf.Round((cell.width - 4f * scale) * displayedFill[index]);
-            float fillHeight = Mathf.Max(1f, Mathf.Round(4f * verticalScale));
-            OutpostGUI.Panel(new Rect(fillX, fillY, fillWidth, fillHeight), tint);
+            DrawStock(DialRect(card, 56, 29, 68, 22, scale), resource, economy, scale, 17f);
+            DrawRate(DialRect(card, 56, 51, 68, 16, scale), resource, economy, scale, status != null);
         }
 
-        private static string ColorText(string value, float size, Color color, float scale)
+        private void DrawResources(Rect card, ColonyEconomy economy, float scale)
         {
-            return $"<size={Mathf.RoundToInt(size * scale)}><color=#{ColorUtility.ToHtmlStringRGB(color)}>{value}</color></size>";
+            DrawCard(card, scale);
+            Label(DialRect(card, 8, 6, ResourcesWidth - 16, 16, scale),
+                "Resources", 12f * scale, FrontierUi.Cream, TextAnchor.MiddleCenter);
+
+            var dial = DialRect(card, 96, 28, 40, 40, scale);
+            DrawSupply(card, dial, 10, Gauge.Food, Res.Food, economy, scale);
+            DrawSupply(card, dial, 148, Gauge.Water, Res.Water, economy, scale);
         }
 
-        private void Label(Rect rect, string value, float scale, TextAnchor alignment)
+        private void DrawSupply(Rect card, Rect dial, float left, Gauge gauge, Res resource,
+            ColonyEconomy economy, float scale)
+        {
+            string status = Status(resource, economy);
+            DrawGauge(dial, gauge, resource, status != null);
+            DrawName(DialRect(card, left, 27, 74, 14, scale), resource, 12, 11, scale);
+            DrawStock(DialRect(card, left, 41, 74, 15, scale), resource, economy, scale, 15f);
+            var rate = DialRect(card, left, 55, 74, 14, scale);
+            if (status != null)
+                Label(rate, status, 10f * scale, Warning, TextAnchor.MiddleRight);
+            DrawRate(rate, resource, economy, scale, status != null);
+        }
+
+        private void DrawName(Rect line, Res resource, int iconSize, int fontSize, float scale)
+        {
+            var icon = icons[(int)resource];
+            float size = Mathf.Max(1f, Mathf.Round(iconSize * scale));
+            if (icon != null)
+                GUI.DrawTexture(new Rect(Mathf.Round(line.x), Mathf.Round(line.center.y - size * .5f), size, size), icon);
+            float offset = (iconSize + 4f) * scale;
+            line.xMin += offset;
+            Label(line, resource.ToString(), fontSize * scale, FrontierUi.Cream);
+        }
+
+        private void DrawStock(Rect rect, Res resource, ColonyEconomy economy, float scale, float countSize)
+        {
+            int index = (int)resource;
+            string stock = displayedStock[index].ToString("0", CultureInfo.InvariantCulture);
+            string capacity = economy.cap[index].ToString("0", CultureInfo.InvariantCulture);
+            int secondarySize = Mathf.Max(1, Mathf.RoundToInt(11f * scale));
+            if (stock.Length + capacity.Length >= 8) countSize = 12f;
+            string readout = $"<b>{stock}</b> <size={secondarySize}><color=#{SecondaryHex}>/ {capacity}</color></size>";
+            Label(rect, readout, countSize * scale, FrontierUi.Cream);
+        }
+
+        private void DrawRate(Rect rect, Res resource, ColonyEconomy economy, float scale, bool low)
+        {
+            float rate = economy.net[(int)resource];
+            string readout = (Mathf.Abs(rate) < .05f ? 0f : rate)
+                .ToString("+0.0;-0.0;0.0", CultureInfo.InvariantCulture) + "/s";
+            Label(rect, readout, 11f * scale, low ? Warning : Secondary);
+        }
+
+        private static string Status(Res resource, ColonyEconomy economy)
+        {
+            int i = (int)resource;
+            bool shortage = economy.lifeSupportShort && economy.shortOf == resource;
+            bool draining = economy.net[i] <= -.05f && economy.cap[i] > 0f;
+            if (!shortage && (!draining || economy.stock[i] > economy.cap[i] * .2f)) return null;
+            return economy.stock[i] <= 0f ? "Empty" : "Low";
+        }
+
+        private static Rect DialRect(Rect card, float x, float y, float w, float h, float scale) =>
+            new Rect(card.x + x * scale, card.y + y * scale, w * scale, h * scale);
+
+        private static void DrawCard(Rect card, float scale)
+        {
+            OutpostGUI.Frame(card, FrontierUi.Shadow, Edge, scale);
+            var rule = DialRect(card, 8, 24, card.width / scale - 16f, 1f, scale);
+            OutpostGUI.Panel(rule, Edge);
+        }
+
+        private void DrawGauge(Rect rect, Gauge gauge, Res resource, bool low)
+        {
+            DrawGaugeTile(rect, gauge, GaugeSteps, Edge);
+            int fill = Mathf.RoundToInt(displayedFill[(int)resource] * GaugeSteps);
+            if (fill > 0) DrawGaugeTile(rect, gauge, fill, low ? Warning : Fill);
+        }
+
+        private void DrawGaugeTile(Rect rect, Gauge gauge, int step, Color tint)
+        {
+            int tile = (int)gauge * TilesPerGauge + step;
+            var uv = new Rect((tile % AtlasColumns) / (float)AtlasColumns, (tile / AtlasColumns) / (float)AtlasRows,
+                1f / AtlasColumns, 1f / AtlasRows);
+            Color original = GUI.color;
+            GUI.color = tint;
+            GUI.DrawTextureWithTexCoords(rect, gaugeAtlas, uv, true);
+            GUI.color = original;
+        }
+
+        // Each tile is an arc mask. Food fills the left half and Water fills the right,
+        // so the combined dial retains both fill levels even when one supply is empty.
+        private static Texture2D CreateGaugeAtlas()
+        {
+            const int width = TileSize * AtlasColumns;
+            const int height = TileSize * AtlasRows;
+            var texture = new Texture2D(width, height, TextureFormat.RGBA32, false)
+            {
+                name = "Resource dial arcs",
+                filterMode = FilterMode.Bilinear,
+                wrapMode = TextureWrapMode.Clamp
+            };
+            var pixels = new Color32[width * height];
+            for (int y = 0; y < TileSize; y++)
+            for (int x = 0; x < TileSize; x++)
+            {
+                float dx = x + .5f - TileSize * .5f;
+                float dy = TileSize * .5f - y - .5f;
+                float radius = Mathf.Sqrt(dx * dx + dy * dy);
+                byte alpha = (byte)Mathf.RoundToInt(255f * Mathf.Clamp01(2.8f - Mathf.Abs(radius - 20f)));
+                if (alpha == 0) continue;
+                float angle = Mathf.Atan2(dy, dx) * Mathf.Rad2Deg;
+                float clockwise = Mathf.Repeat(angle - 130f, 360f);
+                float counterclockwise = Mathf.Repeat(50f - angle, 360f);
+
+                for (int gauge = 0; gauge < 3; gauge++)
+                {
+                    float offset = gauge == (int)Gauge.Water ? counterclockwise : clockwise;
+                    float sweep = gauge == (int)Gauge.Single ? 280f : 134f;
+                    int first = Mathf.Max(1, Mathf.CeilToInt(offset / sweep * GaugeSteps));
+                    for (int step = first; step <= GaugeSteps; step++)
+                    {
+                        int tile = gauge * TilesPerGauge + step;
+                        int row = tile / AtlasColumns * TileSize + y;
+                        int column = tile % AtlasColumns * TileSize + x;
+                        pixels[row * width + column] = new Color32(255, 255, 255, alpha);
+                    }
+                }
+            }
+            texture.SetPixels32(pixels);
+            texture.Apply(false, true);
+            return texture;
+        }
+
+        private void Label(Rect rect, string value, float size, Color color, TextAnchor alignment = TextAnchor.MiddleLeft)
         {
             text.alignment = alignment;
-            text.fontSize = Mathf.RoundToInt(11f * scale);
-            text.normal.textColor = Cream;
+            text.fontSize = Mathf.Max(1, Mathf.RoundToInt(size));
+            text.normal.textColor = color;
             GUI.Label(rect, value, text);
         }
     }
