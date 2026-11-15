@@ -49,3 +49,33 @@ Tags: **DECISION**, **DONE**, **OPEN**, **BLOCKER**.
   keeps the repo small). Unity transcodes per platform: Vorbis on desktop, AAC on WebGL.
 - **DECISION** No listening capability is exposed: the flow LLM node takes text input
   only. Selection relies on technical checks and is disclosed as such.
+- **DONE** Palette and coverage: title direction generated (2 × 100 s), take 1 agent-selected
+  (D major, 0.6% sub-60 Hz, LRA 5.8). Reference-audio conditioning was tried on the music
+  node's `audio` port (1,425 credits). **Rejected**: the output followed the reference's length
+  and loudness envelope and added 32% sub-bass. All other movements are prompt-only with a
+  shared identity clause.
+- **DONE** Generated 7 more movements × 2 takes, 23 SFX/ambience cues × 3–4 takes, and a second
+  wind attempt. Every take was downloaded and probed (110 + 3 files).
+- **DECISION** Agent selections rest on technical evidence only (loudness, true peak, spectral
+  balance, onset rate, key estimate, dropouts, loop-seam levels). See
+  `manifests/selection.json`. No listening capability exists.
+- **DECISION** Wind: both prompt attempts produced about 97% of their energy below 60 Hz. Two
+  attempts were made, under the three-attempt limit. Shipped: attempt 1 take 2, high-passed at
+  100 Hz (the audible gusts and dust hiss). Documented as a limitation.
+- **DONE** Rendered and exported 8 music files (Ogg q8), 47 SFX/ambience variations (WAV) to
+  `Assets/Audio/Resources/Audio`. Asset register built (32 cues, 49 files, 64 unselected takes).
+- **DONE** Unity: `RedFrontier.Audio` assembly, game hooks, mix sliders, import rules, PlayMode
+  tests.
+  - BLOCKER resolved: batch mode first failed with no Unity licence. Launching Unity Hub restored
+    the signed-in licence and later batch runs worked.
+  - The PlayMode run hung because the team's `PlayFromMainMenu` forces the start scene. Fixed
+    with an editor hook active only under `-runTests`; teammate code is untouched.
+  - The Test Runner set `runInBackground` 0 → 1 in ProjectSettings. Reverted with
+    `git checkout`, so no settings change ships.
+- **DONE** Checks: audio self-test PASS (49 clips, import settings). PlayMode 13/13 PASS.
+  Existing outpost self-test ALL PASS. Checkpoint commit `29f7f01`.
+- Credits: 23,078 used of the 120,000 task budget (account 23,078 / 131,000). Remaining
+  task budget 96,922.
+- **NEXT (if interrupted)**: WebGL build (`AudioVerification.BuildWebGL`, `-buildTarget WebGL`) →
+  serve `Builds/WebGL-audio` → drive it with `MUSIC/scripts/webgl_probe.mjs` → write
+  evidence/handoff → push `feat/music`. No generations are in flight.

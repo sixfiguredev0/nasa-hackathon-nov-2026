@@ -40,7 +40,7 @@ META = {
     "SFX_UPGRADE_PURCHASE": ("Soft upward power-up with glassy click", "Upgrade bought", "UpgradeBubbles when TryUpgrade succeeds", "One-shot (completion cue follows when the crew finishes)"),
     "SFX_GUIDE_NOTIFY": ("Two soft rising radio beeps", "Marlonis message waiting", "MissionGuide.Start (1.5 s after the badge appears)", "One-shot"),
     "SFX_GUIDE_NEXT": ("Single soft radio blip", "Marlonis dialogue line advance", "MissionGuide.Advance", "One-shot"),
-    "SFX_ALERT_SHORTAGE": ("Calm two-tone caution alarm", "Oxygen/Food/Water ran out", "OutpostAudio: lifeSupportShort false->true", "One-shot; repeats every 30 s while short; 12 s cooldown"),
+    "SFX_ALERT_SHORTAGE": ("Calm two-tone caution alarm", "Oxygen/Food/Water ran out", "OutpostAudio: lifeSupportShort false->true", "One-shot; reminders at +30 s and +90 s, then silent until recovery; 12 s cooldown"),
     "SFX_ALERT_RECOVERED": ("Two soft ascending all-clear chimes", "Life support restored", "OutpostAudio: short->ok after >= 1.5 s short", "One-shot, 6 s cooldown"),
     "SFX_ALERT_STALL": ("Soft electrical power-down", "Building stalls (red tint)", "OutpostAudio: a building stalled for 1 s (grouped, re-arms after 3 s running)", "One-shot, 8 s cooldown, held back within 4 s of a shortage alert"),
     "SFX_ALERT_FITNESS": ("Gentle low two-note monitor chime", "Crew fitness enters the lowest gauge segment", "OutpostAudio: fitness < 0.2 (re-arms above 0.3)", "One-shot, 30 s cooldown"),

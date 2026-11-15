@@ -465,9 +465,11 @@ namespace RedFrontier.Audio
         {
             var clip = MusicClip(pendingId);
             if (clip == null) { pendingId = null; OnTrackEnded(); return; }
-            if (clip.loadState == AudioDataLoadState.Loading && now - pendingSince < 15f) return;
-            if (clip.loadState == AudioDataLoadState.Unloaded) { clip.LoadAudioData(); return; }
-            if (clip.loadState == AudioDataLoadState.Failed || clip.loadState == AudioDataLoadState.Loading)
+            // StartTrack asked for a background load. Give it a moment, then Play() anyway: Unity loads
+            // non-preloaded clips on demand, and the WebGL player never advances loadState from LoadAudioData.
+            if (clip.loadState != AudioDataLoadState.Loaded && clip.loadState != AudioDataLoadState.Failed &&
+                now - pendingSince < 3f) return;
+            if (clip.loadState == AudioDataLoadState.Failed)
             {
                 WarnOnce(pendingId, "music data failed to load");
                 pendingId = null;

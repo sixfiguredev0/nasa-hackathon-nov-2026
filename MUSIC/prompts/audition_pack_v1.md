@@ -1,6 +1,6 @@
-# Audition pack v1: PROPOSED, awaiting approval
+# Audition pack v1: SUPERSEDED (never generated)
 
-Status: `planned`. Nothing has been generated.
+Status: **superseded, never generated.** See `production_v2.md` for what was actually produced.
 Scope: the P1 rows of `AUDIO_PLAN.md`. Instrumental only. No references to existing games
 or artists.
 
