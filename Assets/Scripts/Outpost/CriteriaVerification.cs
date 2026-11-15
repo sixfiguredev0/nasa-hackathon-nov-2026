@@ -199,9 +199,8 @@ namespace RedFrontier.Outpost
             for (int i = 0; i < 8 && objective.Stage == MissionObjective.Step.SupportPower; i++) yield return Build(BuildingKind.Solar);
             Check(objective.Stage == MissionObjective.Step.Oxygen, "actual solar capacity satisfies the support power goal");
             yield return Build(BuildingKind.Habitat);
-            Check(objective.Stage == MissionObjective.Step.Sandbox && training.State == HistoricalTraining.Phase.Waiting,
-                "completed life support leads to the survive goal; the NASA event waits for the mission schedule");
-            training.Trigger(); // the director would do this on its seeded schedule
+            Check(objective.Stage == MissionObjective.Step.Training, "completed life support leads to the historical exercise step");
+            // The story step raises the NASA event a few seconds in; the director's scheduled burst then skips it.
             yield return Until(() => training.State == HistoricalTraining.Phase.Choice);
             yield return null; // allow LateUpdate to present the warning and its choices
             Time.timeScale = 1f;
@@ -297,7 +296,9 @@ namespace RedFrontier.Outpost
                 colony.economy.buildings.FindAll(b => b == second.state).Count == 1 && Field<List<Building>>(crew, "jobs").Count == 0,
                 "saved jobs resume and commission exactly once without a stuck queue");
             yield return Build(BuildingKind.Gym);
-            Check(objective.Stage == MissionObjective.Step.Sandbox, "sandbox building continues after the exercise");
+            yield return Until(() => objective.Stage > MissionObjective.Step.Training);
+            // Battery and ISRU were built during the exercise, so the story skips straight to the radio.
+            Check(objective.Stage == MissionObjective.Step.RepairRadio, "free building continues and the story picks up after the exercise");
             Time.timeScale = 1f;
             yield return ReturnToMenu();
 

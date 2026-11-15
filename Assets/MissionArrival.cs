@@ -6,6 +6,15 @@ using static FrontierUi;
 
 internal sealed class MissionArrival : MonoBehaviour
 {
+    // Used after the entry cinematic: show the menu's flight rocket (last frame) on the loading card.
+    internal static void Load(string destination)
+    {
+        var art = Resources.Load<Texture2D>("Menu/RocketFlight");
+        if (art == null) art = Resources.Load<Texture2D>("Buildings/Rocket");
+        int frames = art != null ? Mathf.Max(1, art.width / Mathf.Max(1, art.height)) : 1;
+        Load(destination, art, new Rect((frames - 1f) / frames, 0, 1f / frames, 1));
+    }
+
     internal static void Load(string destination, Texture rocket, Rect rocketFrame)
     {
         var root = new GameObject("Mission arrival", typeof(RectTransform), typeof(Canvas),

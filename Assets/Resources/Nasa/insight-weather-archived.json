@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "source": "NASA InSight Mars Weather Service (TWINS + PS), Elysium Planitia",
+  "endpoint": "https://api.nasa.gov/insight_weather/?feedtype=json&ver=1.0",
+  "dataMode": "archived",
+  "retrievedOn": "2026-11-15",
+  "note": "The feed stopped updating in 2020 and still returns these 7 sols. Values rounded from the feed: air temperature to 1 deg C, wind to 0.1 m/s, pressure to 1 Pa.",
+  "sols": [
+    { "sol": 675, "earthDate": "2020-10-19", "airMinC": -97, "airMaxC": -16, "windAvg": 7.2, "windMax": 22.5, "pressurePa": 751, "windFrom": "WNW" },
+    { "sol": 676, "earthDate": "2020-10-20", "airMinC": -97, "airMaxC": -16, "windAvg": 8.5, "windMax": 26.9, "pressurePa": 749, "windFrom": "WNW" },
+    { "sol": 677, "earthDate": "2020-10-21", "airMinC": -97, "airMaxC": -17, "windAvg": 7.9, "windMax": 23.2, "pressurePa": 749, "windFrom": "WNW" },
+    { "sol": 678, "earthDate": "2020-10-22", "airMinC": -98, "airMaxC": -9, "windAvg": 5.2, "windMax": 18.4, "pressurePa": 744, "windFrom": "WNW" },
+    { "sol": 679, "earthDate": "2020-10-23", "airMinC": -97, "airMaxC": -12, "windAvg": 5.6, "windMax": 19.4, "pressurePa": 745, "windFrom": "WNW" },
+    { "sol": 680, "earthDate": "2020-10-24", "airMinC": -97, "airMaxC": -15, "windAvg": 6.5, "windMax": 24.2, "pressurePa": 744, "windFrom": "WNW" },
+    { "sol": 681, "earthDate": "2020-10-25", "airMinC": -95, "airMaxC": -4, "windAvg": 5.6, "windMax": 18.6, "pressurePa": 744, "windFrom": "WNW" }
+  ]
+}

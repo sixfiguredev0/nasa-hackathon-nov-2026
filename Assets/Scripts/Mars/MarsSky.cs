@@ -84,6 +84,9 @@ namespace RedFrontier.Mars
         SeededRandom rng;
         float phobosPhase;
 
+        /// <summary>Set by the outpost's sol clock: 0 = sunrise, 1 = sunset, outside 0..1 = night (Sun hidden). NaN (default) = fixed Sun at <see cref="sunPos"/>.</summary>
+        [System.NonSerialized] public float sunDayFraction = float.NaN;
+
         public float HorizonY => horizonY;
         public float SpaceTopY => horizonY + spaceHeight / Ppu;
 
@@ -425,6 +428,14 @@ namespace RedFrontier.Mars
                 tw.sr.color = tw.cols[k];
             }
             if (sun != null && sunFrames.Length > 1) sun.sprite = sunFrames[Mathf.FloorToInt(t * 3f) % sunFrames.Length];
+            if (sun != null && !float.IsNaN(sunDayFraction))
+            {
+                // East (left) to west across the sky; just under the horizon line at sunrise and sunset.
+                float f = sunDayFraction;
+                sun.enabled = f > 0f && f < 1f;
+                float lift = Mathf.Sin(Mathf.Clamp01(f) * Mathf.PI);
+                sun.transform.localPosition = Snap(new Vector3(sunPos.x + (f - 0.5f) * 640f, -12f + (sunPos.y + 40f) * lift, 0f) / Ppu);
+            }
             if (phobosSr != null)
             {
                 float span = (worldRight - worldLeft) * Ppu + 600f;

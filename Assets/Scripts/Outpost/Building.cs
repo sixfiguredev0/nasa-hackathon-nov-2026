@@ -58,6 +58,25 @@ namespace RedFrontier.Outpost
             }
         }
 
+        Sprite wreck;
+        string wreckNode;
+
+        /// <summary>True while the crashed first rocket lies in pieces; its next upgrade replaces it.</summary>
+        public bool Wrecked => wreck != null;
+        /// <summary>Where the crew climb in and out of the wreck, in pixels from the pivot.</summary>
+        public Vector2 WreckDoorPx { get; private set; }
+        public Vector2 WreckFootPx { get; private set; }
+
+        /// <summary>Shows a wreck sprite in place of the current node's art until the node changes.</summary>
+        internal void ShowWreck(Sprite sprite, Vector2 doorPx, Vector2 footPx)
+        {
+            wreck = sprite;
+            wreckNode = state.nodeId;
+            WreckDoorPx = doorPx;
+            WreckFootPx = footPx;
+            sr.sprite = sprite;
+        }
+
         void Update()
         {
             if (state == null) return;
@@ -66,8 +85,11 @@ namespace RedFrontier.Outpost
                 if (Crew.Instance != null && Crew.Instance.RequestBuild(this)) awaitingCrew = true;
                 else FinishBuild();
             }
+            if (wreck != null && shownNode != wreckNode) wreck = null; // upgraded and built: the new rocket stands
             // Sheets play once and hold the last frame.
-            if (frames.Length > 1)
+            if (wreck != null)
+                sr.sprite = wreck;
+            else if (frames.Length > 1)
                 sr.sprite = inFlight ? frames[0] : frames[Mathf.Min(frames.Length - 1, (int)((Time.time - animStart) / FrameSeconds))];
             sr.color = UnderConstruction ? BlueprintTint : state.stalled ? StalledTint : Color.white;
         }

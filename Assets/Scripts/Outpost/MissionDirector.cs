@@ -47,6 +47,10 @@ namespace RedFrontier.Outpost
         readonly Dictionary<BuildingState, float> brokenUntil = new Dictionary<BuildingState, float>();
         System.Random pick;
         HistoricalTraining.Phase lastPhase;
+        // With Skywatch the sol clock, day/night and dust storms are its job; with the story arc, the story's ending is the win.
+        Skywatch sky;
+        StoryArc story;
+        int SolNow => sky != null ? sky.clock.Sol : MissionPlan.SolAt(Elapsed);
 
         Canvas canvas;
         RectTransform hudRect, bannerRect;
@@ -67,6 +71,8 @@ namespace RedFrontier.Outpost
             colony = GetComponent<Colony>();
             training = GetComponent<HistoricalTraining>();
             crew = GetComponent<Crew>();
+            sky = GetComponent<Skywatch>();
+            story = GetComponent<StoryArc>();
             int seed = colony.map != null ? colony.map.LastSeed : 1;
             Plan = new MissionPlan(seed);
             warned = new bool[Plan.events.Count];
@@ -81,17 +87,18 @@ namespace RedFrontier.Outpost
 
         void Update()
         {
-            if (Ended || colony == null || !colony.Ready) return;
+            if (Ended || colony == null || !colony.Ready || StoryArc.Cinematic) return;
             float dt = Time.deltaTime;
             if (dt <= 0f) return;
             Elapsed += dt;
             var eco = colony.economy;
-            eco.solarFactor = MissionPlan.DaylightFactor(Elapsed) * Plan.DustFactor(Elapsed);
+            if (sky == null) eco.solarFactor = MissionPlan.DaylightFactor(Elapsed) * Plan.DustFactor(Elapsed);
             eco.resupplyFactor = Plan.ResupplyBlocked(Elapsed) ? 0f : 1f;
 
             for (int i = 0; i < Plan.events.Count; i++)
             {
                 var e = Plan.events[i];
+                if (sky != null && e.kind == MissionEventKind.DustStorm) continue; // Skywatch's weather brings the dust storms
                 if (!warned[i] && e.warning > 0f && Elapsed >= e.at - e.warning)
                 {
                     warned[i] = true;
@@ -121,7 +128,7 @@ namespace RedFrontier.Outpost
             WatchExercise();
 
             if (eco.crew <= 0) End(false);
-            else if (Elapsed >= Plan.Length) End(true);
+            else if (story == null && Elapsed >= Plan.Length) End(true);
         }
 
         string WarningText(MissionEvent e)
@@ -136,11 +143,12 @@ namespace RedFrontier.Outpost
 
         void Begin(MissionEvent e)
         {
-            string sol = "Sol " + MissionPlan.SolAt(Elapsed);
+            string sol = "Sol " + SolNow;
             switch (e.kind)
             {
                 case MissionEventKind.SolarParticle:
-                    if (training != null) training.Trigger();
+                    if (training == null || training.Triggered) break; // the story already ran its exercise step
+                    training.Trigger();
                     Announce("Solar particle burst! Open Marlonis' message and choose.", true);
                     Record(sol + ": solar particle burst (NASA-based event).", true);
                     break;
@@ -169,7 +177,7 @@ namespace RedFrontier.Outpost
         {
             if (training == null || training.State == lastPhase) return;
             lastPhase = training.State;
-            string sol = "Sol " + MissionPlan.SolAt(Elapsed);
+            string sol = "Sol " + SolNow;
             if (lastPhase == HistoricalTraining.Phase.Sheltering) Record(sol + ": you sheltered the crew. Building paused " + Mathf.RoundToInt(HistoricalTraining.ExerciseSeconds) + " s.", false);
             else if (lastPhase == HistoricalTraining.Phase.Working)
                 Record(sol + (training.Hesitated ? ": you hesitated, so the crew kept working. Fitness fell " : ": you kept working. Fitness fell ") +
@@ -178,7 +186,7 @@ namespace RedFrontier.Outpost
 
         void OnCrewLost(Res cause)
         {
-            string sol = "Sol " + MissionPlan.SolAt(Elapsed);
+            string sol = "Sol " + SolNow;
             string during = ActiveEventName();
             string what = cause.ToString().ToLowerInvariant();
             string text = sol + ": an astronaut died because " + what + " ran out" + (during.Length > 0 ? " during the " + during : "") + ".";
@@ -197,7 +205,8 @@ namespace RedFrontier.Outpost
         string ActiveEventName()
         {
             foreach (var e in Plan.events)
-                if (e.kind != MissionEventKind.SolarParticle && Elapsed >= e.at && Elapsed < e.End)
+                if (e.kind != MissionEventKind.SolarParticle && !(sky != null && e.kind == MissionEventKind.DustStorm) &&
+                    Elapsed >= e.at && Elapsed < e.End)
                     return MissionPlan.Name(e.kind).ToLowerInvariant();
             return "";
         }
@@ -215,13 +224,13 @@ namespace RedFrontier.Outpost
         {
             if (Ended) return;
             Ended = true;
-            colony.economy.solarFactor = 1f;
+            if (sky == null) colony.economy.solarFactor = 1f;
             colony.economy.resupplyFactor = 1f;
-            Record(survived ? "Mission complete after " + Plan.sols + " sols." : "The last astronaut was lost on sol " + MissionPlan.SolAt(Elapsed) + ".", !survived);
+            Record(survived ? "Mission complete after " + Plan.sols + " sols." : "The last astronaut was lost on sol " + SolNow + ".", !survived);
             MissionDebrief.Show(this, new Outcome
             {
                 survived = survived,
-                sols = survived ? Plan.sols : MissionPlan.SolAt(Elapsed),
+                sols = survived ? Plan.sols : SolNow,
                 crewAtStart = crewAtStart,
                 crewAlive = colony.economy.crew,
                 time = Elapsed
@@ -276,7 +285,8 @@ namespace RedFrontier.Outpost
         void LateUpdate()
         {
             if (canvas == null || colony == null || !colony.Ready) return;
-            canvas.enabled = !MissionPauseMenu.BlocksGameplayInput;
+            canvas.enabled = !MissionPauseMenu.BlocksGameplayInput && !StoryArc.Cinematic;
+            hudRect.gameObject.SetActive(sky == null); // Skywatch draws its own sol clock
 
             int sol = Mathf.Min(MissionPlan.SolAt(Elapsed), Plan.sols);
             float phase = MissionPlan.Phase(Elapsed);
@@ -308,7 +318,7 @@ namespace RedFrontier.Outpost
                 sb.Append(b.bad ? "<color=#ff9f8c>" : "<color=#f8e5c8>").Append(b.text).Append("</color>\n");
             bannerText.text = sb.ToString().TrimEnd('\n');
             bannerRect.localScale = Vector3.one * scale;
-            bannerRect.anchoredPosition = new Vector2(0f, -(top + (HudSize.y + 8f) * scale));
+            bannerRect.anchoredPosition = new Vector2(0f, -(top + (sky == null ? (HudSize.y + 8f) * scale : 0f)));
         }
 
         internal static string Seconds(float s) => Mathf.RoundToInt(s).ToString(CultureInfo.InvariantCulture) + " s";

@@ -10,7 +10,7 @@ namespace RedFrontier.Outpost
     {
         const string TitleScene = "Assets/Scenes/MainMenu.unity";
         const int VolumeSteps = 10;
-        static readonly Vector2 PanelSize = new Vector2(368, 320);
+        static readonly Vector2 PanelSize = new Vector2(368, 376);
         const float Inset = 24, ContentWidth = 320, ActionHeight = 44;
         static MissionPauseMenu active;
         static int releasedFrame = -1;
@@ -22,7 +22,7 @@ namespace RedFrontier.Outpost
         EventSystem events;
         bool ownsEvents;
         GameObject priorSelection;
-        PixelButton resume, settingsButton, titleButton, motion, keepPlaying, leave;
+        PixelButton resume, settingsButton, titleButton, nasaData, motion, keepPlaying, leave;
         PixelSlider volume;
         PixelLabel volumeValue;
         AudioMixRow mix;
@@ -119,12 +119,14 @@ namespace RedFrontier.Outpost
             settingsButton.onClick.AddListener(OpenSettings);
             titleButton = Action(main, "Return to title", 200);
             titleButton.onClick.AddListener(OpenConfirmation);
-            FrontierUi.Chain(resume, settingsButton, titleButton);
+            nasaData = Action(main, "Real NASA data", 256);
+            nasaData.onClick.AddListener(OpenNasaData);
+            FrontierUi.Chain(resume, settingsButton, titleButton, nasaData);
             var keycap = PixelArt.Sliced("Esc key", main, PixelArt.Frame(FrontierUi.PanelDark,
                 FrontierUi.PanelLight, FrontierUi.PanelDark, FrontierUi.PanelDark));
-            FrontierUi.Place(keycap.rectTransform, PanelSize, Inset, 272, 48, 24);
+            FrontierUi.Place(keycap.rectTransform, PanelSize, Inset, 328, 48, 24);
             PixelLabel.Create("Key", keycap.transform, "Esc", 2, FrontierUi.Cream, .5f, false);
-            Label(main, "Resume", 84, 272, 100, 24, 2).Color = FrontierUi.CreamDark;
+            Label(main, "Resume", 84, 328, 100, 24, 2).Color = FrontierUi.CreamDark;
 
             settings = Page("Settings");
             Label(settings, "Master volume", Inset, 76, 240, 20, 2);
@@ -198,6 +200,12 @@ namespace RedFrontier.Outpost
             settings.gameObject.SetActive(page == settings);
             confirmation.gameObject.SetActive(page == confirmation);
             selection.Select();
+        }
+
+        void OpenNasaData()
+        {
+            Resume();
+            if (Skywatch.Instance != null) Skywatch.Instance.OpenDataScreen();
         }
 
         void OpenSettings()
