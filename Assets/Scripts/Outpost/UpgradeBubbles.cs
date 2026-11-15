@@ -68,7 +68,8 @@ namespace RedFrontier.Outpost
             var upPos = new Vector2(Mathf.Min(corner.x + br + 8 * s, Screen.width - 2.6f * br), Mathf.Max(corner.y + br, br + 50 * s));
             var infoPos = upPos + new Vector2(0.6f * br, 2.6f * br);
             bool canUpgrade = false;
-            foreach (var c in st.Node.next) canUpgrade |= eco.Status(st, c) == NodeStatus.Available;
+            if (!open.UnderConstruction)
+                foreach (var c in st.Node.next) canUpgrade |= eco.Status(st, c) == NodeStatus.Available;
             bool upHot = (mouse - upPos).magnitude <= br, infoHot = (mouse - infoPos).magnitude <= br;
 
             string hoveredNode = null;
@@ -82,25 +83,26 @@ namespace RedFrontier.Outpost
 
             if (mode == Mode.Info) Tooltip(st.Node, eco.Status(st, st.nodeId), infoPos + new Vector2(br, -br), s);
             if (hoveredNode != null) Tooltip(st.def.nodes[hoveredNode], eco.Status(st, hoveredNode), mouse, s);
-            else if (upHot && mode != Mode.Tree) Hint(mouse, "Upgrades", s);
+            else if (upHot && mode != Mode.Tree) Hint(mouse, open.UnderConstruction ? "Upgrades after the crew builds it" : "Upgrades", s);
             else if (infoHot && mode != Mode.Info) Hint(mouse, "Info", s);
 
             var e = Event.current;
             if (e.type == EventType.MouseDown && e.button == 0)
             {
-                if (upHot) { mode = mode == Mode.Tree ? Mode.Buttons : Mode.Tree; GameAudio.Play(Sfx.UiSelect); }
+                if (upHot && open.UnderConstruction) GameAudio.Play(Sfx.UiDenied); // blueprint: no upgrades until built
+                else if (upHot) { mode = mode == Mode.Tree ? Mode.Buttons : Mode.Tree; GameAudio.Play(Sfx.UiSelect); }
                 else if (infoHot) { mode = mode == Mode.Info ? Mode.Buttons : Mode.Info; GameAudio.Play(Sfx.UiSelect); }
-                else if (hoveredNode != null) GameAudio.Play(eco.TryUpgrade(st, hoveredNode) ? Sfx.UpgradePurchase : Sfx.UiDenied);
+                else if (hoveredNode != null)
+                    GameAudio.Play(!open.UnderConstruction && eco.TryUpgrade(st, hoveredNode) ? Sfx.UpgradePurchase : Sfx.UiDenied);
                 else open = null;
                 e.Use();
             }
         }
 
-        static void RoundButton(Vector2 p, float r, bool hot, bool active, bool pulse, float s)
+        static void RoundButton(Vector2 p, float r, bool hot, bool active, bool available, float s)
         {
-            float rr = r * (hot ? 1.1f : 1f) * (pulse ? 1f + 0.06f * Mathf.Sin(Time.unscaledTime * 5f) : 1f);
-            OutpostGUI.Disc(p, rr + 2 * s, active ? new Color(0.95f, 0.7f, 0.15f) : Color.white);
-            OutpostGUI.Disc(p, rr, pulse ? new Color(0.75f, 0.5f, 0.1f) : new Color(0.1f, 0.1f, 0.13f));
+            OutpostGUI.Disc(p, r + 2 * s, active || available ? FrontierUi.CoralLight : FrontierUi.Cream);
+            OutpostGUI.Disc(p, r, hot || active ? FrontierUi.PanelLight : FrontierUi.Background);
         }
 
         static void UpArrow(Vector2 p, float r)
@@ -256,6 +258,8 @@ namespace RedFrontier.Outpost
             var size = style.CalcSize(new GUIContent(text));
             var m = Event.current.mousePosition;
             var rect = new Rect(m.x + 14 * s, m.y + 14 * s, size.x + 12 * s, size.y + 8 * s);
+            if (rect.xMax > Screen.width) rect.x = Mathf.Max(0, m.x - rect.width - 14 * s);
+            if (rect.yMax > Screen.height) rect.y = Mathf.Max(0, m.y - rect.height - 14 * s);
             OutpostGUI.Panel(rect, new Color(0f, 0f, 0f, 0.7f));
             GUI.Label(new Rect(rect.x + 6 * s, rect.y + 4 * s, size.x, size.y), text, style);
         }

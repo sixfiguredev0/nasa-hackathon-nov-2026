@@ -1,5 +1,7 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.U2D;
+using UnityEngine.UI;
 
 namespace RedFrontier.Mars
 {
@@ -18,6 +20,7 @@ namespace RedFrontier.Mars
         Rect bounds;
         bool hasBounds;
         Vector3 lastMouse;
+        bool dragging; // right button went down over the world (not over UI)
 
         void Awake() => ConfigureCamera();
 
@@ -67,16 +70,48 @@ namespace RedFrontier.Mars
             }
             if (!allowPan || cam == null || !Application.isPlaying) return;
             var p = cam.transform.position;
-            var move = new Vector3(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"), 0f);
-            p += move * (panSpeed / Ppu) * Time.unscaledDeltaTime;
-            if (Input.GetMouseButtonDown(1)) lastMouse = Input.mousePosition;
-            if (Input.GetMouseButton(1))
+            if (!TextInputFocused())
+            {
+                var move = new Vector3(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"), 0f);
+                p += move * (panSpeed / Ppu) * Time.unscaledDeltaTime;
+            }
+            // a right-drag only pans when it starts over the world, not over a UI panel
+            if (Input.GetMouseButtonDown(1))
+            {
+                lastMouse = Input.mousePosition;
+                dragging = !PointerOverUI();
+            }
+            if (!Input.GetMouseButton(1)) dragging = false;
+            if (dragging)
             {
                 var d = cam.ScreenToWorldPoint(lastMouse) - cam.ScreenToWorldPoint(Input.mousePosition);
                 p += new Vector3(d.x, d.y, 0f);
                 lastMouse = Input.mousePosition;
             }
             cam.transform.position = Clamp(p);
+        }
+
+        static bool PointerOverUI()
+        {
+            var es = EventSystem.current;
+            return es != null && es.IsPointerOverGameObject();
+        }
+
+        static bool TextInputFocused()
+        {
+            var es = EventSystem.current;
+            var sel = es != null ? es.currentSelectedGameObject : null;
+            if (sel == null) return false;
+            var field = sel.GetComponent<InputField>();
+            if (field != null && field.isFocused) return true;
+            // TextMeshPro input fields, looked up by name so this script doesn't depend on the TMP assembly
+            var tmp = sel.GetComponent("TMP_InputField");
+            if (tmp != null)
+            {
+                var prop = tmp.GetType().GetProperty("isFocused");
+                return prop == null || prop.GetValue(tmp) is bool b && b;
+            }
+            return false;
         }
 
         Vector3 Clamp(Vector3 p)

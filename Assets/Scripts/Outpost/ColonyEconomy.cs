@@ -119,6 +119,7 @@ namespace RedFrontier.Outpost
         /// </summary>
         public void Tick(float dt)
         {
+            if (dt <= 0f) return; // paused: keep rates, shortage state and deprivation timers as they were
             Array.Clear(net, 0, ResCount);
             float eff = Efficiency;
             for (int pass = 0; pass < 2; pass++)
@@ -215,7 +216,8 @@ namespace RedFrontier.Outpost
 
         public bool TryUpgrade(BuildingState b, string id)
         {
-            if (Status(b, id) != NodeStatus.Available) return false;
+            // blueprints (placed but not yet built by the crew) are not in the economy and can't be upgraded
+            if (!buildings.Contains(b) || Status(b, id) != NodeStatus.Available) return false;
             Pay(b.def.nodes[id].cost);
             b.nodeId = id;
             RecomputeCaps();

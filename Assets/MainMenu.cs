@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using RedFrontier.Audio;
 using RedFrontier.Outpost;
@@ -52,6 +51,7 @@ public sealed class MainMenu : MonoBehaviour
     private PixelSlider volume;
     private AudioMixRow mix;
     private readonly List<Vector2Int> resolutions = new List<Vector2Int>();
+    private readonly List<Texture2D> createdTextures = new List<Texture2D>();
     private int resolutionIndex;
     private bool fullscreenOn;
 
@@ -73,7 +73,7 @@ public sealed class MainMenu : MonoBehaviour
 
         BuildRocket();
         start = FrontierUi.Button("Start", layout, true, titleAction: true);
-        options = FrontierUi.Button("Options", layout, false, titleAction: true);
+        options = FrontierUi.Button("Options", layout, false, titleAction: true, leftAligned: true);
         launchArrow = PixelLabel.Create("Launch arrow", start.face, ">", 4, Background, 1);
         launchArrow.Rect.offsetMax = new Vector2(-22, 0);
         launchError = PixelLabel.Create("Launch error", layout,
@@ -103,11 +103,21 @@ public sealed class MainMenu : MonoBehaviour
     private void BuildRocket()
     {
         var art = Resources.Load<Texture2D>("Buildings/Rocket");
-        int frames = Mathf.Max(1, art.width / art.height);
         rocket = Art("Rocket", layout, art);
-        rocket.uvRect = new Rect((frames - 1f) / frames, 0, 1f / frames, 1);
+        if (art != null)
+        {
+            int frames = Mathf.Max(1, art.width / Mathf.Max(1, art.height));
+            rocket.uvRect = new Rect((frames - 1f) / frames, 0, 1f / frames, 1);
+        }
+        else
+        {
+            // Keep the menu working without the rocket art: an invisible placeholder still anchors the flame and launch.
+            Debug.LogWarning("MainMenu: Resources/Buildings/Rocket texture is missing; the rocket art is skipped.");
+            rocket.color = Color.clear;
+        }
 
         var tex = new Texture2D(7, 14, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp };
+        createdTextures.Add(tex);
         for (int y = 0; y < 14; y++)
             for (int x = 0; x < 7; x++)
             {
@@ -121,6 +131,7 @@ public sealed class MainMenu : MonoBehaviour
         flame.anchorMin = new Vector2(.38f, -.12f);
         flame.anchorMax = new Vector2(.62f, .2f);
         flame.pivot = new Vector2(.5f, 1);
+        flame.gameObject.SetActive(false);
     }
 
     private void PlaceRocket(Vector2 at, float frame, float angle)
@@ -238,18 +249,17 @@ public sealed class MainMenu : MonoBehaviour
         logoSize = new Vector2(logoWidth, logoHeight);
 
         float logoEnd = top + (LogoBottom - LogoTop) * logoHeight;
-        float launchWidth = narrow ? 290 : 310, optionsWidth = narrow ? 196 : 210;
-        float launchHeight = narrow ? 68 : 72, secondaryHeight = 52;
+        float launchWidth = narrow ? 288 : 312, optionsWidth = narrow ? 196 : 212;
+        const float launchHeight = 56, secondaryHeight = 44;
         const float gap = 12;
-        float startY = narrow ? size.y - 48 - launchHeight - gap - secondaryHeight : logoEnd + 35;
+        float startY = narrow ? size.y - 48 - launchHeight - gap - secondaryHeight : logoEnd + 36;
         float secondaryY = startY + launchHeight + gap;
-        rocketSize = narrow ? 170 : 300;
-        rocketPos = narrow ? new Vector2(110, (logoEnd + startY) / 2) : new Vector2(540, startY + 70);
+        rocketSize = narrow ? 144 : 200;
+        rocketPos = narrow ? new Vector2(104, (logoEnd + startY) / 2) : new Vector2(560, startY + 76);
         float actionLeft = narrow ? (size.x - launchWidth) / 2 : left;
-        float optionsLeft = narrow ? (size.x - optionsWidth) / 2 : left;
         Place((RectTransform)start.transform, size, actionLeft, startY, launchWidth, launchHeight);
-        Place((RectTransform)options.transform, size, optionsLeft, secondaryY, optionsWidth, secondaryHeight);
-        Place(launchError.Rect, size, left, secondaryY + secondaryHeight + 4, width, 42);
+        Place((RectTransform)options.transform, size, actionLeft, secondaryY, optionsWidth, secondaryHeight);
+        Place(launchError.Rect, size, actionLeft, secondaryY + secondaryHeight + 4, width, 42);
 
         float panelWidth = narrow ? 450 : 560;
         LayoutPanel(optionsPanel, optionsHeading, panelWidth,
@@ -317,16 +327,13 @@ public sealed class MainMenu : MonoBehaviour
             satellite.transform.SetSiblingIndex(behind);
 
         if (!launching)
-            PlaceRocket(rocketPos + new Vector2(0, reduced ? 0 : Mathf.Round(5f * Mathf.Sin(motionTime * 1.6f))),
-                rocketSize, 0);
+            PlaceRocket(rocketPos, rocketSize, 0);
 
         if (titleStar != null)
         {
-            // Keep the star tethered to the orbit. During each cycle it lifts a few design pixels.
-            float lift = reduced ? 0f : Mathf.Round(4f * (1f - Mathf.Cos(motionTime * tau / 5f)));
             // Crop bounds in the original 1774 x 887 wordmark artwork.
             Place(titleStar.rectTransform, logoSize, logoSize.x * (1140f / 1774f),
-                logoSize.y * (20f / 887f) - lift, logoSize.x * (252f / 1774f), logoSize.y * (290f / 887f));
+                logoSize.y * (20f / 887f), logoSize.x * (252f / 1774f), logoSize.y * (290f / 887f));
         }
     }
 
@@ -417,7 +424,7 @@ public sealed class MainMenu : MonoBehaviour
         SetMenuInteractable(false);
         fade.raycastTarget = true;
         if (reduced)
-            SceneManager.LoadSceneAsync(destination);
+            MissionArrival.Load(destination, rocket.texture, rocket.uvRect);
         else
             StartCoroutine(FlyToMars(destination));
     }
@@ -430,6 +437,7 @@ public sealed class MainMenu : MonoBehaviour
         var menuArt = title.gameObject.AddComponent<CanvasGroup>();
         var navigation = new[] { start.group, options.group };
         launchArrow.gameObject.SetActive(false);
+        flame.gameObject.SetActive(true);
         float planetSize = planet.rectTransform.rect.width / layout.rect.width * size.x;
         Vector2 viewportCenter = size / 2f;
         Vector2 rocketStart = rocketPos;
@@ -461,19 +469,46 @@ public sealed class MainMenu : MonoBehaviour
         }
 
         fade.color = Background;
-        MissionArrival.Load(destination);
+        MissionArrival.Load(destination, rocket.texture, rocket.uvRect);
+    }
+
+    private void OnDestroy()
+    {
+        // Textures generated at runtime (crisp copies, flame) are not owned by any asset; free them with the menu.
+        foreach (var texture in createdTextures)
+            if (texture != null)
+                Destroy(texture);
+        createdTextures.Clear();
     }
 
     // Binary alpha so the scaled-down relay has no soft fringe over the sky or Mars.
-    private static Texture2D Crisp(Texture2D source)
+    // Falls back to the source texture (soft alpha) when it is missing or not CPU-readable.
+    private Texture2D Crisp(Texture2D source)
     {
-        var pixels = source.GetPixels32();
+        if (source == null || !source.isReadable)
+        {
+            if (source != null)
+                Debug.LogWarning($"MainMenu: '{source.name}' is not readable; using it without crisp alpha.");
+            return source;
+        }
+
+        Color32[] pixels;
+        try
+        {
+            pixels = source.GetPixels32();
+        }
+        catch (UnityException error)
+        {
+            Debug.LogWarning($"MainMenu: could not read '{source.name}' ({error.Message}); using it without crisp alpha.");
+            return source;
+        }
         for (int i = 0; i < pixels.Length; i++)
             pixels[i].a = (byte)(pixels[i].a < 128 ? 0 : 255);
         var crisp = new Texture2D(source.width, source.height, TextureFormat.RGBA32, false)
             { filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp };
         crisp.SetPixels32(pixels);
         crisp.Apply(false, true);
+        createdTextures.Add(crisp);
         return crisp;
     }
 }

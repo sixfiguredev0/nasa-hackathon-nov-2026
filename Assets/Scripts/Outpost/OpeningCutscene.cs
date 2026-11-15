@@ -97,8 +97,14 @@ namespace RedFrontier.Outpost
         RectTransform barTop, barBottom, lidTop, lidBottom, warning, radio, recorder, skipFill;
         Image black, flash, vision, recorderLight;
         RawImage alarm, portrait, noise;
-        Texture2D noiseTexture;
+        Texture2D noiseTexture, vignetteTexture;
         Color32[] noisePixels;
+        readonly StringBuilder typed = new StringBuilder();
+        readonly List<UnityEngine.Object> siteAssets = new List<UnityEngine.Object>(); // debris/scorch textures and sprites, freed with the crash site
+        int ppcRefX, ppcRefY;
+        bool ppcSaved;
+        // After the opening, the crash site smokes for this long before its emitters stop and the component idles.
+        const float SmoulderSeconds = 60f;
         PixelLabel warningTitle, warningStatus, warningAltitude;
         Text radioText, recorderText;
         CanvasGroup recorderGroup, skipGroup;
@@ -139,6 +145,13 @@ namespace RedFrontier.Outpost
                 panAllowed = env.allowPan;
                 env.allowPan = false;
             }
+            else if (ppc != null)
+            {
+                // Without the environment controller nothing else restores the zoom, so Finish puts these back.
+                ppcRefX = ppc.refResolutionX;
+                ppcRefY = ppc.refResolutionY;
+                ppcSaved = true;
+            }
             if (Crew.Picked.Length > 0) facings = Crew.Facings(Crew.Picked[0]);
             rocket.InFlight = true;
 
@@ -171,11 +184,22 @@ namespace RedFrontier.Outpost
                 black.color = new Color(0f, 0f, 0f, 1f - Mathf.SmoothStep(0f, 1f, coverFade / .3f));
                 if (coverFade >= .3f)
                 {
-                    Destroy(canvas.gameObject);
+                    DestroyCanvas();
                     coverFade = -1f;
                 }
             }
             Smoulder(Time.deltaTime);
+            if (Done && coverFade < 0f && Burnt()) enabled = false; // nothing left to simulate
+        }
+
+        /// <summary>True once every emitter has stopped and every puff has faded out.</summary>
+        bool Burnt()
+        {
+            foreach (var e in emitters)
+                if (Time.time < e.until) return false;
+            foreach (var p in puffs)
+                if (p.sr != null && p.sr.enabled) return false;
+            return true;
         }
 
         bool Crossed(float moment) => last < moment && t >= moment;
@@ -332,7 +356,7 @@ namespace RedFrontier.Outpost
         /// <summary>Typewriter: shows each cue's characters from its start time, with a voice blip every other letter.</summary>
         void Speak(Text box, Cue[] cues, ref int shown, AudioClip[] voice)
         {
-            var typed = new StringBuilder();
+            typed.Clear();
             foreach (var cue in cues)
             {
                 if (t < cue.at) break;
@@ -364,22 +388,67 @@ namespace RedFrontier.Outpost
                 env.ConfigureCamera(); // restores the pixel-perfect zoom
                 env.allowPan = panAllowed;
             }
+            else if (ppcSaved && ppc != null)
+            {
+                ppc.refResolutionX = ppcRefX;
+                ppc.refResolutionY = ppcRefY;
+            }
             if (cam != null) cam.transform.position = home;
             foreach (var e in emitters)
             {
                 if (e.kind == Kind.Fire) e.until = Time.time + 8f;
-                else e.rate *= .5f;
+                else
+                {
+                    e.rate *= .5f;
+                    e.until = Mathf.Min(e.until, Time.time + SmoulderSeconds);
+                }
             }
+            ReleaseSounds(); // every source is stopped and no further cues play
 
             if (!skipped)
             {
-                Destroy(canvas.gameObject);
+                DestroyCanvas();
                 return;
             }
             // A skip cuts through black, like a scene change.
             foreach (Transform child in canvas.transform) child.gameObject.SetActive(child == black.transform);
             black.color = Color.black;
             coverFade = 0f;
+        }
+
+        void DestroyCanvas()
+        {
+            if (canvas != null) Destroy(canvas.gameObject);
+            if (noiseTexture != null) Destroy(noiseTexture);
+            if (vignetteTexture != null) Destroy(vignetteTexture);
+            noiseTexture = vignetteTexture = null;
+        }
+
+        void ReleaseSounds()
+        {
+            foreach (var source in new[] { alarmSource, bed, sfx })
+                if (source != null)
+                {
+                    source.Stop();
+                    source.clip = null;
+                }
+            foreach (var clip in new[] { siren, rumble, ring, hiss, burst, click })
+                if (clip != null) Destroy(clip);
+            siren = rumble = ring = hiss = burst = click = null;
+            foreach (var voice in new[] { marlonisVoice, playerVoice })
+                if (voice != null)
+                    foreach (var clip in voice)
+                        if (clip != null) Destroy(clip);
+            marlonisVoice = playerVoice = null;
+        }
+
+        void OnDestroy()
+        {
+            DestroyCanvas();
+            ReleaseSounds();
+            foreach (var asset in siteAssets)
+                if (asset != null) Destroy(asset);
+            siteAssets.Clear();
         }
 
         void Aim(Vector3 at, int zoom)
@@ -401,7 +470,7 @@ namespace RedFrontier.Outpost
             if (wrecked) return;
             wrecked = true;
             var scorch = Pixel("Scorch", Ground(basePlane), 1, 1, Color.white, -999, true);
-            scorch.sprite = ScorchSprite();
+            scorch.sprite = Track(ScorchSprite());
             scorch.transform.localScale = Vector3.one;
 
             // Hull plates and two torn-off fins thrown around the rocket, some still burning, plus small bits.
@@ -410,7 +479,7 @@ namespace RedFrontier.Outpost
             {
                 float angle = (float)(rng.NextDouble() * Mathf.PI * 2.0), reach = 2.2f + (float)rng.NextDouble() * 4.6f;
                 var plane = basePlane + new Vector3(Mathf.Cos(angle) * reach, Mathf.Sin(angle) * reach * .55f, 0f);
-                var sprite = Chunk(rng, i < 2, i < 14);
+                var sprite = Track(Chunk(rng, i < 2, i < 14));
                 if (Vector2.Distance(plane, playerPlane) < 1.4f || Vector2.Distance(plane, recorderPlane) < .9f) continue;
                 Debris(plane, sprite);
                 var top = Ground(plane) + Vector3.up * (sprite.rect.height * .6f) / Ppu;
@@ -432,6 +501,14 @@ namespace RedFrontier.Outpost
             Pixel("Recorder", at + Vector3.up / Ppu, 6, 3, new Color32(58, 56, 68, 255), order + 1);
             Pixel("Recorder top", at + Vector3.up * 4f / Ppu, 6, 1, new Color32(112, 110, 124, 255), order + 1);
             led = Pixel("Recorder light", at + new Vector3(4f, 4f, 0f) / Ppu, 1, 1, LedOff, order + 2);
+        }
+
+        /// <summary>Records a generated sprite and its texture so OnDestroy can free them.</summary>
+        Sprite Track(Sprite sprite)
+        {
+            siteAssets.Add(sprite);
+            siteAssets.Add(sprite.texture);
+            return sprite;
         }
 
         void Debris(Vector3 plane, Sprite sprite)
@@ -604,7 +681,8 @@ namespace RedFrontier.Outpost
             FrontierUi.Resize((RectTransform)root.transform, new Vector2(960, 540));
             var ui = root.transform;
 
-            alarm = FrontierUi.Art("Alarm light", ui, Vignette());
+            vignetteTexture = Vignette();
+            alarm = FrontierUi.Art("Alarm light", ui, vignetteTexture);
             vision = FrontierUi.Fill("Blurred vision", ui, Color.clear);
             lidTop = FrontierUi.Fill("Eyelid", ui, Color.black).rectTransform;
             lidBottom = FrontierUi.Fill("Eyelid", ui, Color.black).rectTransform;
