@@ -6,6 +6,8 @@ using static FrontierUi;
 
 internal sealed class MissionArrival : MonoBehaviour
 {
+    internal static void Load(string destination) => Load(destination, null, new Rect(0, 0, 1, 1));
+
     internal static void Load(string destination, Texture rocket, Rect rocketFrame)
     {
         var root = new GameObject("Mission arrival", typeof(RectTransform), typeof(Canvas),

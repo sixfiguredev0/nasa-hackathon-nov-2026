@@ -11,6 +11,7 @@ namespace RedFrontier.Outpost
         const string TitleScene = "Assets/Scenes/MainMenu.unity";
         const int VolumeSteps = 10;
         static readonly Vector2 PanelSize = new Vector2(402, 389);
+        const float Inset = 24, ContentWidth = 354, ActionHeight = 44;
         static MissionPauseMenu active;
         static int releasedFrame = -1;
         static bool leaving; // Return to title pressed; the title scene is loading
