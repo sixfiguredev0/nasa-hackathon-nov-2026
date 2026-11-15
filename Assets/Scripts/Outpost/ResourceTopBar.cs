@@ -102,7 +102,10 @@ namespace RedFrontier.Outpost
             DrawName(DialRect(card, 8, 6, 116, 16, scale), resource, 16, 12, scale);
             string status = Status(resource, economy);
             var dial = DialRect(card, 10, 28, 40, 40, scale);
-            DrawGauge(dial, Gauge.Single, resource, status != null);
+            DrawGauge(dial, Gauge.Single, resource, status != null || Falling(resource, economy));
+            string why = resource == Res.Energy ? EnergyWhy(economy) : null;
+            if (why != null)
+                Label(DialRect(card, 66, 6, 58, 16, scale), why, 9f * scale, Warning, TextAnchor.MiddleRight);
             if (status != null)
                 Label(dial, status, 9f * scale, Warning, TextAnchor.MiddleCenter);
 
@@ -127,7 +130,7 @@ namespace RedFrontier.Outpost
             ColonyEconomy economy, float scale)
         {
             string status = Status(resource, economy);
-            DrawGauge(dial, gauge, resource, status != null);
+            DrawGauge(dial, gauge, resource, status != null || Falling(resource, economy));
             DrawName(DialRect(card, left, 27, 74, 14, scale), resource, 12, 11, scale);
             DrawStock(DialRect(card, left, 41, 74, 15, scale), resource, economy, scale, 15f);
             var rate = DialRect(card, left, 55, 74, 14, scale);
@@ -163,7 +166,18 @@ namespace RedFrontier.Outpost
             float rate = economy.net[(int)resource];
             string readout = (Mathf.Abs(rate) < .05f ? 0f : rate)
                 .ToString("+0.0;-0.0;0.0", CultureInfo.InvariantCulture) + "/s";
-            Label(rect, readout, 11f * scale, low ? Warning : Secondary);
+            Label(rect, readout, 11f * scale, low || Falling(resource, economy) ? Warning : Secondary);
+        }
+
+        private static bool Falling(Res resource, ColonyEconomy economy) => economy.net[(int)resource] <= -.05f;
+
+        // Why Energy is falling, shown in the card header. Sunrise ramps solar up over two hours while heaters peak.
+        private static string EnergyWhy(ColonyEconomy economy)
+        {
+            if (!Falling(Res.Energy, economy)) return null;
+            if (economy.solarFactor <= 0f) return "No sun";
+            if (economy.solarFactor < .9f) return "Weak sun";
+            return economy.heatPerBuilding > 0f ? "Heaters" : null;
         }
 
         private static string Status(Res resource, ColonyEconomy economy)

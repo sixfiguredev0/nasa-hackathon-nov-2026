@@ -56,12 +56,13 @@ internal sealed class PlasmaSheath
                     continue;
                 }
 
-                // Bow shock: a parabola wrapping the nose, flaring out past the hull.
+                // Bow shock: a parabola wrapping the nose. Its arms fade out by the shoulders, inside the fire
+                // trail; run further back they showed as a thin bright line beside the hull.
                 float front = standoff - v * v / 34f - u, intensity = 0;
                 if (front > -6)
                 {
                     float layer = front >= 0 ? Mathf.Exp(-front / shockDepth) : Mathf.Exp(front / 1.6f) * .7f;
-                    intensity = layer * 1.1f * Mathf.Clamp01(1 + (u + 34) / 10);
+                    intensity = layer * 1.1f * Mathf.Clamp01(1 + (u + 10) / 8);
                 }
 
                 // Fire trail: an envelope hugging the hull, widening behind the shoulders, its edges and

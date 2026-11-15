@@ -50,7 +50,7 @@ namespace RedFrontier.Outpost
         /// <summary>Astronauts in a mission (the art has exactly two).</summary>
         public const int DefaultCrew = 2;
         /// <summary>Stock the mission starts with, in Res order: Energy, Water, Food, Oxygen, Metal. Tuned with the economy simulator.</summary>
-        public static readonly float[] MissionStart = { 30f, 40f, 50f, 50f, 60f };
+        public static readonly float[] MissionStart = { 120f, 40f, 50f, 50f, 60f };
         public const float UpkeepScale = 1.75f;        // hard mode: tuned with Red Frontier > Outpost > Simulate Economy
         public static readonly Amount[] UpkeepPerCrew =
         {

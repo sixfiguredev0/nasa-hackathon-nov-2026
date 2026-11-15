@@ -17,12 +17,19 @@ internal sealed class EntryCinematic : MonoBehaviour
     // Nose direction of the baked rocket (RocketWreck frame 0) on screen, y down; its nose tip in that frame.
     private static readonly Vector2 Forward = new Vector2(-.894f, .447f), NoseTipPx = new Vector2(52, 86), TailPx = new Vector2(136, 50);
 
-    private static readonly Color32 Space = new Color32(12, 9, 18, 255), Night = new Color32(30, 12, 20, 255),
+    private static readonly Color32 Space = new Color32(12, 9, 18, 255), Night = new Color32(30, 6, 10, 255), Haze = new Color32(226, 88, 82, 255),
         Air = new Color32(255, 150, 112, 255), Streak = new Color32(255, 226, 180, 255), Cream32 = new Color32(248, 229, 200, 255);
     private static readonly Color32[] Surface =
     {
         new Color32(60, 22, 26, 255), new Color32(96, 36, 32, 255), new Color32(136, 52, 40, 255), new Color32(178, 78, 50, 255),
         new Color32(208, 112, 68, 255), new Color32(232, 152, 98, 255), new Color32(246, 196, 146, 255),
+    };
+    // The planet seen from space, sampled from the main menu's Mars art (Art/MainMenu/MarsPlanet.png): crimson, not butterscotch.
+    // Surface (below) stays the dusty ground of the landing site.
+    private static readonly Color32[] Planet =
+    {
+        new Color32(50, 8, 10, 255), new Color32(66, 11, 12, 255), new Color32(90, 18, 19, 255), new Color32(115, 23, 24, 255),
+        new Color32(140, 34, 34, 255), new Color32(176, 59, 59, 255), new Color32(210, 83, 80, 255), new Color32(232, 104, 98, 255),
     };
     private static readonly Color32[] Sky =
     {
@@ -344,7 +351,7 @@ internal sealed class EntryCinematic : MonoBehaviour
     {
         int x0 = Mathf.Max(0, Mathf.FloorToInt(c.x - radius - atmosphere)), x1 = Mathf.Min(W - 1, Mathf.CeilToInt(c.x + radius + atmosphere));
         int y0 = Mathf.Max(Bar, Mathf.FloorToInt(c.y - radius - atmosphere)), y1 = Mathf.Min(H - Bar - 1, Mathf.CeilToInt(c.y + radius + atmosphere));
-        var glow = Color32.Lerp(Air, Streak, heat * .5f);
+        var glow = Color32.Lerp(Haze, Streak, heat * .5f);
         for (int y = y0; y <= y1; y++)
             for (int x = x0; x <= x1; x++)
             {
@@ -358,7 +365,7 @@ internal sealed class EntryCinematic : MonoBehaviour
                               + .35f * Mathf.PerlinNoise(lon * 6f + spinU * 3 + 3, dy * 6f + spinV * 3 + 9);
                     float v = lit * (.4f + .8f * h);
                     if (r2 > .86f) v += (r2 - .86f) * 1.6f * lit; // haze brightens the limb
-                    px[(H - 1 - y) * W + x] = lit < .05f ? Night : Pick(Surface, v, x, y);
+                    px[(H - 1 - y) * W + x] = lit < .05f ? Night : Pick(Planet, v, x, y);
                 }
                 else if (atmosphere > 0)
                 {

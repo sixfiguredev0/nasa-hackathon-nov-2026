@@ -25,14 +25,14 @@ namespace RedFrontier.Outpost
         float started, completedAt = -1f, trainingDoneAt = -1f;
         internal enum Step
         {
-            Power, Water, Food, SupportPower, Oxygen, Training,
+            Clear, Power, Water, Food, SupportPower, Oxygen, Training,
             Salvage, StorePower, RepairRadio, Signal, RepairHull, Fuel, Decide, Sandbox
         }
         internal Step Stage { get; private set; }
         internal string Caption => Captions[(int)Stage];
         static readonly string[] Captions =
         {
-            "Build solar panels", "Drill for water", "Grow food", "Power life support",
+            "Clear the crash debris", "Build solar panels", "Drill for water", "Grow food", "Power life support",
             "Supply oxygen", "Historical exercise", "Salvage metal", "Store power", "Repair the radio",
             "Wait for the orbiter", "Repair the ship", "Make rocket fuel", "Make your choice", "Keep exploring"
         };
@@ -43,6 +43,7 @@ namespace RedFrontier.Outpost
             {
                 switch (Stage)
                 {
+                    case Step.Clear: return "Wreckage from the crash lies around the ship. Click a piece and the crew will sweep it and everything near it away.";
                     case Step.Power: return "Build Solar Panels for power. In Build, place a green blueprint.";
                     case Step.Water: return "Build an Ice Drill for drinking water. It needs power from your Solar Panels.";
                     case Step.Food: return "Build a Greenhouse for food. Air runs low fast, so a Habitat must follow soon.";
@@ -137,7 +138,8 @@ namespace RedFrontier.Outpost
             var before = Stage;
             // The story runs the solar particle exercise as its own step; MissionDirector's scheduled burst then skips it.
             if (Stage == Step.Training && training != null && !training.Triggered && Time.time - started >= 4f) training.Trigger();
-            while ((Stage == Step.Power && Has(BuildingKind.Solar)) ||
+            while ((Stage == Step.Clear && DebrisClearing.Remaining == 0) ||
+                   (Stage == Step.Power && Has(BuildingKind.Solar)) ||
                    (Stage == Step.Water && Has(BuildingKind.Water)) ||
                    (Stage == Step.Food && Has(BuildingKind.Greenhouse)) ||
                    (Stage == Step.SupportPower && HasSupportPower()) ||
@@ -173,9 +175,9 @@ namespace RedFrontier.Outpost
         // Counting goals show their number in the tracker.
         void RefreshLiveGoal()
         {
-            if (story == null) return;
-            if (Stage == Step.Signal) goal.text = "Orbiter in " + Mathf.CeilToInt(story.OrbiterIn) + "s";
-            else if (Stage == Step.Fuel) goal.text = "Rocket fuel " + Mathf.FloorToInt(story.Fuel * 100f) + "%";
+            if (Stage == Step.Clear) goal.text = "Clear debris: " + DebrisClearing.Remaining + " left";
+            else if (story != null && Stage == Step.Signal) goal.text = "Orbiter in " + Mathf.CeilToInt(story.OrbiterIn) + "s";
+            else if (story != null && Stage == Step.Fuel) goal.text = "Rocket fuel " + Mathf.FloorToInt(story.Fuel * 100f) + "%";
         }
 
         void LateUpdate()

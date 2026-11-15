@@ -16,25 +16,15 @@ internal sealed class MissionArrival : MonoBehaviour
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
         canvas.sortingOrder = 100;
         DontDestroyOnLoad(root);
-        var cover = Fill("Scene cover", root.transform, Background);
+        // No card: the entry cinematic ends on a hard cut to black, so the load stays black and only a thin line
+        // along the bottom edge shows progress.
+        var cover = Fill("Scene cover", root.transform, Color.black);
         cover.raycastTarget = true;
-        var layout = FitLayout(root.transform);
-        var reference = new Vector2(640, 480);
-        Resize((RectTransform)root.transform, reference, layout);
-
-        var cardSize = new Vector2(320, 112);
-        var card = Box("Arrival status", layout);
-        Place(card, reference, 160, 184, cardSize.x, cardSize.y);
-        var destinationLabel = PixelLabel.Create("Destination", card, "Mars outpost", 3, Cream, 0);
-        Place(destinationLabel.Rect, cardSize, 0, 12, 244, 36);
-        var status = PixelLabel.Create("Load status", card, "Loading mission", 2, CreamDark, 0);
-        Place(status.Rect, cardSize, 0, 52, 244, 24);
-        var ship = Art("Mission rocket", card, rocket);
-        ship.uvRect = rocketFrame;
-        if (rocket == null) ship.enabled = false; // no art: skip it rather than draw a white box
-        Place(ship.rectTransform, cardSize, 252, 8, 68, 68);
-        var track = Fill("Progress track", card, PanelLight);
-        Place(track.rectTransform, cardSize, 0, 96, 320, 4);
+        var track = Fill("Progress track", root.transform, new Color(1f, 1f, 1f, .08f));
+        track.rectTransform.anchorMin = Vector2.zero;
+        track.rectTransform.anchorMax = new Vector2(1f, 0f);
+        track.rectTransform.offsetMin = Vector2.zero;
+        track.rectTransform.offsetMax = new Vector2(0f, 3f);
         var progress = Fill("Load progress", track.transform, CoralLight);
         progress.rectTransform.anchorMax = new Vector2(0, 1);
 

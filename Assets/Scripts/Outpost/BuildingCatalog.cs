@@ -82,9 +82,9 @@ namespace RedFrontier.Outpost
 
             new BuildingDef(BuildingKind.Solar, "Solar Arrays", new Vector2Int(4, 2),
                 new UpgradeNode { id = "solar1", name = "Solar Panels", blurb = "Panels turn sunlight into electricity. Mars gets about half the sunlight Earth does.",
-                    cost = A((M, 20)), rates = A((E, 2f)), next = new[] { "solar2" } },
+                    cost = A((M, 20)), rates = A((E, 3.5f)), next = new[] { "solar2" } },
                 new UpgradeNode { id = "solar2", name = "Solar Field", rocketTier = 2, blurb = "More panels, more power.",
-                    cost = A((M, 45)), rates = A((E, 4.5f)), next = new[] { "solar3a", "solar3b" } },
+                    cost = A((M, 45)), rates = A((E, 7f)), next = new[] { "solar3a", "solar3b" } },
                 new UpgradeNode { id = "solar3a", name = "Sun Trackers", rocketTier = 3, blurb = "Panels turn to face the Sun all day, like sunflowers.",
                     cost = A((M, 100), (E, 30)), rates = A((E, 8f)) },
                 new UpgradeNode { id = "solar3b", name = "Dust Wipers", rocketTier = 3, blurb = "Mars dust covers panels and blocks light. Little brushes keep them clean.",
@@ -92,7 +92,7 @@ namespace RedFrontier.Outpost
 
             new BuildingDef(BuildingKind.Battery, "Battery Storage", new Vector2Int(2, 2),
                 new UpgradeNode { id = "bat1", name = "Battery Pack", blurb = "Saves power for the night. A Mars day (a sol) lasts 24 hours 39 minutes.",
-                    cost = A((M, 15)), storage = A((E, 100)), next = new[] { "bat2" } },
+                    cost = A((M, 15)), storage = A((E, 200)), next = new[] { "bat2" } },
                 new UpgradeNode { id = "bat2", name = "Battery Bank", rocketTier = 2, blurb = "Lots of batteries wired together.",
                     cost = A((M, 40)), storage = A((E, 250)), next = new[] { "bat3a", "bat3b" } },
                 new UpgradeNode { id = "bat3a", name = "Mega Battery", rocketTier = 3, blurb = "Stores enough power for long dust storms.",
