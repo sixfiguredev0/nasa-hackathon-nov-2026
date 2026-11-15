@@ -59,6 +59,14 @@ namespace RedFrontier.Outpost
             GUI.color = Color.white;
         }
 
+        internal static void Frame(Rect rect, Color face, Color edge, float scale)
+        {
+            float pixel = Mathf.Max(1f, Mathf.Round(scale));
+            Panel(new Rect(rect.x + pixel, rect.y, rect.width - 2f * pixel, rect.height), edge);
+            Panel(new Rect(rect.x, rect.y + pixel, rect.width, rect.height - 2f * pixel), edge);
+            Panel(new Rect(rect.x + pixel, rect.y + pixel, rect.width - 2f * pixel, rect.height - 2f * pixel), face);
+        }
+
         public static void Disc(Vector2 center, float radius, Color c)
         {
             GUI.color = c;
