@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using RedFrontier.Audio;
 using UnityEngine;
 
 namespace RedFrontier.Outpost
@@ -27,6 +28,7 @@ namespace RedFrontier.Outpost
         {
             if (open == null) return false;
             open = null;
+            GameAudio.Play(Sfx.UiBack);
             return true;
         }
 
@@ -44,6 +46,7 @@ namespace RedFrontier.Outpost
                 var b = colony.BuildingAt(cam.ScreenToWorldPoint(Input.mousePosition));
                 open = b == open ? null : b;
                 mode = Mode.Buttons;
+                if (open != null) GameAudio.Play(Sfx.UiSelect);
             }
         }
 
@@ -85,9 +88,9 @@ namespace RedFrontier.Outpost
             var e = Event.current;
             if (e.type == EventType.MouseDown && e.button == 0)
             {
-                if (upHot) mode = mode == Mode.Tree ? Mode.Buttons : Mode.Tree;
-                else if (infoHot) mode = mode == Mode.Info ? Mode.Buttons : Mode.Info;
-                else if (hoveredNode != null) eco.TryUpgrade(st, hoveredNode);
+                if (upHot) { mode = mode == Mode.Tree ? Mode.Buttons : Mode.Tree; GameAudio.Play(Sfx.UiSelect); }
+                else if (infoHot) { mode = mode == Mode.Info ? Mode.Buttons : Mode.Info; GameAudio.Play(Sfx.UiSelect); }
+                else if (hoveredNode != null) GameAudio.Play(eco.TryUpgrade(st, hoveredNode) ? Sfx.UpgradePurchase : Sfx.UiDenied);
                 else open = null;
                 e.Use();
             }

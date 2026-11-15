@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Text;
+using RedFrontier.Audio;
 using RedFrontier.Mars;
 using UnityEngine;
 using UnityEngine.U2D;
@@ -102,7 +103,7 @@ namespace RedFrontier.Outpost
         CanvasGroup recorderGroup, skipGroup;
 
         AudioSource alarmSource, bed, sfx;
-        AudioClip siren, rumble, impact, ring, hiss, burst, click;
+        AudioClip siren, rumble, ring, hiss, burst, click;
         AudioClip[] marlonisVoice, playerVoice;
 
         /// <summary>Starts the opening on a freshly spawned rocket. Wait for <see cref="Done"/> before handing over control.</summary>
@@ -187,6 +188,7 @@ namespace RedFrontier.Outpost
             warning.gameObject.SetActive(falling && t > .25f);
             alarm.color = new Color(1f, .16f, .12f, falling ? (calm ? .1f : .26f) * (.4f + .6f * Pulse(1.25f)) : 0f);
             if (falling) Fall(calm, dt);
+            if (!calm && Crossed(EngineOut)) GameAudio.Play(Sfx.RocketDescent);
             if (Crossed(Impact)) Crash();
             if (Crossed(Impact + .12f)) WakeShot();
             flash.color = new Color(1f, 1f, 1f, !calm && t >= Impact && t < Impact + .12f ? 1f : 0f);
@@ -247,7 +249,7 @@ namespace RedFrontier.Outpost
             ScatterWreckage();
             alarmSource.Stop();
             bed.Stop();
-            sfx.PlayOneShot(impact, 1f);
+            GameAudio.Play(Sfx.RocketTouchdown);
             sfx.PlayOneShot(ring, .5f);
         }
 
@@ -766,12 +768,6 @@ namespace RedFrontier.Outpost
             {
                 brown = (brown + White() * .06f) * .985f;
                 return brown * 4f + Mathf.Sin(s * 2f * Mathf.PI * 36f) * .25f;
-            });
-            impact = Synth("Impact", 1.8f, s =>
-            {
-                brown = (brown + White() * .08f) * .98f;
-                return brown * 5f * Mathf.Exp(-2.5f * s) + Mathf.Sin(s * 2f * Mathf.PI * 46f) * Mathf.Exp(-4f * s)
-                    + White() * Mathf.Exp(-22f * s) * .7f;
             });
             ring = Synth("Ringing", 4.5f, s => Mathf.Sin(s * 2f * Mathf.PI * 3150f) * .12f * Mathf.Clamp01(s * 8f) * Sqr(1f - s / 4.5f));
             hiss = Synth("Static", 2f, s =>

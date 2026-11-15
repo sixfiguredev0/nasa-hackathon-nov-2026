@@ -1,0 +1,16 @@
+AUDIO_WEBGL_BUILD Succeeded size=42916853 errors=0 time=00:01:11.6296270
+Textures               17.2 mb	 53.6% 
+Sounds                 14.7 mb	 45.8% 
+Scripts                152.5 kb	 0.5% 
+Total User Assets      32.0 mb	 100.0% 
+Complete build size    40.9 mb
+ 1.9 mb	 4.7% Assets/Audio/Resources/Audio/Music/MUS_SURFACE_B_01.ogg
+ 1.9 mb	 4.7% Assets/Audio/Resources/Audio/Music/MUS_SURFACE_D_01.ogg
+ 1.9 mb	 4.6% Assets/Audio/Resources/Audio/Music/MUS_TITLE_01.ogg
+ 1.8 mb	 4.4% Assets/Audio/Resources/Audio/Music/MUS_SURFACE_A_01.ogg
+ 1.7 mb	 4.1% Assets/Audio/Resources/Audio/Music/MUS_SURFACE_C_01.ogg
+ 1.7 mb	 4.1% Assets/Audio/Resources/Audio/Music/MUS_SURFACE_E_01.ogg
+ 1.5 mb	 3.7% Assets/Audio/Resources/Audio/Music/MUS_TENSION_01.ogg
+ 592.1 kb	 1.4% Assets/Audio/Resources/Audio/Ambience/AMB_MARS_WIND_01.wav
+ 466.9 kb	 1.1% Assets/Audio/Resources/Audio/Music/MUS_ARRIVAL_01.ogg
+ 395.1 kb	 0.9% Assets/Audio/Resources/Audio/Ambience/AMB_COLONY_HUM_01.wav

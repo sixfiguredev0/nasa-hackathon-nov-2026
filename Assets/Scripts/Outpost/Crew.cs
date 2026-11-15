@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using RedFrontier.Audio;
 using RedFrontier.Mars;
 using UnityEngine;
 
@@ -104,13 +105,16 @@ namespace RedFrontier.Outpost
                     var job = jobs[0];
                     yield return All((m, i) => Exit(m, i * 0.4f, door, foot, StandPoint(job, i)));
                     // unfit crew build slower: progress runs at Efficiency (50..100%)
+                    GameAudio.StartLoop(Sfx.ConstructLoop, this);
                     for (float t = 0f; t < buildSeconds; t += Time.deltaTime * eco.Efficiency)
                     {
                         Hop(job, t, 4f);
                         yield return null;
                     }
+                    GameAudio.StopLoop(Sfx.ConstructLoop, this);
                     jobs.RemoveAt(0);
                     job.FinishBuild();
+                    GameAudio.Play(Sfx.BuildComplete); // only here: the crew actually finished work, never on scene setup
                     continue; // straight on to the next queued job
                 }
 
@@ -119,11 +123,13 @@ namespace RedFrontier.Outpost
                 {
                     yield return All((m, i) => Exit(m, i * 0.4f, door, foot, StandPoint(gym, i)));
                     eco.training = gym.state;
+                    GameAudio.StartLoop(Sfx.GymLoop, this);
                     for (float t = 0f; jobs.Count == 0 && eco.fitness < 0.995f && !gym.state.stalled; t += Time.deltaTime)
                     {
                         Hop(gym, t, 2.5f); // slower bounce: jumping jacks
                         yield return null;
                     }
+                    GameAudio.StopLoop(Sfx.GymLoop, this);
                     eco.training = null;
                     continue;
                 }
@@ -158,6 +164,7 @@ namespace RedFrontier.Outpost
             m.nearRocket = true;
             m.facing = South;
             m.sr.gameObject.SetActive(true);
+            GameAudio.Play(Sfx.Hatch); // cooldown keeps it to one hatch per trip
             yield return Fade(m, door, 0f, 1f);
             yield return Walk(m, foot);
             m.nearRocket = false;
@@ -172,6 +179,7 @@ namespace RedFrontier.Outpost
             m.nearRocket = true;
             yield return Walk(m, door);
             m.facing = North;
+            GameAudio.Play(Sfx.Hatch);
             yield return Fade(m, door, 1f, 0f);
             m.sr.gameObject.SetActive(false);
             m.nearRocket = false;
@@ -193,6 +201,8 @@ namespace RedFrontier.Outpost
             Vector3 p = m.sr.transform.position;
             p.z = 0f;
             float t = 0f;
+            bool wasBob = false;
+            int steps = 0;
             while ((to - p).sqrMagnitude > 1e-6f)
             {
                 var step = Vector3.MoveTowards(p, to, walkSpeed * eco.Efficiency * Time.deltaTime);
@@ -200,6 +210,8 @@ namespace RedFrontier.Outpost
                 p = step;
                 t += Time.deltaTime;
                 bool bob = Mathf.Repeat(t * 6f, 1f) < 0.5f; // the sheets have no walk cycle, so a 1 px bob sells the steps
+                if (bob && !wasBob && (steps++ & 1) == 0) GameAudio.Play(Sfx.Footstep);
+                wasBob = bob;
                 Place(m, p + (bob ? Vector3.up / Ppu : Vector3.zero));
                 yield return null;
             }

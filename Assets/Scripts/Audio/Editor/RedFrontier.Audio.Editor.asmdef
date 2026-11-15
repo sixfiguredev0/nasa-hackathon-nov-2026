@@ -1,0 +1,14 @@
+{
+    "name": "RedFrontier.Audio.Editor",
+    "rootNamespace": "RedFrontier.Audio.Editor",
+    "references": ["RedFrontier.Audio"],
+    "includePlatforms": ["Editor"],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

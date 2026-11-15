@@ -1,3 +1,4 @@
+using RedFrontier.Audio;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -112,6 +113,7 @@ namespace RedFrontier.Outpost
             next.onClick.AddListener(Advance);
             panel.gameObject.SetActive(false);
             active = this;
+            GameAudio.PlayDelayed(Sfx.GuideNotify, 1.5f); // unread message badge appears after touchdown
         }
 
         static PixelButton BlueButton(string caption, Transform parent)
@@ -152,6 +154,7 @@ namespace RedFrontier.Outpost
             }
             unread.SetActive(false);
             panel.gameObject.SetActive(true);
+            GameAudio.Play(Sfx.UiPanelOpen);
             next.Select();
         }
 
@@ -165,11 +168,13 @@ namespace RedFrontier.Outpost
                 return;
             }
             dialogue.text = Lines[line];
+            GameAudio.Play(Sfx.GuideNext);
             if (line == Lines.Length - 1) next.label.Text = "Done";
         }
 
         void CloseDialogue()
         {
+            GameAudio.Play(Sfx.UiPanelClose);
             panel.gameObject.SetActive(false);
             if (events != null) notification.Select();
         }

@@ -1,0 +1,49 @@
+   30.13  media-play MUS_TITLE_01 at 0s
+   30.22  ctx    running
+   30.23  sfx    SFX_UI_PANEL_OPEN_01/SFX_UI_PANEL_OPEN_02
+   31.45  sfx    SFX_UI_BACK_01/SFX_UI_BACK_02/SFX_UI_CONFIRM_01/SFX_UI_CONFIRM_02/SFX_UI_CONFIRM_03/SFX_UI_DENIED_01/SFX_UI_DENIED_02
+   32.61  sfx    SFX_UI_PANEL_OPEN_01/SFX_UI_PANEL_OPEN_02
+   34.03  sfx    SFX_BUILD_COMPLETE_01/SFX_BUILD_COMPLETE_02/SFX_LAUNCH_WHOOSH_01
+   34.05  media-play MUS_ARRIVAL_01 at 0s
+   35.17  media-pause MUS_TITLE_01 at 4.96s
+   36.52  sfx    SFX_ROCKET_DESCENT_01
+   36.53  error  warning: 2 FS.syncfs operations in flight at once, probably just doing extra work
+   36.54  media-play AMB_MARS_WIND_01 at 0s
+   38.31  sfx    SFX_ROCKET_TOUCHDOWN_01
+   39.84  sfx    SFX_GUIDE_NOTIFY_01/SFX_UPGRADE_PURCHASE_01/SFX_UPGRADE_PURCHASE_02
+   57.70  media-pause MUS_ARRIVAL_01 at 23.66s
+   57.70  media-end MUS_ARRIVAL_01
+   62.53  media-play MUS_SURFACE_D_01 at 0s
+   64.00  media-play AMB_MARS_WIND_01 at 0s
+   66.47  media-pause AMB_MARS_WIND_01 at 29.93s
+   91.50  media-play AMB_MARS_WIND_01 at 0s
+   93.99  media-pause AMB_MARS_WIND_01 at 29.99s
+  119.01  media-play AMB_MARS_WIND_01 at 0s
+  121.48  media-pause AMB_MARS_WIND_01 at 29.98s
+  146.51  media-play AMB_MARS_WIND_01 at 0s
+  148.99  media-pause AMB_MARS_WIND_01 at 29.98s
+  162.21  media-pause MUS_SURFACE_D_01 at 99.68s
+  162.21  media-end MUS_SURFACE_D_01
+  171.64  sfx    SFX_ALERT_SHORTAGE_01
+  174.02  media-play AMB_MARS_WIND_01 at 0s
+  175.20  media-play MUS_SURFACE_A_01 at 0s
+  176.50  media-pause AMB_MARS_WIND_01 at 29.98s
+  177.66  media-play MUS_TENSION_01 at 0s
+  180.52  sfx    SFX_ALERT_FITNESS_01/SFX_ALERT_RECOVERED_01
+  181.64  media-pause MUS_SURFACE_A_01 at 6.44s
+  201.53  media-play AMB_MARS_WIND_01 at 0s
+  201.63  sfx    SFX_ALERT_SHORTAGE_01
+  204.01  media-pause AMB_MARS_WIND_01 at 29.98s
+  229.04  media-play AMB_MARS_WIND_01 at 0s
+  231.52  media-pause AMB_MARS_WIND_01 at 30s
+  231.52  media-end AMB_MARS_WIND_01
+  256.55  media-play AMB_MARS_WIND_01 at 0s
+  257.25  media-pause MUS_TENSION_01 at 79.6s
+  257.25  media-end MUS_TENSION_01
+  259.02  media-pause AMB_MARS_WIND_01 at 29.98s
+  261.64  sfx    SFX_ALERT_SHORTAGE_01
+  275.38  media-play MUS_SURFACE_E_01 at 0s
+  284.05  media-play AMB_MARS_WIND_01 at 0s
+  286.53  media-pause AMB_MARS_WIND_01 at 29.98s
+  311.56  media-play AMB_MARS_WIND_01 at 0s
+  314.03  media-pause AMB_MARS_WIND_01 at 29.98s

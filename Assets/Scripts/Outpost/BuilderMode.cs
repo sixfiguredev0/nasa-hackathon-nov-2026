@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using RedFrontier.Audio;
 using UnityEngine;
 
 namespace RedFrontier.Outpost
@@ -52,6 +53,7 @@ namespace RedFrontier.Outpost
         {
             open = !open;
             if (!open) selected = null;
+            GameAudio.Play(open ? Sfx.UiPanelOpen : Sfx.UiPanelClose);
         }
 
         static Vector2 GuiMouse => new Vector2(Input.mousePosition.x, Screen.height - Input.mousePosition.y);
@@ -67,6 +69,7 @@ namespace RedFrontier.Outpost
                 if (ghost != null) ghost.enabled = false;
             }
             else open = false;
+            GameAudio.Play(Sfx.UiBack);
             return true;
         }
 
@@ -79,7 +82,11 @@ namespace RedFrontier.Outpost
 
             if (Input.GetKeyDown(KeyCode.B)) Toggle();
             if (Input.GetMouseButtonDown(1)) rightDown = Input.mousePosition;
-            if (Input.GetMouseButtonUp(1) && ((Vector2)Input.mousePosition - rightDown).magnitude <= 6f) selected = null; // a click, not a camera drag
+            if (Input.GetMouseButtonUp(1) && ((Vector2)Input.mousePosition - rightDown).magnitude <= 6f) // a click, not a camera drag
+            {
+                if (selected != null) GameAudio.Play(Sfx.UiBack);
+                selected = null;
+            }
 
             if (ghost == null)
             {
@@ -160,7 +167,11 @@ namespace RedFrontier.Outpost
                 if (MissionGuide.PointerOverUI(mouse)) e.Use();
                 else if (open && panelRect.Contains(mouse))
                 {
-                    if (hovered != null) selected = selected == hovered ? null : hovered;
+                    if (hovered != null)
+                    {
+                        selected = selected == hovered ? null : hovered;
+                        GameAudio.Play(Sfx.UiSelect);
+                    }
                     e.Use();
                 }
                 else if (selected != null && !OverUI(mouse)) { Place(e.shift); e.Use(); }
@@ -184,7 +195,8 @@ namespace RedFrontier.Outpost
 
         void Place(bool keepGoing)
         {
-            if (colony.TryPlace(selected, cells) == null) { flash = Problem(); flashUntil = Time.unscaledTime + 1.5f; return; }
+            if (colony.TryPlace(selected, cells) == null) { flash = Problem(); flashUntil = Time.unscaledTime + 1.5f; GameAudio.Play(Sfx.UiDenied); return; }
+            GameAudio.Play(Sfx.BuildPlace);
             if (!keepGoing) selected = null;
         }
 

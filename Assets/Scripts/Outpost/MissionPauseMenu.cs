@@ -1,3 +1,4 @@
+using RedFrontier.Audio;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
@@ -22,6 +23,7 @@ namespace RedFrontier.Outpost
         PixelButton resume, settingsButton, titleButton, motion, keepPlaying, leave;
         PixelSlider volume;
         PixelLabel volumeValue;
+        AudioMixRow mix;
         BuilderMode builder;
         UpgradeBubbles upgrades;
         float previousTimeScale;
@@ -43,8 +45,8 @@ namespace RedFrontier.Outpost
             if (loading) return;
             if (active == this)
             {
-                if (settings.gameObject.activeSelf) Show(main, settingsButton);
-                else if (confirmation.gameObject.activeSelf) Show(main, titleButton);
+                if (settings.gameObject.activeSelf) { GameAudio.Play(Sfx.UiBack); Show(main, settingsButton); }
+                else if (confirmation.gameObject.activeSelf) { GameAudio.Play(Sfx.UiBack); Show(main, titleButton); }
                 else Resume();
                 return;
             }
@@ -61,6 +63,8 @@ namespace RedFrontier.Outpost
             previousTimeScale = Time.timeScale;
             active = this;
             Time.timeScale = 0f;
+            GameAudio.SetPaused(true);
+            GameAudio.Play(Sfx.UiPanelOpen);
             canvas.gameObject.SetActive(true);
             Show(main, resume);
         }
@@ -71,6 +75,8 @@ namespace RedFrontier.Outpost
             active = null;
             releasedFrame = Time.frameCount;
             Time.timeScale = previousTimeScale;
+            GameAudio.SetPaused(false);
+            if (!loading) GameAudio.Play(Sfx.UiPanelClose);
             if (canvas != null) canvas.gameObject.SetActive(false);
             if (events != null) events.SetSelectedGameObject(priorSelection);
         }
@@ -120,21 +126,23 @@ namespace RedFrontier.Outpost
             Label(settings, "Master volume", 29, 78, 240, 26, 2);
             volumeValue = Label(settings, "", 270, 78, 103, 26, 2, 1f);
             volume = FrontierUi.Slider("Master volume", settings, VolumeSteps);
-            FrontierUi.Place((RectTransform)volume.transform, PanelSize, 29, 109, 344, 36);
+            FrontierUi.Place((RectTransform)volume.transform, PanelSize, 29, 104, 344, 30);
             volume.onValueChanged.AddListener(value =>
             {
                 FrontierUi.MasterVolume = value / VolumeSteps;
                 UpdateSettings();
             });
-            motion = Action(settings, "", 163);
+            mix = new AudioMixRow(settings);
+            FrontierUi.Place(mix.Root, PanelSize, 29, 142, 344, AudioMixRow.Height);
+            motion = Action(settings, "", 208, height: 44);
             motion.onClick.AddListener(() =>
             {
                 FrontierUi.ReduceMotion = !FrontierUi.ReduceMotion;
                 UpdateSettings();
             });
-            var back = Action(settings, "Back", 231);
+            var back = Action(settings, "Back", 260, height: 44);
             back.onClick.AddListener(() => Show(main, settingsButton));
-            FrontierUi.Chain(volume, motion, back);
+            FrontierUi.Chain(volume, mix.Sliders[0], mix.Sliders[1], mix.Sliders[2], motion, back);
 
             confirmation = Page("Return to title?");
             Label(confirmation, "The current mission\nwill end.", 29, 84, 344, 61, 3, .5f);
@@ -173,7 +181,7 @@ namespace RedFrontier.Outpost
             return label;
         }
 
-        static PixelButton Action(Transform page, string caption, float y, bool primary = false)
+        static PixelButton Action(Transform page, string caption, float y, bool primary = false, float height = 47)
         {
             var button = FrontierUi.Button(caption, page, primary, titleAction: !primary);
             if (primary)
@@ -181,7 +189,7 @@ namespace RedFrontier.Outpost
                 button.label.Rect.offsetMin = new Vector2(16, 0);
                 button.label.Rect.offsetMax = new Vector2(-16, 0);
             }
-            FrontierUi.Place((RectTransform)button.transform, PanelSize, 29, y, 344, 47);
+            FrontierUi.Place((RectTransform)button.transform, PanelSize, 29, y, 344, height);
             return button;
         }
 
@@ -196,6 +204,7 @@ namespace RedFrontier.Outpost
         void OpenSettings()
         {
             volume.SetValueWithoutNotify(Mathf.Round(FrontierUi.MasterVolume * VolumeSteps));
+            mix.Refresh();
             UpdateSettings();
             Show(settings, volume);
         }
