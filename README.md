@@ -20,7 +20,9 @@ oxygen and metal.
 
 ## Play it
 
-**Browser build (WebGL):** download `red-frontier-webgl.zip` from the
+**Play in your browser (no install):** <https://hyperwolf075106.itch.io/red-frontier>
+
+**Run the WebGL build yourself:** download `red-frontier-webgl.zip` from the
 [latest release](https://github.com/sixfiguredev0/nasa-hackathon-nov-2026/releases/latest),
 unzip it into a folder and serve that folder locally (browsers block WebGL from `file://`):
 
