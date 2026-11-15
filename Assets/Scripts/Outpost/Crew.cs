@@ -45,6 +45,26 @@ namespace RedFrontier.Outpost
         ColonyEconomy eco;
         readonly List<Member> members = new List<Member>();
         readonly List<Building> jobs = new List<Building>();
+        float jobProgress;
+        internal bool Sheltering { get; private set; }
+        internal bool Sheltered { get; private set; }
+
+        // Interrupt movement, not the job queue or its accumulated build time.
+        internal void SetSheltering(bool value)
+        {
+            if (Sheltering == value) return;
+            Sheltering = value;
+            Sheltered = false;
+            StopAllCoroutines();
+            eco.training = null;
+            if (isActiveAndEnabled) StartCoroutine(value ? Shelter() : Work());
+        }
+
+        IEnumerator Shelter()
+        {
+            yield return All((m, i) => Enter(m, i * 0.3f, RocketPoint(DoorPx), RocketPoint(LadderFootPx)));
+            Sheltered = true;
+        }
 
         void Awake() => Instance = this;
         void OnDestroy() { if (Instance == this) Instance = null; }
@@ -104,12 +124,14 @@ namespace RedFrontier.Outpost
                     var job = jobs[0];
                     yield return All((m, i) => Exit(m, i * 0.4f, door, foot, StandPoint(job, i)));
                     // unfit crew build slower: progress runs at Efficiency (50..100%)
-                    for (float t = 0f; t < buildSeconds; t += Time.deltaTime * eco.Efficiency)
+                    while (jobProgress < buildSeconds)
                     {
-                        Hop(job, t, 4f);
+                        Hop(job, jobProgress, 4f);
                         yield return null;
+                        jobProgress += Time.deltaTime * eco.Efficiency;
                     }
                     jobs.RemoveAt(0);
+                    jobProgress = 0f;
                     job.FinishBuild();
                     continue; // straight on to the next queued job
                 }
