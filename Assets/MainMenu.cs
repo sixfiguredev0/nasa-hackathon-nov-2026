@@ -137,7 +137,6 @@ public sealed class MainMenu : MonoBehaviour
     private void BuildRocket()
     {
         var art = Resources.Load<Texture2D>("Menu/RocketFlight"); // landed rocket art, boarding stairs removed
-        int frames = Mathf.Max(1, art.width / art.height);
         rocket = Art("Rocket", layout, art);
         if (art != null)
         {
@@ -636,6 +635,15 @@ public sealed class MainMenu : MonoBehaviour
         warp = 0;
         fade.color = Background; // also silences the menu engine
         EntryCinematic.Play(destination);
+    }
+
+    private void OnDestroy()
+    {
+        // Textures generated at runtime (crisp copies, flame) are not owned by any asset; free them with the menu.
+        foreach (var texture in createdTextures)
+            if (texture != null)
+                Destroy(texture);
+        createdTextures.Clear();
     }
 
     // Smooth noise shake: fluid rumble instead of a fresh random offset every frame.
