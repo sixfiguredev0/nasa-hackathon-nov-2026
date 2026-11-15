@@ -87,7 +87,7 @@ namespace RedFrontier.Outpost
 
         internal Building Rocket => colony == null ? null : colony.buildings.Find(b => b.state.def.kind == BuildingKind.Rocket);
 
-        /// <summary>The repaired ship stands: the Repaired Ship upgrade is bought and the crew has built it.</summary>
+        /// <summary>The rebuilt ship stands: the Rebuilt Ship upgrade is bought and the crew has rebuilt it from the wreck.</summary>
         internal bool HullRepaired
         {
             get

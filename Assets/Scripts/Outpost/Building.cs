@@ -78,6 +78,52 @@ namespace RedFrontier.Outpost
             sr.sprite = sprite;
         }
 
+        const int RebuildSteps = 24;
+        float rebuild = -1f;
+        Sprite[] rebuildSprites;
+        SpriteRenderer wreckRemains;
+
+        /// <summary>True when the wreck's upgrade is bought: the crew's next job here rebuilds the ship.</summary>
+        internal bool Rebuilding => wreck != null && state.nodeId != wreckNode;
+        /// <summary>0..1 while the crew rebuilds the wreck, -1 otherwise.</summary>
+        internal float RebuildProgress => rebuild;
+
+        /// <summary>Crew rebuilding the wreck: the new rocket rises from its base row by row while the wreckage fades out.</summary>
+        internal void ShowRebuild(float progress)
+        {
+            if (!Rebuilding) return;
+            var target = BuildingArt.Get(state.def, state.Node, footprint);
+            var full = target[target.Length - 1]; // the landed frame
+            if (rebuildSprites == null)
+            {
+                rebuildSprites = new Sprite[RebuildSteps];
+                wreckRemains = new GameObject("Wreck remains").AddComponent<SpriteRenderer>();
+                wreckRemains.transform.SetParent(transform, false);
+                wreckRemains.sprite = wreck;
+            }
+            int i = Mathf.Clamp((int)(progress * RebuildSteps), 0, RebuildSteps - 1);
+            if (rebuildSprites[i] == null)
+            {
+                var r = full.rect;
+                float h = Mathf.Max(1f, Mathf.Round(r.height * (i + 1f) / RebuildSteps));
+                rebuildSprites[i] = Sprite.Create(full.texture, new Rect(r.x, r.y, r.width, h),
+                    new Vector2(full.pivot.x / r.width, full.pivot.y / h), full.pixelsPerUnit, 0, SpriteMeshType.FullRect);
+            }
+            rebuild = Mathf.Clamp01(progress);
+            sr.sprite = rebuildSprites[i];
+            wreckRemains.color = new Color(1f, 1f, 1f, 1f - rebuild);
+            wreckRemains.sortingOrder = sr.sortingOrder - 1;
+        }
+
+        void EndRebuild()
+        {
+            if (rebuildSprites == null) return;
+            foreach (var s in rebuildSprites) if (s != null) Destroy(s);
+            rebuildSprites = null;
+            Destroy(wreckRemains.gameObject);
+            rebuild = -1f;
+        }
+
         void Update()
         {
             if (state == null) return;
@@ -88,7 +134,8 @@ namespace RedFrontier.Outpost
             }
             if (wreck != null && shownNode != wreckNode) wreck = null; // upgraded and built: the new rocket stands
             // Sheets play once and hold the last frame.
-            if (wreck != null)
+            if (rebuild >= 0f) { } // ShowRebuild owns the sprite until the crew finishes
+            else if (wreck != null)
                 sr.sprite = wreck;
             else if (frames.Length > 1)
                 sr.sprite = inFlight ? frames[0] : frames[Mathf.Min(frames.Length - 1, (int)((Time.time - animStart) / FrameSeconds))];
@@ -101,6 +148,7 @@ namespace RedFrontier.Outpost
         public void FinishBuild()
         {
             awaitingCrew = false;
+            EndRebuild();
             if (UnderConstruction)
             {
                 UnderConstruction = false;

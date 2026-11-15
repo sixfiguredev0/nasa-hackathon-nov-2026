@@ -3,17 +3,20 @@ using UnityEngine;
 namespace RedFrontier.Outpost
 {
     /// <summary>
-    /// Mars local time for the outpost. One sol (24 h 39 min on Mars) plays in <see cref="SolSeconds"/> real seconds,
-    /// split into 24 "Mars hours" (local solar time, the way rover teams count a sol). Plain C# so it can be tested.
+    /// Mars local time for the outpost. One sol (24 h 39 min on Mars) is <see cref="SolSeconds"/> clock seconds
+    /// (<see cref="RealSolSeconds"/> real seconds, because nights run faster), split into 24 "Mars hours" (local solar time, the way rover teams count a sol). Plain C# so it can be tested.
     /// </summary>
     public class SolClock
     {
         public const float SolSeconds = 240f;          // 4 real minutes per sol (design decision, 2026-11-15)
         public const float Sunrise = 6f, Sunset = 18f;  // near the equator day and night are about equal
         public const float StartHour = 8f;              // the crew steps out in the morning of sol 1
+        public const float NightSpeed = 3f;             // night hours run 3x faster: 2 real minutes of night became 40 s (design decision, 2026-11-15)
+        /// <summary>Real seconds one whole sol takes: day at normal speed plus the sped-up night.</summary>
+        public const float RealSolSeconds = SolSeconds * ((Sunset - Sunrise) + (24f - Sunset + Sunrise) / NightSpeed) / 24f;
         const float Coldest = 5.5f, Warmest = 14f;      // Mars air is coldest just before dawn, warmest early afternoon
 
-        /// <summary>Real seconds since 00:00 on sol 1.</summary>
+        /// <summary>Clock seconds since 00:00 on sol 1 (<see cref="SolSeconds"/> per sol; real time only by day).</summary>
         public float elapsed = StartHour / 24f * SolSeconds;
 
         public int Sol => 1 + Mathf.FloorToInt(elapsed / SolSeconds);
@@ -21,7 +24,21 @@ namespace RedFrontier.Outpost
         /// <summary>Hours since 00:00 on sol 1 (for event start/end times).</summary>
         public float AbsHour => elapsed / SolSeconds * 24f;
 
-        public void Tick(float dt) { if (dt > 0f) elapsed += dt; }
+        /// <summary>Advances by <paramref name="dt"/> real seconds; night hours pass <see cref="NightSpeed"/> times faster.</summary>
+        public void Tick(float dt)
+        {
+            while (dt > 0f)
+            {
+                float h = Hour;
+                bool night = h < Sunrise || h >= Sunset;
+                float rate = night ? NightSpeed : 1f;
+                float toEdgeHours = night ? (h < Sunrise ? Sunrise - h : 24f - h + Sunrise) : Sunset - h;
+                // at least 1 ms of clock per step so float rounding at the edge can never stall the loop
+                float step = Mathf.Min(dt * rate, Mathf.Max(toEdgeHours / 24f * SolSeconds, 1e-3f));
+                elapsed += step;
+                dt -= step / rate;
+            }
+        }
 
         public static string Format(float hour)
         {

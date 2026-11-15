@@ -20,6 +20,12 @@ namespace RedFrontier.Outpost
             { "rocket2", new Vector2(64, 21) }, // same landing base as Rocket.png (assumed, check in Play)
         };
 
+        /// <summary>Nodes drawn with another node's sheet: the ship rebuilt from the wreck is the first rocket model again.</summary>
+        static readonly Dictionary<string, string> ArtOf = new Dictionary<string, string>
+        {
+            { "rocket2", "Rocket" }, { "rocket3", "rocket2" },
+        };
+
         /// <summary>Sheets that are not animations: solar strips go clean to dusty, green1 is a set of 16 designs. Show one frame.</summary>
         static readonly Dictionary<string, int> StillFrame = new Dictionary<string, int>
         {
@@ -30,7 +36,7 @@ namespace RedFrontier.Outpost
         public static Sprite[] Get(BuildingDef def, UpgradeNode node, Vector2Int footprint)
         {
             if (cache.TryGetValue(node.id, out var s) && s != null && s[0] != null) return s;
-            s = Sheet("Buildings/", node.id) ?? Sheet("Buildings/", def.kind.ToString())
+            s = Sheet("Buildings/", ArtOf.TryGetValue(node.id, out var art) ? art : node.id) ?? Sheet("Buildings/", def.kind.ToString())
                 ?? new[] { Placeholder(def.kind, node, footprint) };
             if (StillFrame.TryGetValue(node.id, out int still) && still < s.Length) s = new[] { s[still] };
             cache[node.id] = s;

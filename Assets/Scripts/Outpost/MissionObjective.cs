@@ -34,7 +34,7 @@ namespace RedFrontier.Outpost
         {
             "Clear the crash debris", "Build solar panels", "Drill for water", "Grow food", "Power life support",
             "Supply oxygen", "Historical exercise", "Salvage metal", "Store power", "Repair the radio",
-            "Wait for the orbiter", "Repair the ship", "Make rocket fuel", "Make your choice", "Keep exploring"
+            "Wait for the orbiter", "Rebuild the ship", "Make rocket fuel", "Make your choice", "Keep exploring"
         };
 
         internal string Guidance
@@ -59,7 +59,9 @@ namespace RedFrontier.Outpost
                     case Step.Signal:
                         return "Our radio can't reach Earth alone. Orbiters like MRO pass overhead a few times a sol and carry messages. Next pass in " +
                             Mathf.CeilToInt(story != null ? story.OrbiterIn : 0f) + " s.";
-                    case Step.RepairHull: return "Right-click the wrecked ship and buy Repaired Ship. Then I can take you home.";
+                    case Step.RepairHull: return story != null && story.Rocket != null && story.Rocket.RebuildProgress >= 0f
+                        ? "The crew is rebuilding the ship from the wreck, piece by piece."
+                        : "Right-click the wrecked ship and buy Rebuilt Ship. Then I can take you home.";
                     case Step.Fuel:
                         if (story == null) return "";
                         string fuel = "Fuel " + Mathf.FloorToInt(story.Fuel * 100f) + "%. ";
@@ -177,6 +179,8 @@ namespace RedFrontier.Outpost
         {
             if (Stage == Step.Clear) goal.text = "Clear debris: " + DebrisClearing.Remaining + " left";
             else if (story != null && Stage == Step.Signal) goal.text = "Orbiter in " + Mathf.CeilToInt(story.OrbiterIn) + "s";
+            else if (story != null && Stage == Step.RepairHull && story.Rocket != null && story.Rocket.RebuildProgress >= 0f)
+                goal.text = "Rebuilding the ship " + Mathf.FloorToInt(story.Rocket.RebuildProgress * 100f) + "%";
             else if (story != null && Stage == Step.Fuel) goal.text = "Rocket fuel " + Mathf.FloorToInt(story.Fuel * 100f) + "%";
         }
 

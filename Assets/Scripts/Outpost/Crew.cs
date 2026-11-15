@@ -24,6 +24,8 @@ namespace RedFrontier.Outpost
 
         public float walkSpeed = 2.5f;   // world units per second
         public float buildSeconds = 3f;
+        [Tooltip("Rebuilding the crashed ship into the first rocket model (endgame) takes this long")]
+        public float rebuildSeconds = 12f;
         [Tooltip("Idle crew head to a Gym when fitness drops below this")]
         [Range(0f, 1f)] public float trainBelow = 0.85f;
 
@@ -39,6 +41,7 @@ namespace RedFrontier.Outpost
             public SpriteRenderer sr;
             public Sprite[] dirs;
             public Sprite[] hammer; // build animation (male only); null = plain bounce
+            public Sprite[] walkSide, walkDown; // walk cycles (male only): side faces east, flipped for west; null = 1 px bob
             public int facing;
             public bool nearRocket; // on the door / ladder: draw in front of the rocket
         }
@@ -110,7 +113,13 @@ namespace RedFrontier.Outpost
                 var go = new GameObject("Astronaut " + who);
                 go.transform.SetParent(transform, false);
                 go.SetActive(false); // inside the rocket
-                members.Add(new Member { sr = go.AddComponent<SpriteRenderer>(), dirs = dirs, hammer = who == Astronaut.Male ? Hammer() : null });
+                bool male = who == Astronaut.Male;
+                members.Add(new Member
+                {
+                    sr = go.AddComponent<SpriteRenderer>(), dirs = dirs, hammer = male ? Hammer() : null,
+                    walkSide = male ? BuildingArt.Sheet("Crew/", "AstronautWalkSide", new Vector2(16, 2)) : null,
+                    walkDown = male ? BuildingArt.Sheet("Crew/", "AstronautWalkDown", new Vector2(16, 2)) : null,
+                });
             }
             StartCoroutine(Work());
         }
@@ -171,9 +180,11 @@ namespace RedFrontier.Outpost
                     yield return All((m, i) => Exit(m, i * 0.4f, door, foot, StandPoint(job, i)));
                     // unfit crew build slower: progress runs at Efficiency (50..100%)
                     GameAudio.StartLoop(Sfx.ConstructLoop, this);
-                    while (jobProgress < buildSeconds)
+                    float seconds = job.Rebuilding ? rebuildSeconds : buildSeconds;
+                    while (jobProgress < seconds)
                     {
                         Build(job, jobProgress);
+                        if (job.Rebuilding) job.ShowRebuild(jobProgress / seconds);
                         yield return null;
                         jobProgress += Time.deltaTime * eco.Efficiency;
                     }
@@ -321,20 +332,43 @@ namespace RedFrontier.Outpost
             p.z = 0f;
             float t = 0f;
             bool wasBob = false;
-            int steps = 0;
+            int steps = 0, lastFrame = -1;
             while ((to - p).sqrMagnitude > 1e-6f)
             {
                 var step = Vector3.MoveTowards(p, to, walkSpeed * eco.Efficiency * Time.deltaTime);
                 m.facing = Facing(step - p, m.facing);
                 p = step;
                 t += Time.deltaTime;
-                bool bob = Mathf.Repeat(t * 6f, 1f) < 0.5f; // the sheets have no walk cycle, so a 1 px bob sells the steps
-                if (bob && !wasBob && (steps++ & 1) == 0) GameAudio.Play(Sfx.Footstep);
-                wasBob = bob;
-                Place(m, p + (bob ? Vector3.up / Ppu : Vector3.zero));
+                var cycle = WalkCycle(m, out bool flip);
+                if (cycle != null)
+                {
+                    int f = (int)(t / WalkFrame) % cycle.Length;
+                    if (f != lastFrame && (f == 0 || f == cycle.Length / 2)) GameAudio.Play(Sfx.Footstep); // two steps per cycle
+                    lastFrame = f;
+                    Place(m, p);
+                    m.sr.sprite = cycle[f];
+                    m.sr.flipX = flip;
+                }
+                else
+                {
+                    bool bob = Mathf.Repeat(t * 6f, 1f) < 0.5f; // no walk cycle for this facing, so a 1 px bob sells the steps
+                    if (bob && !wasBob && (steps++ & 1) == 0) GameAudio.Play(Sfx.Footstep);
+                    wasBob = bob;
+                    Place(m, p + (bob ? Vector3.up / Ppu : Vector3.zero));
+                }
                 yield return null;
             }
             Place(m, to);
+        }
+
+        const float WalkFrame = .1f; // the walk sheets use 100 ms frames
+
+        /// <summary>Walk frames for the current facing: front sheet heading south, side sheet east or west, none heading north.</summary>
+        static Sprite[] WalkCycle(Member m, out bool flip)
+        {
+            flip = m.facing > North;
+            if (m.facing == South) return m.walkDown;
+            return m.facing == North ? null : m.walkSide;
         }
 
         /// <summary>Runs one coroutine per member and waits for all of them.</summary>
@@ -356,6 +390,7 @@ namespace RedFrontier.Outpost
             p = new Vector3(Mathf.Round(p.x * Ppu) / Ppu, Mathf.Round(p.y * Ppu) / Ppu, 0f); // stay on the pixel grid
             m.sr.transform.position = p;
             m.sr.sprite = m.dirs[m.facing];
+            m.sr.flipX = false;
             int order = MarsMapGenerator.SortingOrderFor(p.y);
             m.sr.sortingOrder = m.nearRocket ? Mathf.Max(order, rocket.Renderer.sortingOrder + 1) : order;
         }

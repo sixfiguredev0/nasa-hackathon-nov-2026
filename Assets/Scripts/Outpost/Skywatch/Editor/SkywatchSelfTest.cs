@@ -20,8 +20,12 @@ namespace RedFrontier.Outpost.EditorTools
             // Clock
             var clock = new SolClock();
             Check(clock.Sol == 1 && Mathf.Approximately(clock.Hour, 8f), "clock starts at sol 1, 08:00");
-            clock.Tick(SolClock.SolSeconds);
-            Check(clock.Sol == 2 && Mathf.Abs(clock.Hour - 8f) < .01f, "one sol is " + SolClock.SolSeconds + " real seconds");
+            clock.Tick(SolClock.RealSolSeconds);
+            Check(clock.Sol == 2 && Mathf.Abs(clock.Hour - 8f) < .01f, "one sol is " + SolClock.RealSolSeconds + " real seconds");
+            var dusk = new SolClock { elapsed = SolClock.Sunset / 24f * SolClock.SolSeconds };
+            for (int i = 0; i < 600; i++) dusk.Tick(1f / 60f); // 10 real seconds in frames
+            Check(Mathf.Abs(dusk.Hour - (SolClock.Sunset + 10f * SolClock.NightSpeed / SolClock.SolSeconds * 24f)) < .01f,
+                "night runs " + SolClock.NightSpeed + "x faster");
             Check(SolClock.Format(13.5f) == "13:30", "time format");
             Check(SolClock.Daylight(0f) == 0f && SolClock.Daylight(12f) == 1f, "panels dark at midnight, full at noon");
             Check(Mathf.Abs(SolClock.Temperature(5.5f, -97f, -16f, 0f) + 97f) < .01f &&

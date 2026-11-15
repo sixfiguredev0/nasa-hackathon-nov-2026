@@ -17,7 +17,7 @@ Built 2026-11-15. Backup before the build: `D:\Projects\Red Frontier\Backups\pre
 | Store power | build a Battery Pack | |
 | Repair the radio | guide button, 30 Metal + 20 Energy, crew walks to the ship | |
 | Wait for the orbiter | 20 s countdown (orbiters such as MRO relay surface radio) | |
-| Repair the ship | buy the existing Repaired Ship upgrade (rocket2) on the wreck | Earth's message, then Marlonis's confession |
+| Rebuild the ship | buy the Rebuilt Ship upgrade (rocket2) on the wreck; the crew rebuilds it in 12 s into the first rocket model (Rocket.png), rising row by row while the wreckage fades, tracker shows % | Earth's message, then Marlonis's confession |
 | Make rocket fuel | automatic, 0.5 Water/s + 1.2 Energy/s, 90 s at full supply; pauses and says why when either runs out | Marlonis: "I could stop you. I won't." |
 | Make your choice | choice screen (Return / Stay / Not yet); guide button reopens it | |
 | Keep exploring | Stay ending only: free play, guide speaks as Mission Control | |
@@ -46,7 +46,7 @@ Both endings are wins. Hold Esc to skip to the epilogue. Summary card: sols, bui
 - `Assets/Scripts/Outpost/StoryUi.cs`: clue popups (typewriter, voice blips), Log button with found clues, choice screen.
 - `Assets/Scripts/Outpost/EndingCutscene.cs`: both endings, epilogue, summary card. Hides the IMGUI HUD by disabling its components while it plays.
 - Small hooks: `MissionObjective` (new steps and guidance), `MissionGuide` (action button, taller story layout, Mission Control after Stay),
-  `Crew.Busy`, `Colony` adds the components, rocket names in `BuildingCatalog` (Crashed Ship, Repaired Ship, Launch Tower),
+  `Crew.Busy`, `Colony` adds the components, rocket names in `BuildingCatalog` (Crashed Ship, Rebuilt Ship, Launch Tower; `BuildingArt.ArtOf` draws rocket2 with Rocket.png and rocket3 with rocket2.png),
   `OpeningCutscene.Synth/Blip` made internal for reuse.
 
 ## Verification

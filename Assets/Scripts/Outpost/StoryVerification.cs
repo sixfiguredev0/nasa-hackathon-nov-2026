@@ -244,8 +244,22 @@ namespace RedFrontier.Outpost
             }
             Fill();
             var rocket = story.Rocket;
-            Check(colony.economy.TryUpgrade(rocket.state, "rocket2"), "the Repaired Ship upgrade is buyable");
+            Check(colony.economy.TryUpgrade(rocket.state, "rocket2"), "the Rebuilt Ship upgrade is buyable");
+            if (shots)
+            {
+                Time.timeScale = 1f;
+                yield return new WaitForSecondsRealtime(1.2f);
+                yield return Shot("4a-crew-walk");
+            }
+            yield return Until(() => rocket.RebuildProgress >= .5f);
+            Check(rocket.Wrecked && rocket.Rebuilding, "the crew rebuilds the wreck piece by piece");
+            if (shots)
+            {
+                yield return Shot("4b-rebuild");
+                Time.timeScale = 6f;
+            }
             yield return Until(() => story.HullRepaired);
+            Check(rocket.RebuildProgress < 0f && rocket.transform.Find("Wreck remains") == null, "the rebuilt ship replaces the wreck");
             yield return Until(() => objective.Stage == MissionObjective.Step.Fuel);
             Check(story.Found.Exists(e => e.id == "marl2"), "Marlonis's last words unlock with the fuel step");
             colony.enabled = false; // hold production so the drill cannot refill the tank between frames
