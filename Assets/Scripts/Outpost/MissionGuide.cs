@@ -7,15 +7,9 @@ namespace RedFrontier.Outpost
 {
     internal sealed class MissionGuide : MonoBehaviour
     {
-        static readonly string[] Lines =
-        {
-            "Restore power first. Open Build and choose Solar Panels.",
-            "Find a clear spot. Click when the blueprint turns green.",
-            "The crew will build it. Right-click a building to see upgrades."
-        };
-
         static MissionGuide active;
         static readonly Vector2 PanelSize = new Vector2(414, 87);
+        static readonly Vector2 EventSize = new Vector2(550, 178), SourceSize = new Vector2(550, 270);
         static readonly Vector2 Reference = new Vector2(960, 540);
 
         static readonly Color32 BlueFace = new Color32(34, 40, 55, 255);
@@ -24,18 +18,24 @@ namespace RedFrontier.Outpost
 
         static readonly Vector2 NotificationSize = new Vector2(42, 38);
 
-        RectTransform panel, notificationRect;
+        RectTransform panel, notificationRect, textBox, portraitRect, speakerBox;
         Colony colony;
+        MissionObjective objective;
+        HistoricalTraining training;
         Canvas canvas;
         GameObject unread;
         EventSystem events;
         Text speaker, dialogue;
-        PixelButton notification, next;
-        int line;
+        PixelButton notification, next, shelter, work, source;
+        MissionObjective.Step shownStep;
+        HistoricalTraining.Phase shownPhase;
+        bool showingSource;
+        static int releasedFrame = -1;
 
         internal static bool PointerOverUI(Vector2 guiPoint)
         {
             if (active == null || active.canvas == null || MissionPauseMenu.BlocksGameplayInput) return false;
+            if (releasedFrame == Time.frameCount) return true;
             var screenPoint = new Vector2(guiPoint.x, Screen.height - guiPoint.y);
             return RectTransformUtility.RectangleContainsScreenPoint((RectTransform)active.notification.transform, screenPoint) ||
                 (active.panel.gameObject.activeSelf && RectTransformUtility.RectangleContainsScreenPoint(active.panel, screenPoint));
@@ -48,6 +48,8 @@ namespace RedFrontier.Outpost
             canvas = root.GetComponent<Canvas>();
             canvas.sortingOrder = 25;
             colony = GetComponent<Colony>();
+            objective = GetComponent<MissionObjective>();
+            training = GetComponent<HistoricalTraining>();
             var layout = FrontierUi.FitLayout(root);
             FrontierUi.Resize(root, Reference, layout);
 
@@ -84,10 +86,11 @@ namespace RedFrontier.Outpost
 
             FrontierUi.Art("Blue frame", panel, Resources.Load<Texture2D>("OutpostHud/Mission Guide Frame"));
             var portrait = FrontierUi.Art("Hologram", panel, portraitArt);
-            FrontierUi.Place(portrait.rectTransform, PanelSize, 9, 0, 77, 78);
+            portraitRect = portrait.rectTransform;
+            FrontierUi.Place(portraitRect, PanelSize, 9, 0, 77, 78);
 
             var bodyFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            var speakerBox = FrontierUi.Box("Speaker", panel);
+            speakerBox = FrontierUi.Box("Speaker", panel);
             speaker = speakerBox.gameObject.AddComponent<Text>();
             speaker.font = bodyFont;
             speaker.fontSize = 13;
@@ -97,7 +100,7 @@ namespace RedFrontier.Outpost
             speaker.text = "<b>Marlonis</b> <color=#9eb9cb>|| Mission Quest</color>";
             FrontierUi.Place(speakerBox, PanelSize, 103, 7, 294, 16);
 
-            var textBox = FrontierUi.Box("Dialogue", panel);
+            textBox = FrontierUi.Box("Dialogue", panel);
             dialogue = textBox.gameObject.AddComponent<Text>();
             dialogue.font = bodyFont;
             dialogue.fontSize = 15;
@@ -105,12 +108,30 @@ namespace RedFrontier.Outpost
             dialogue.alignment = TextAnchor.MiddleLeft;
             dialogue.raycastTarget = false;
             dialogue.supportRichText = false;
-            dialogue.text = Lines[0];
+            dialogue.text = objective.Guidance;
             FrontierUi.Place(textBox, PanelSize, 103, 23, 295, 37);
 
-            next = BlueButton("Next >", panel);
+            next = BlueButton("Hide", panel);
             FrontierUi.Place((RectTransform)next.transform, PanelSize, 328, 60, 72, 21);
-            next.onClick.AddListener(Advance);
+            next.onClick.AddListener(() =>
+            {
+                if (MissionPauseMenu.BlocksGameplayInput) return;
+                if (showingSource) { showingSource = false; RefreshDialogue(); GameAudio.Play(Sfx.GuideNext); }
+                else CloseDialogue();
+            });
+            shelter = BlueButton("Shelter crew", panel);
+            work = BlueButton("Continue working", panel);
+            shelter.onClick.AddListener(() => Choose(true));
+            work.onClick.AddListener(() => Choose(false));
+            source = BlueButton("NASA source", panel);
+            source.onClick.AddListener(() =>
+            {
+                if (MissionPauseMenu.BlocksGameplayInput) return;
+                showingSource = true;
+                RefreshDialogue();
+                GameAudio.Play(Sfx.GuideNext);
+            });
+            RefreshDialogue();
             panel.gameObject.SetActive(false);
             active = this;
             GameAudio.PlayDelayed(Sfx.GuideNotify, 1.5f); // unread message badge appears after touchdown
@@ -132,6 +153,20 @@ namespace RedFrontier.Outpost
         {
             if (canvas == null) return;
             canvas.enabled = !MissionPauseMenu.BlocksGameplayInput;
+            if (shownStep != objective.Stage || shownPhase != training.State)
+            {
+                bool announce = shownPhase != training.State &&
+                    (training.State == HistoricalTraining.Phase.Choice || training.State == HistoricalTraining.Phase.Resolved ||
+                     training.State == HistoricalTraining.Phase.Unavailable);
+                shownStep = objective.Stage;
+                shownPhase = training.State;
+                showingSource = false;
+                unread.SetActive(true);
+                RefreshDialogue();
+                if (announce) panel.gameObject.SetActive(true);
+            }
+            if (training.State == HistoricalTraining.Phase.Sheltering || training.State == HistoricalTraining.Phase.Working)
+                RefreshDialogue();
             Rect fitness = colony.CrewFitnessBounds;
             if (fitness.width <= 0f) return;
             notificationRect.anchoredPosition = new Vector2(fitness.xMin, -fitness.yMax - 6f) / canvas.scaleFactor;
@@ -146,35 +181,73 @@ namespace RedFrontier.Outpost
                 return;
             }
 
-            if (line >= Lines.Length)
-            {
-                line = 0;
-                dialogue.text = Lines[0];
-                next.label.Text = "Next >";
-            }
+            RefreshDialogue();
             unread.SetActive(false);
             panel.gameObject.SetActive(true);
             GameAudio.Play(Sfx.UiPanelOpen);
             next.Select();
         }
 
-        void Advance()
+        void Choose(bool protect)
         {
             if (MissionPauseMenu.BlocksGameplayInput || !panel.gameObject.activeSelf) return;
-            line++;
-            if (line >= Lines.Length)
-            {
-                CloseDialogue();
-                return;
-            }
-            dialogue.text = Lines[line];
+            releasedFrame = Time.frameCount;
+            training.Choose(protect);
+            RefreshDialogue();
             GameAudio.Play(Sfx.GuideNext);
-            if (line == Lines.Length - 1) next.label.Text = "Done";
+        }
+
+        void RefreshDialogue()
+        {
+            bool exercise = training.State != HistoricalTraining.Phase.Waiting;
+            bool choosing = training.State == HistoricalTraining.Phase.Choice && !showingSource;
+            var size = showingSource ? SourceSize : exercise ? EventSize : PanelSize;
+            float textLeft = exercise ? 140 : 103; // clear the portrait divider in the wider original frame
+            FrontierUi.Place(panel, Reference, (Reference.x - size.x) / 2,
+                Reference.y - size.y - 24, size.x, size.y);
+            FrontierUi.Place(portraitRect, size, 9, 0, 77, 78);
+            FrontierUi.Place(speakerBox, size, textLeft, 7, size.x - textLeft - 16, 16);
+            FrontierUi.Place(textBox, size, textLeft, 23, size.x - textLeft - 16, showingSource ? 205 : exercise ? 67 : 37);
+            dialogue.fontSize = showingSource ? 12 : 15;
+            FrontierUi.Place((RectTransform)next.transform, size, size.x - 88, size.y - 27, 72, 21);
+            FrontierUi.Place((RectTransform)shelter.transform, size, 16, 99, 250, 32);
+            FrontierUi.Place((RectTransform)work.transform, size, 282, 99, 250, 32);
+            FrontierUi.Place((RectTransform)source.transform, size, 16, size.y - 27, 100, 21);
+            shelter.gameObject.SetActive(choosing);
+            work.gameObject.SetActive(choosing);
+            source.gameObject.SetActive(exercise && !showingSource && training.Observation != null);
+            next.label.Text = showingSource ? "Back" : "Hide";
+            if (showingSource) { dialogue.text = training.SourceDetails; return; }
+            switch (training.State)
+            {
+                case HistoricalTraining.Phase.Choice:
+                    dialogue.text = "Archived training: NASA recorded a solar-particle event on " + training.ObservationDate +
+                        ". Shelter pauses construction safely; working brings a brief fitness dip.";
+                    break;
+                case HistoricalTraining.Phase.Sheltering:
+                    dialogue.text = Crew.Instance != null && !Crew.Instance.Sheltered ?
+                        "The crew are returning to the lander. Queued construction and its progress are saved." :
+                        "The crew are protected in this exercise. Construction resumes in " + Mathf.CeilToInt(training.Remaining) + " seconds.";
+                    break;
+                case HistoricalTraining.Phase.Working:
+                    dialogue.text = "Work continues with an 8-point fitness dip. That dip recovers in " + Mathf.CeilToInt(training.Remaining) + " seconds; normal fitness changes continue.";
+                    break;
+                case HistoricalTraining.Phase.Resolved:
+                    dialogue.text = training.ChoseShelter ?
+                        "Exercise complete: shelter prevented the extra fitness dip and delayed construction. Saved jobs now resume; keep building freely." :
+                        "Exercise complete: construction kept moving and the extra fitness dip has recovered. Keep building freely.";
+                    break;
+                case HistoricalTraining.Phase.Unavailable:
+                    dialogue.text = training.DataError;
+                    break;
+                default: dialogue.text = objective.Guidance; break;
+            }
         }
 
         void CloseDialogue()
         {
             GameAudio.Play(Sfx.UiPanelClose);
+            releasedFrame = Time.frameCount;
             panel.gameObject.SetActive(false);
             if (events != null) notification.Select();
         }

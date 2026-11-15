@@ -61,6 +61,7 @@ namespace RedFrontier.Outpost
             Ready = true;
             gameObject.AddComponent<MissionGuide>();
             gameObject.AddComponent<MissionObjective>();
+            gameObject.AddComponent<HistoricalTraining>();
         }
 
         void Update()
