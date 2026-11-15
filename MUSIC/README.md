@@ -7,6 +7,34 @@ stay here. `MUSIC/` is outside `Assets/`, so Unity never imports it.
 Target game: the real-time outpost builder (`MainMenu.unity` → `MarsOutpost.unity`). This is not
 the Developer 1 turn-based prototype.
 
+## For the teammate compiling the game
+
+1. Check out `feat/music` and open `main1` in **Unity 2022.3.18f1**. The first import compiles
+   three new assemblies (`RedFrontier.Audio`, `.Editor`, `.Tests`) and imports 49 clips under
+   `Assets/Audio/Resources/Audio/`. No scene, prefab or package changes are needed: the audio
+   manager creates itself at runtime.
+2. Press Play. The team's `PlayFromMainMenu` starts at `Assets/Scenes/MainMenu.unity`. Title music
+   starts immediately in the editor; WebGL waits for the first click.
+3. Check the audio: menu **Red Frontier → Audio → Run Self Test** (expect `AUDIO_SELFTEST PASS`,
+   49 clips). Then **Window → General → Test Runner → PlayMode → RedFrontier.Audio.Tests**
+   (13 tests).
+4. Build as usual (Build Settings: MainMenu, SampleScene, MarsOutpost). For WebGL, no template or
+   plugin change is needed. Expect about +14.7 MB of audio in the build.
+5. Merging with other branches: the game scripts gained only one-line `GameAudio.*` calls at
+   existing action points (`MainMenu`, `PixelUi`, `MissionPauseMenu`, `BuilderMode`,
+   `UpgradeBubbles`, `Crew`, `Building`, `MissionGuide`, `Colony`). On a conflict, keep both sides
+   and re-add the call. To add a sound: put `<ID>_01.wav` in the right `Resources/Audio` folder,
+   add a `CueDef` row in `AudioCatalog.cs`, and call `GameAudio.Play("<ID>")`.
+6. Tuning: per-cue gain, cooldown, voices and priority live in `AudioCatalog.cs`. Music rules
+   live in `GameAudio.UpdateMusic`. Category defaults live in `AudioPrefs.cs`. Players change them
+   under Options / pause Settings (Music, Effects, Ambience under Master volume).
+
+Headless or CI: `Unity -batchmode -projectPath main1 -executeMethod
+RedFrontier.Audio.Editor.AudioVerification.BatchSelfTest`, and `-runTests -testPlatform PlayMode
+-assemblyNames RedFrontier.Audio.Tests`. `AudioVerification.BuildWebGL` (with
+`-buildTarget WebGL`) writes an uncompressed verification build to `Builds/WebGL-audio`. The
+Test Runner flips `runInBackground` in ProjectSettings, so don't commit that change.
+
 ## Start here
 
 | File | What it is |

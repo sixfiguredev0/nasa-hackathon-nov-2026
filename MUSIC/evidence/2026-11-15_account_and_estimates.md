@@ -49,3 +49,5 @@ be reused for the pack or deleted in the ElevenLabs UI.
 The account is on the paid Creator tier. Check ElevenLabs' current terms for commercial
 use of Music and SFX output before release, and record the terms version or date here
 when the first asset is approved. This has not been verified yet.
+
+Update: usage rights were checked on 2026-11-15. See `2026-11-15_usage_rights.md`.

@@ -79,3 +79,33 @@ Tags: **DECISION**, **DONE**, **OPEN**, **BLOCKER**.
 - **NEXT (if interrupted)**: WebGL build (`AudioVerification.BuildWebGL`, `-buildTarget WebGL`) →
   serve `Builds/WebGL-audio` → drive it with `MUSIC/scripts/webgl_probe.mjs` → write
   evidence/handoff → push `feat/music`. No generations are in flight.
+
+## 2026-11-15: Verification, fixes and handoff
+
+- **DONE** WebGL build (`AudioVerification.BuildWebGL`) served locally and driven in headless
+  Chrome over CDP (`scripts/webgl_probe.mjs`, `scripts/probe_summary.py`). Five sessions, about
+  35 minutes in total, including a continuous 16-minute outpost run. Audio was technically
+  observed through Web Audio and media-element hooks. **Not auditioned by ear.** Details are in
+  `evidence/2026-11-15_verification.md`.
+- **FIXED** Pausing faked a life-support recovery (the economy ticks with dt = 0 while paused):
+  the all-clear played and tension ended. `OutpostAudio` now ignores frames where game time
+  does not advance. Re-verified.
+- **FIXED** Shortage alarm cadence. It now plays at onset and at +30 s and +90 s, then stays
+  silent until recovery. Re-verified.
+- **FIXED** During a long crisis, tension looped back-to-back. It now alternates with
+  `MUS_SURFACE_E` after 12–25 s rests. Re-verified.
+- **DECISION** Unity WebGL plays compressed clips (music, ambience) through media elements.
+  Under Chrome's default autoplay policy no play was refused. Under the strict
+  `user-gesture-required` policy (Safari-like) later plays wait for the next click. This is
+  documented as a limitation and is not worked around: the alternative would decode every
+  movement into memory.
+- **DONE** Final checks: audio self-test PASS (49 clips), PlayMode 13/13 PASS, outpost self-test
+  ALL PASS, WebGL build OK. Audio adds +14.7 MB to the build.
+- **OPEN** Not observed in the browser: genuine gameplay recovery (the test colonies collapsed),
+  an upgrade purchase, and the gym loop. Not measured: browser audio memory. The team should
+  give the mix a listening pass. Nothing is user-approved.
+- **Credits:** 23,078 used for this task, of the 120,000 budget. Account 23,078 / 131,000;
+  107,922 remain. No overage. No generations are in flight. Generation stopped once the library
+  was complete; the 25% correction reserve was not needed beyond the wind re-take.
+- **NEXT** The user listens and approves or rejects per cue (`manifests/asset_register.json`).
+  Re-generate or re-edit only cues they reject (`scripts/process.py <ID> --export`).
