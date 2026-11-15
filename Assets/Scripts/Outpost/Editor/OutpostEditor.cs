@@ -123,6 +123,24 @@ namespace RedFrontier.Outpost.EditorTools
             ce.Tick(1f);
             Check(Near(ce[Res.Metal] - metalBefore, 0.2f), "unfit crew halves output");
 
+            // site yield: terrain changes output, clamped, and the economy applies it to output only
+            var flat = new Site();
+            var mesaTop = new Site { elevation = 1.75f };
+            var dunes = new Site { sand = 1f };
+            var freshCrater = new Site { elevation = -1f, crater = 1f, ejecta = 0.5f };
+            Check(Near(SiteSurvey.Yield(BuildingKind.Solar, flat), 1f), "flat ground is 100%");
+            Check(SiteSurvey.Yield(BuildingKind.Solar, mesaTop) > 1f && SiteSurvey.Yield(BuildingKind.Habitat, mesaTop) < 1f, "high ground: solar up, MOXIE down");
+            Check(SiteSurvey.Yield(BuildingKind.Workshop, dunes) > 1f && SiteSurvey.Yield(BuildingKind.Solar, dunes) < 1f, "basalt sand: metal up, solar down");
+            Check(SiteSurvey.Yield(BuildingKind.Water, freshCrater) > 1.5f && SiteSurvey.Yield(BuildingKind.Solar, freshCrater) < 1f, "fresh crater: ice up, sun down");
+            Check(Near(SiteSurvey.Yield(BuildingKind.Solar, new Site { uneven = 1000f, crater = 1f, sand = 1f }), SiteSurvey.MinYield), "yield floor");
+            var ye = new ColonyEconomy();
+            var ys = new BuildingState(BuildingCatalog.Get(BuildingKind.Water)) { yield = 1.5f };
+            ye.buildings.Add(new BuildingState(rocketDef)); ye.buildings.Add(ys);
+            ye.RecomputeCaps(); ye[Res.Energy] = 10; ye[Res.Water] = 0;
+            float metal0 = ye[Res.Metal];
+            ye.Tick(1f);
+            Check(Near(ye[Res.Water], 1.5f) && Near(ye[Res.Energy], 9f) && Near(ye[Res.Metal] - metal0, 0.4f), "yield scales output, not use");
+
             sb.AppendLine(fails == 0 ? "ALL PASS" : fails + " FAILED");
             return sb.ToString();
         }

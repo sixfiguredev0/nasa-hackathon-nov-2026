@@ -1,4 +1,3 @@
-using System.Collections;
 using RedFrontier.Mars;
 using UnityEngine;
 
@@ -14,17 +13,17 @@ namespace RedFrontier.Outpost
     {
         static readonly Color StalledTint = new Color(1f, 0.55f, 0.55f), BlueprintTint = new Color(0.7f, 0.9f, 1f, 0.45f);
         const float FrameSeconds = 0.1f;
-        const float LandingSeconds = 1.8f;
 
         public BuildingState state;
         public Vector2Int footprint;
         public RectInt cells; // lattice cells it covers
+        public float groundY; // world y of the footprint centre on the height-0 plane: depth sorting ignores terrain lift
 
         SpriteRenderer sr;
         string shownNode;
         Sprite[] frames;
         float animStart;
-        bool awaitingCrew, landing;
+        bool awaitingCrew, inFlight;
 
         public SpriteRenderer Renderer => sr;
         public bool UnderConstruction { get; private set; }
@@ -33,8 +32,8 @@ namespace RedFrontier.Outpost
         public Vector3 TopCenter => new Vector3(sr.bounds.center.x, sr.bounds.max.y, 0f);
         public Vector3 TopRight => new Vector3(sr.bounds.max.x, sr.bounds.max.y, 0f);
 
-        /// <summary>True while a multi-frame sheet is still playing (the rocket landing).</summary>
-        public bool Animating => landing || (frames != null && frames.Length > 1 && Time.time - animStart < frames.Length * FrameSeconds);
+        /// <summary>True while the rocket is coming down or a multi-frame sheet is still playing.</summary>
+        public bool Animating => inFlight || (frames != null && frames.Length > 1 && Time.time - animStart < frames.Length * FrameSeconds);
 
         public void Init(BuildingState s, RectInt c, bool construct = false)
         {
@@ -46,30 +45,17 @@ namespace RedFrontier.Outpost
             if (construct) { UnderConstruction = true; shownNode = null; } // Update asks the crew to come build it
         }
 
-        internal IEnumerator LandFromAbove(Camera camera)
+        /// <summary>While set the sheet holds its first frame (the rocket coming down); clearing it shows the landed frame.</summary>
+        internal bool InFlight
         {
-            Vector3 touchdown = transform.position;
-            if (!FrontierUi.ReduceMotion && camera != null)
+            get => inFlight;
+            set
             {
-                float depth = camera.WorldToViewportPoint(touchdown).z;
-                float viewTop = camera.ViewportToWorldPoint(new Vector3(0.5f, 1f, depth)).y;
-                float distance = Mathf.Max(0f, viewTop - sr.bounds.min.y) + 0.5f;
-                landing = true;
-                transform.position = touchdown + Vector3.up * distance;
-
-                for (float elapsed = 0f; elapsed < LandingSeconds; elapsed += Time.deltaTime)
-                {
-                    float remaining = 1f - elapsed / LandingSeconds;
-                    float offset = Mathf.Round(distance * remaining * remaining * MarsMapGenerator.Ppu) / MarsMapGenerator.Ppu;
-                    transform.position = touchdown + Vector3.up * offset;
-                    yield return null;
-                }
+                inFlight = value;
+                if (value) return;
+                animStart = Time.time - (frames.Length + 1) * FrameSeconds;
+                sr.sprite = frames[frames.Length - 1];
             }
-
-            transform.position = touchdown;
-            landing = false;
-            animStart = Time.time - (frames.Length + 1) * FrameSeconds;
-            sr.sprite = frames[frames.Length - 1];
         }
 
         void Update()
@@ -82,7 +68,7 @@ namespace RedFrontier.Outpost
             }
             // Sheets play once and hold the last frame.
             if (frames.Length > 1)
-                sr.sprite = frames[Mathf.Min(frames.Length - 1, (int)((Time.time - animStart) / FrameSeconds))];
+                sr.sprite = inFlight ? frames[0] : frames[Mathf.Min(frames.Length - 1, (int)((Time.time - animStart) / FrameSeconds))];
             sr.color = UnderConstruction ? BlueprintTint : state.stalled ? StalledTint : Color.white;
         }
 
@@ -105,7 +91,7 @@ namespace RedFrontier.Outpost
             if (frames == null || frames[0].texture != next[0].texture) animStart = Time.time; // same sheet (rocket tiers): don't replay
             frames = next;
             sr.sprite = Animating ? frames[0] : frames[frames.Length - 1];
-            sr.sortingOrder = MarsMapGenerator.SortingOrderFor(transform.position.y);
+            sr.sortingOrder = MarsMapGenerator.SortingOrderFor(groundY);
         }
     }
 }

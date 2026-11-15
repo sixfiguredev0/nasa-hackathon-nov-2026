@@ -512,6 +512,28 @@ namespace RedFrontier.Mars
             return height[gy * TexW + gx];
         }
 
+        /// <summary>
+        /// Ground model at lattice (i, j), for building site surveys: height (ground px, boulders included),
+        /// dark sand share 0..1, fresh-crater ejecta (0..~0.11), a boulder there, inside a crater bowl.
+        /// </summary>
+        public void Sample(float i, float j, out float h, out float sandShare, out float ejectaAmount, out bool boulder, out bool inCrater)
+        {
+            h = sandShare = ejectaAmount = 0f;
+            boulder = inCrater = false;
+            if (height == null) return;
+            var g = LatticeToGround(i, j);
+            int k = Mathf.Clamp(Mathf.RoundToInt(g.y), 0, rows - 1) * TexW + Mathf.Clamp(Mathf.RoundToInt(g.x), 0, TexW - 1);
+            h = height[k]; sandShare = sand[k]; ejectaAmount = ejecta[k]; boulder = rock[k];
+            var cb = Bucket(craterBuckets, i, j);
+            if (cb != null)
+                foreach (int id in cb)
+                {
+                    var c = Craters[id];
+                    float di = i - c.i, dj = j - c.j;
+                    if (di * di + dj * dj < c.r * c.r) { inCrater = true; break; }
+                }
+        }
+
         static Color32[] Pal(params string[] hex)
         {
             var p = new Color32[hex.Length];

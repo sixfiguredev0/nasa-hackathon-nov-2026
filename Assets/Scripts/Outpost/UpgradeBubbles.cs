@@ -244,6 +244,7 @@ namespace RedFrontier.Outpost
             float s = OutpostGUI.Scale;
             var st = b.state;
             string text = "<b>" + st.def.name + "</b>: " + st.Node.name;
+            if (st.def.kind != BuildingKind.Rocket) text += "\n<color=#aaa>Site output " + (st.yield * 100f).ToString("0") + "%</color>";
             if (b.UnderConstruction) text += "\n<color=#9cf>Blueprint: waiting for the crew to build it</color>";
             else text += "\n<color=#aaa>Right-click for upgrades</color>";
             if (st.stalled) text += "\n<color=#f88>Stopped: needs " + st.missing + "</color>";

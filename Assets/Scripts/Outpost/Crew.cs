@@ -55,17 +55,33 @@ namespace RedFrontier.Outpost
             eco = Colony.Instance != null ? Colony.Instance.economy : new ColonyEconomy();
             foreach (var who in Picked)
             {
-                var sheet = BuildingArt.Sheet("Crew/", who == Astronaut.Female ? "AstronautFemale" : "AstronautMale", new Vector2(16, 2));
-                if (sheet == null) { Debug.LogWarning("Crew: missing sprite sheet for " + who); continue; }
-                var map = who == Astronaut.Female ? FemaleDirs : MaleDirs;
-                var dirs = new Sprite[8];
-                for (int d = 0; d < 8; d++) dirs[d] = sheet[Mathf.Min(map[d], sheet.Length - 1)];
+                var dirs = Facings(who);
+                if (dirs == null) { Debug.LogWarning("Crew: missing sprite sheet for " + who); continue; }
                 var go = new GameObject("Astronaut " + who);
                 go.transform.SetParent(transform, false);
                 go.SetActive(false); // inside the rocket
                 members.Add(new Member { sr = go.AddComponent<SpriteRenderer>(), dirs = dirs });
             }
             StartCoroutine(Work());
+        }
+
+        /// <summary>One sprite per facing (S, SE, E, NE, N, NW, W, SW), or null when the sheet is missing.</summary>
+        internal static Sprite[] Facings(Astronaut who)
+        {
+            var sheet = BuildingArt.Sheet("Crew/", who == Astronaut.Female ? "AstronautFemale" : "AstronautMale", new Vector2(16, 2));
+            if (sheet == null) return null;
+            var map = who == Astronaut.Female ? FemaleDirs : MaleDirs;
+            var dirs = new Sprite[8];
+            for (int d = 0; d < 8; d++) dirs[d] = sheet[Mathf.Min(map[d], sheet.Length - 1)];
+            return dirs;
+        }
+
+        /// <summary>Stands the first astronaut outside, where the opening left them; the work loop walks them back in.</summary>
+        public void StartOutside(Vector3 at)
+        {
+            if (members.Count == 0) return;
+            members[0].sr.gameObject.SetActive(true);
+            Place(members[0], at);
         }
 
         /// <summary>Queue a build. False means nobody can come, so the building should just update.</summary>
@@ -150,6 +166,7 @@ namespace RedFrontier.Outpost
 
         IEnumerator Enter(Member m, float delay, Vector3 door, Vector3 foot)
         {
+            if (!m.sr.gameObject.activeSelf) yield break; // already inside
             yield return new WaitForSeconds(delay);
             yield return Walk(m, foot);
             m.nearRocket = true;

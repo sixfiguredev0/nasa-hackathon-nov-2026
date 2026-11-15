@@ -130,8 +130,8 @@ namespace RedFrontier.Outpost
                 new UpgradeNode { id = "hab3b", name = "Oxygen Factory", rocketTier = 3, blurb = "Big MOXIE machines make lots of oxygen.",
                     cost = A((M, 130), (W, 40)), rates = A((E, -4f), (O, 5f)), storage = A((W, 250), (F, 250), (O, 250)) }),
 
-            new BuildingDef(BuildingKind.Workshop, "Engineering Workshop", new Vector2Int(3, 3),
-                new UpgradeNode { id = "shop1", name = "Workshop", blurb = "Turns Martian rock (regolith) into Metal for building.",
+            new BuildingDef(BuildingKind.Workshop, "ISRU", new Vector2Int(3, 3),
+                new UpgradeNode { id = "shop1", name = "ISRU", blurb = "Turns Martian rock (regolith) into Metal for building.",
                     cost = A((M, 30)), rates = A((E, -1f), (M, 0.8f)), next = new[] { "shop2" } },
                 new UpgradeNode { id = "shop2", name = "Smelter", rocketTier = 2, blurb = "Melts rock to get much more Metal.",
                     cost = A((M, 60), (E, 30)), rates = A((E, -2f), (M, 2f)), next = new[] { "shop3a", "shop3b" } },

@@ -22,7 +22,7 @@ namespace RedFrontier.Mars
         public static List<OutpostZone> DefaultZones() => new List<OutpostZone>
         {
             new OutpostZone { name = "Landing Pad", cells = new RectInt(38, 27, 4, 4) },
-            new OutpostZone { name = "Engineering Workshop", cells = new RectInt(43, 27, 3, 3) },
+            new OutpostZone { name = "ISRU", cells = new RectInt(43, 27, 3, 3) },
             new OutpostZone { name = "Water Processing Facility", cells = new RectInt(47, 27, 3, 2) },
             new OutpostZone { name = "Battery Storage", cells = new RectInt(48, 30, 2, 2) },
             new OutpostZone { name = "Main Habitat", cells = new RectInt(43, 31, 4, 3) },

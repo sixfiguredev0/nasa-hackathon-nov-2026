@@ -6,8 +6,9 @@ using UnityEngine;
 namespace RedFrontier.Outpost
 {
     /// <summary>
-    /// Lands the Rocket on the Landing Pad zone, owns every placed building, runs the economy and draws the resource bar.
-    /// Other buildings are placed by the player in <see cref="BuilderMode"/> anywhere inside <see cref="BuildArea"/>.
+    /// Crash-lands the Rocket on the Landing Pad zone (<see cref="OpeningCutscene"/>), owns every placed building, runs the economy and draws the resource bar.
+    /// Other buildings are placed by the player in <see cref="BuilderMode"/> anywhere on the map (<see cref="BuildArea"/>);
+    /// the ground under them sets their output (<see cref="SiteSurvey"/>).
     /// </summary>
     public class Colony : MonoBehaviour
     {
@@ -19,7 +20,7 @@ namespace RedFrontier.Outpost
         public readonly List<Building> buildings = new List<Building>();
         public static Colony Instance { get; private set; }
 
-        /// <summary>Flat, rock-free lattice cells the player may build on: the outpost zones' bounds plus their clearance ring.</summary>
+        /// <summary>Lattice cells the player may build on: the whole map minus its edge margin.</summary>
         public RectInt BuildArea { get; private set; }
         public bool Ready { get; private set; }
         internal readonly ResourceTopBar resourceTopBar = new ResourceTopBar();
@@ -36,17 +37,19 @@ namespace RedFrontier.Outpost
             if (map == null) { Debug.LogError("Colony: no MarsMapGenerator in scene"); yield break; }
             while (map.Terrain == null) yield return null; // the map generates itself in its own Start
 
-            var ob = map.placement.OutpostBounds;
-            int pad = map.placement.outpostClearance;
-            BuildArea = new RectInt(ob.xMin - pad, ob.yMin - pad, ob.width + 2 * pad, ob.height + 2 * pad);
+            int m = map.placement.edgeMargin;
+            BuildArea = new RectInt(m, m, map.settings.width - 2 * m, map.settings.height - 2 * m);
 
             var rocketDef = BuildingCatalog.Get(BuildingKind.Rocket);
             int zi = map.placement.zones.FindIndex(z => z.name == "Landing Pad");
             var c = zi >= 0 ? map.placement.zones[zi].cells.center : BuildArea.center;
             var fp = rocketDef.footprint;
             var rocket = Spawn(rocketDef, new RectInt(Mathf.RoundToInt(c.x - fp.x / 2f), Mathf.RoundToInt(c.y - fp.y / 2f), fp.x, fp.y), false);
-            yield return rocket.LandFromAbove(Camera.main);
-            gameObject.AddComponent<Crew>().Init(rocket);
+            var opening = OpeningCutscene.Begin(this, rocket);
+            while (!opening.Done) yield return null;
+            var crew = gameObject.AddComponent<Crew>();
+            crew.Init(rocket);
+            crew.StartOutside(opening.PlayerPosition);
             economy.crew = Crew.Picked.Length;
             if (GetComponent<BuilderMode>() == null) gameObject.AddComponent<BuilderMode>();
 
@@ -56,6 +59,7 @@ namespace RedFrontier.Outpost
             gameObject.AddComponent<MissionPauseMenu>();
             Ready = true;
             gameObject.AddComponent<MissionGuide>();
+            gameObject.AddComponent<MissionObjective>();
         }
 
         void Update()
@@ -65,16 +69,24 @@ namespace RedFrontier.Outpost
 
         Building Spawn(BuildingDef def, RectInt cells, bool construct)
         {
+            var site = SiteAt(cells);
             var go = new GameObject(def.name);
             go.transform.SetParent(transform, false);
-            go.transform.position = map.LatticeToWorld(cells.center.x, cells.center.y);
-            var state = new BuildingState(def);
+            go.transform.position = FootprintWorld(cells, site);
+            var state = new BuildingState(def) { yield = SiteSurvey.Yield(def.kind, site) };
             var b = go.AddComponent<Building>();
+            b.groundY = map.LatticeToWorld(cells.center.x, cells.center.y).y;
             b.Init(state, cells, construct);
             buildings.Add(b);
             if (!construct) economy.buildings.Add(state);
             return b;
         }
+
+        public Site SiteAt(RectInt cells) => SiteSurvey.Survey(map.Terrain, cells);
+
+        /// <summary>Where a sprite on these cells stands: footprint centre lifted to the mean ground height.</summary>
+        public Vector3 FootprintWorld(RectInt cells, Site site) =>
+            map.LatticeToWorld(cells.center.x, cells.center.y) + Vector3.up * Mathf.Round(site.height) / MarsMapGenerator.Ppu;
 
         public int CountOf(BuildingKind k) => buildings.FindAll(b => b.state.def.kind == k).Count;
 
