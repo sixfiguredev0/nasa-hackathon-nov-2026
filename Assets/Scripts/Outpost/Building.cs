@@ -22,6 +22,7 @@ namespace RedFrontier.Outpost
         SpriteRenderer sr;
         string shownNode;
         Sprite[] frames;
+        float stallLevel;
         float animStart;
         bool awaitingCrew, inFlight;
 
@@ -91,7 +92,9 @@ namespace RedFrontier.Outpost
                 sr.sprite = wreck;
             else if (frames.Length > 1)
                 sr.sprite = inFlight ? frames[0] : frames[Mathf.Min(frames.Length - 1, (int)((Time.time - animStart) / FrameSeconds))];
-            sr.color = UnderConstruction ? BlueprintTint : state.stalled ? StalledTint : Color.white;
+            // Ease the stalled tint: near-empty Energy stalls a building every other tick, which flickered red.
+            stallLevel = Mathf.MoveTowards(stallLevel, state.stalled ? 1f : 0f, Time.deltaTime * 1.5f);
+            sr.color = UnderConstruction ? BlueprintTint : Color.Lerp(Color.white, StalledTint, stallLevel);
         }
 
         /// <summary>Called by the crew when they finish building: shows the current upgrade node.</summary>

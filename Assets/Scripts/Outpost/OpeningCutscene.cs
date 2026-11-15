@@ -232,7 +232,8 @@ namespace RedFrontier.Outpost
             var hull = rocket.Renderer.bounds;
             if (t < EngineOut && Pulse(3.1f) > .25f)
                 Stream(ref flameAcc, 45f * dt, Kind.Flame, rocket.transform.position + Vector3.up * .3f);
-            Stream(ref trailAcc, 22f * dt, Kind.Trail, new Vector3(hull.center.x + .3f, hull.center.y + 1f, 0f));
+            // From the nose, drawn behind the hull: emitted mid-hull it painted a column of puffs straight down the falling ship.
+            Stream(ref trailAcc, 22f * dt, Kind.Trail, new Vector3(hull.center.x, hull.max.y - .4f, 0f));
             bed.volume = .3f + .5f * severity;
 
             warningTitle.gameObject.SetActive(calm || Pulse(1.25f) > .3f);
@@ -420,10 +421,10 @@ namespace RedFrontier.Outpost
 
             // The hull smokes from its side and keeps burning at the base.
             var hull = rocket.Renderer.bounds;
-            emitters.Add(new Emitter { at = new Vector3(hull.center.x + .6f, hull.max.y - 2.6f, 0f), kind = Kind.Smoke, rate = 5f });
+            emitters.Add(new Emitter { at = new Vector3(hull.center.x + .3f, hull.max.y - .5f, 0f), kind = Kind.Smoke, rate = 5f }); // above the nose, not a column across the hull
             emitters.Add(new Emitter { at = touchdown + new Vector3(.9f, .3f, 0f), kind = Kind.Fire, rate = 22f });
             emitters.Add(new Emitter { at = touchdown + new Vector3(-.6f, .2f, 0f), kind = Kind.Fire, rate = 14f });
-            emitters.Add(new Emitter { at = touchdown + new Vector3(.9f, .6f, 0f), kind = Kind.Smoke, rate = 4f });
+            emitters.Add(new Emitter { at = touchdown + new Vector3(2.4f, .4f, 0f), kind = Kind.Smoke, rate = 4f }); // beside the fin, so it rises clear of the hull
 
             // The recorder that plays the player's voice: a little box with a playback light.
             var at = Ground(recorderPlane) - new Vector3(3f / Ppu, 0f, 0f);
@@ -505,7 +506,7 @@ namespace RedFrontier.Outpost
                     break;
                 case Kind.Trail:
                     Set(p, Random.Range(1.2f, 1.8f), new Vector3(Random.Range(-.2f, .2f), Random.Range(.2f, .5f), 0f), 3, 7,
-                        new Color32(64, 56, 64, 215), new Color32(110, 92, 96, 0), 20000);
+                        new Color32(64, 56, 64, 215), new Color32(110, 92, 96, 0), rocket.Renderer.sortingOrder - 1);
                     break;
                 case Kind.Fire:
                     Set(p, Random.Range(.35f, .7f), new Vector3(Random.Range(-.2f, .2f), Random.Range(.7f, 1.3f), 0f), 4, 1,
