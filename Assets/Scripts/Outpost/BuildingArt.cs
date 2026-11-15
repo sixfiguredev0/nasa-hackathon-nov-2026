@@ -20,11 +20,19 @@ namespace RedFrontier.Outpost
             { "rocket2", new Vector2(64, 21) }, // same landing base as Rocket.png (assumed, check in Play)
         };
 
+        /// <summary>Sheets that are not animations: solar strips go clean to dusty, green1 is a set of 16 designs. Show one frame.</summary>
+        static readonly Dictionary<string, int> StillFrame = new Dictionary<string, int>
+        {
+            { "solar1", 0 }, { "solar2", 0 }, // clean panels
+            { "green1", 0 },
+        };
+
         public static Sprite[] Get(BuildingDef def, UpgradeNode node, Vector2Int footprint)
         {
             if (cache.TryGetValue(node.id, out var s) && s != null && s[0] != null) return s;
             s = Sheet("Buildings/", node.id) ?? Sheet("Buildings/", def.kind.ToString())
                 ?? new[] { Placeholder(def.kind, node, footprint) };
+            if (StillFrame.TryGetValue(node.id, out int still) && still < s.Length) s = new[] { s[still] };
             cache[node.id] = s;
             return s;
         }
