@@ -19,9 +19,15 @@ namespace RedFrontier.Outpost
     /// </summary>
     internal sealed class OpeningCutscene : MonoBehaviour
     {
-        const float Duration = 15f, EngineOut = 2f, Impact = 3.5f, Wake = 4.4f, Stand = 5.9f;
-        const float RadioOn = 6.6f, PageTwo = 9.7f, RadioOff = 12.7f, RecorderOn = 999f, PullBack = 12.9f, Release = 14.4f; // RecorderOn: beat cut from the short version
-        const float StartHeight = 17f, StallHeight = 7f;
+        const float Duration = 17f, EngineOut = 1.3f, Touch = 1.9f, Break = 2.35f, Rest = 4.4f, Impact = 5f, Wake = 5.9f, Stand = 7.4f;
+        const float RadioOn = 8.1f, PageTwo = 11.2f, RadioOff = 14.2f, RecorderOn = 999f, PullBack = 14.4f, Release = 15.9f; // RecorderOn: beat cut from the short version
+        // The wreck sheet (Resources/Buildings/RocketWreck): intact, nose half, tail half, both halves at rest.
+        // Frames are 192x128, baked from the rocket art turned so the nose points down the lattice to the bottom left.
+        const int WreckW = 192, WreckH = 128;
+        static readonly Vector2 WreckPivotPx = new Vector2(96, 48), WreckDoorPx = new Vector2(0, 20), WreckFootPx = new Vector2(8, -12),
+            NoseTipPx = new Vector2(-44, -6), TailPx = new Vector2(40, 30);
+        static readonly Vector3 Heading = new Vector3(-.894f, -.447f, 0f); // nose direction, along the lattice
+        const float SlideLength = 14f, HalfGapPx = 5f, TailLag = 5f;
         const float SkipSeconds = 1f, Bars = .09f, Ppu = 16f, CharsPerSecond = 30f;
         const int South = 0, SouthEast = 1, SouthWest = 7, MaxPuffs = 260, Rate = 22050;
 
@@ -34,16 +40,16 @@ namespace RedFrontier.Outpost
 
         static readonly Cue[][] RadioLines =
         {
-            new[] { new Cue(6.8f, "You're alive. We crashed on Mars."), new Cue(8.1f, " I'm Marlonis. Earth can't hear us.") },
-            new[] { new Cue(9.8f, "Survive " + MissionPlan.DefaultSols + " sols. Solar dies at night,"), new Cue(11.1f, " so build batteries and a Gym.") },
+            new[] { new Cue(8.3f, "You're alive. We crashed on Mars."), new Cue(9.6f, " I'm Marlonis. Earth can't hear us.") },
+            new[] { new Cue(11.3f, "Survive " + MissionPlan.DefaultSols + " sols. Solar dies at night,"), new Cue(12.6f, " so build batteries and a Gym.") },
         };
         static readonly Cue[] RecorderLines = { new Cue(26.6f, "\"Check the communications log.\"") };
 
         // Eyelid openness keyframes (time, 0 shut .. 1 open): two heavy blinks before the eyes stay open.
         static readonly Vector2[] Blink =
         {
-            new Vector2(4.4f, 0f), new Vector2(4.85f, .35f), new Vector2(5.05f, .05f),
-            new Vector2(5.5f, .7f), new Vector2(5.6f, .45f), new Vector2(6.2f, 1f)
+            new Vector2(5.9f, 0f), new Vector2(6.35f, .35f), new Vector2(6.55f, .05f),
+            new Vector2(7f, .7f), new Vector2(7.1f, .45f), new Vector2(7.7f, 1f)
         };
 
         // Hull colours picked from Rocket.png so the debris reads as pieces of it.
@@ -57,7 +63,7 @@ namespace RedFrontier.Outpost
         static readonly Vector2 PanelSize = new Vector2(414, 87), WarningSize = new Vector2(330, 70),
             PromptSize = new Vector2(188, 24), RecorderSize = new Vector2(62, 44);
 
-        enum Kind { Smoke, Trail, Fire, Flame }
+        enum Kind { Smoke, Trail, Fire, Flame, Dust, Spark }
 
         sealed class Puff
         {
@@ -83,7 +89,11 @@ namespace RedFrontier.Outpost
         Camera cam;
         MarsEnvironmentController env;
         PixelPerfectCamera ppc;
-        Vector3 home, touchdown, basePlane, playerPlane, recorderPlane, shotA, shotB;
+        Vector3 home, touchdown, basePlane, playerPlane, recorderPlane, shotA, shotB, contact, entryFrom, gouged;
+        Sprite[] wreckSprites;
+        SpriteRenderer intact, noseHalf, tailHalf;
+        float dustAcc, sparkAcc;
+        bool settled;
         Sprite[] facings;
         SpriteRenderer astronaut, led;
         float t, last = -1f, hold, coverFade = -1f, trailAcc, flameAcc, noiseAt;
@@ -110,7 +120,7 @@ namespace RedFrontier.Outpost
         CanvasGroup recorderGroup, skipGroup;
 
         AudioSource alarmSource, bed, sfx;
-        AudioClip siren, rumble, ring, hiss, burst, click;
+        AudioClip siren, rumble, ring, hiss, burst, click, crunch;
         AudioClip[] marlonisVoice, playerVoice;
 
         /// <summary>Starts the opening on a freshly spawned rocket. Wait for <see cref="Done"/> before handing over control.</summary>
@@ -134,10 +144,15 @@ namespace RedFrontier.Outpost
 
             touchdown = rocket.transform.position;
             basePlane = new Vector3(touchdown.x, rocket.groundY, 0f);
-            playerPlane = basePlane + new Vector3(-3.25f, -1.75f, 0f);
-            recorderPlane = basePlane + new Vector3(-2f, -2.4f, 0f);
+            // The astronaut was thrown clear in front of the wreck.
+            playerPlane = basePlane + new Vector3(-1.4f, -3f, 0f);
+            recorderPlane = playerPlane + new Vector3(1.25f, -.65f, 0f);
             PlayerPosition = Ground(playerPlane);
-            shotA = touchdown + new Vector3(0f, 6.5f, 0f);
+            // Ground contact up-right of the resting place; the approach comes in on a straight line from off screen.
+            contact = touchdown - Heading * SlideLength;
+            entryFrom = contact - Heading * 24f + Vector3.up * 14f;
+            gouged = contact;
+            shotA = touchdown + new Vector3(6f, 7f, 0f);
             shotB = PlayerPosition + new Vector3(1.7f, 3f, 0f);
 
             if (env != null)
@@ -154,7 +169,9 @@ namespace RedFrontier.Outpost
             }
             if (Crew.Picked.Length > 0) facings = Crew.Facings(Crew.Picked[0]);
             rocket.InFlight = true;
+            DebrisClearing.Reset();
 
+            BuildWreck();
             BuildUi();
             BuildSounds();
             Loop(alarmSource, siren, .3f);
@@ -209,16 +226,19 @@ namespace RedFrontier.Outpost
         {
             bool calm = FrontierUi.ReduceMotion;
 
-            // 0-3.5 s: the rocket shakes down with the alarms going.
-            bool falling = t < Impact;
-            warning.gameObject.SetActive(falling && t > .25f);
-            alarm.color = new Color(1f, .16f, .12f, falling ? (calm ? .1f : .26f) * (.4f + .6f * Pulse(1.25f)) : 0f);
-            if (falling) Fall(calm, dt);
+            // 0-5 s: in on a straight line, nose-first into the ground, slide, break in two, rest; then a hard cut.
+            bool crashing = t < Impact;
+            warning.gameObject.SetActive(t < Touch && t > .25f);
+            alarm.color = new Color(1f, .16f, .12f, crashing ? (calm ? .1f : .26f) * (.4f + .6f * Pulse(1.25f)) * (t < Rest ? 1f : .5f) : 0f);
             if (!calm && Crossed(EngineOut)) GameAudio.Play(Sfx.RocketDescent);
-            if (Crossed(Impact)) Crash();
+            if (Crossed(Touch)) Touchdown();
+            if (Crossed(Break)) BreakApart();
+            if (Crossed(Rest)) Settle();
+            if (crashing) CrashIn(calm, dt);
+            if (Crossed(Impact)) CutToBlack();
             if (Crossed(Impact + .12f)) WakeShot();
-            flash.color = new Color(1f, 1f, 1f, !calm && t >= Impact && t < Impact + .12f ? 1f : 0f);
-            black.color = new Color(0f, 0f, 0f, t >= Impact && t < Wake && (calm || t >= Impact + .12f) ? 1f : 0f);
+            flash.color = new Color(1f, 1f, 1f, !calm && t >= Touch && t < Touch + .07f ? .85f : 0f);
+            black.color = new Color(0f, 0f, 0f, t >= Impact && t < Wake ? 1f : 0f);
 
             // 3.5-6.5 s: the eyes open on the wreckage and the astronaut gets up.
             float open = Openness();
@@ -227,7 +247,7 @@ namespace RedFrontier.Outpost
             lidBottom.gameObject.SetActive(lids);
             Edge(lidTop, .5f * (1f - open) + .002f, true);
             Edge(lidBottom, .5f * (1f - open) + .002f, false);
-            vision.color = new Color(.25f, .05f, .06f, t >= Wake ? .65f * (1f - Mathf.InverseLerp(Wake, 6.3f, t)) : 0f);
+            vision.color = new Color(.25f, .05f, .06f, t >= Wake ? .65f * (1f - Mathf.InverseLerp(Wake, 7.8f, t)) : 0f);
             Pose(calm);
 
             // 6.6-12.7 s: Marlonis on the damaged radio, then back out to the outpost (the recorder beat is cut).
@@ -243,41 +263,152 @@ namespace RedFrontier.Outpost
             skipFill.anchorMax = new Vector2(Mathf.Clamp01(hold / SkipSeconds), 1f);
         }
 
-        void Fall(bool calm, float dt)
+        void CrashIn(bool calm, float dt)
         {
-            float h = t < EngineOut ? Mathf.Lerp(StartHeight, StallHeight, t / EngineOut)
-                : StallHeight * (1f - Sqr((t - EngineOut) / (Impact - EngineOut)));
-            float severity = t / Impact;
-            float sway = calm ? 0f : Mathf.Round(Mathf.Sin(t * 31f) * (1f + 2f * severity)) / Ppu;
-            rocket.transform.position = Snap(touchdown + new Vector3(sway, h, 0f));
-            rocket.transform.rotation = Quaternion.Euler(0f, 0f, calm ? 0f : Mathf.Sin(t * 4.7f) * (1.5f + 4f * severity));
+            // Straight approach, accelerating; then a decelerating slide along the same line.
+            Vector3 at;
+            float slide = 0f;
+            if (t < Touch) at = Vector3.Lerp(entryFrom, contact, Mathf.Pow(t / Touch, 1.25f));
+            else
+            {
+                slide = Mathf.Clamp01((t - Touch) / (Rest - Touch));
+                at = Vector3.Lerp(contact, touchdown, 1f - Mathf.Pow(1f - slide, 2f));
+            }
 
-            // Thrusters sputter until they cut out; smoke streams off the hull all the way down.
-            var hull = rocket.Renderer.bounds;
-            if (t < EngineOut && Pulse(3.1f) > .25f)
-                Stream(ref flameAcc, 45f * dt, Kind.Flame, rocket.transform.position + Vector3.up * .3f);
-            // From the nose, drawn behind the hull: emitted mid-hull it painted a column of puffs straight down the falling ship.
-            Stream(ref trailAcc, 22f * dt, Kind.Trail, new Vector3(hull.center.x, hull.max.y - .4f, 0f));
-            bed.volume = .3f + .5f * severity;
+            if (!settled)
+            {
+                // The ship skips twice off the ground before it digs in and ploughs; the tail bounces a beat later.
+                var bounce = Vector3.up * Hop(t - Touch);
+                if (t < Break) intact.transform.position = Snap(at + bounce);
+                else
+                {
+                    // The tail half is torn loose and lags behind the nose as it digs in, then slides up into its resting gap.
+                    float open = calm ? 1f : Mathf.SmoothStep(0f, 1f, (t - Break) / .3f);
+                    float lag = TailLag * 4f * slide * (1f - slide) * (1f - slide) * open;
+                    noseHalf.transform.position = Snap(at + bounce - Heading * (HalfGapPx * (1f - open) / Ppu));
+                    tailHalf.transform.position = Snap(at - Heading * (lag - HalfGapPx * (1f - open) / Ppu) + Vector3.up * Hop(t - Touch - .14f));
+                }
+            }
 
-            warningTitle.gameObject.SetActive(calm || Pulse(1.25f) > .3f);
-            warningStatus.Text = t < .8f ? "Hull breach" : t < 1.4f ? "Cabin pressure low" : t < EngineOut ? "Thrusters failing"
-                : t < 2.9f ? "Engine failure" : "Brace for impact";
-            warningAltitude.Text = "Altitude " + Mathf.RoundToInt(h / StartHeight * 180f) * 10 + " m";
+            var tail = at + (Vector3)(TailPx / Ppu);
+            if (t < Touch)
+            {
+                // Thrusters sputter until they cut out; smoke streams off the tail all the way down.
+                if (t < EngineOut && Pulse(3.1f) > .25f) Stream(ref flameAcc, 45f * dt, Kind.Flame, tail);
+                Stream(ref trailAcc, 26f * dt, Kind.Trail, tail);
+                bed.volume = .3f + .5f * t / Touch;
 
-            float shake = calm ? 0f : (1f + 2.5f * severity * severity) / Ppu;
-            Aim(shotA + (Vector3)(Random.insideUnitCircle * shake), 1);
+                warningTitle.gameObject.SetActive(calm || Pulse(1.25f) > .3f);
+                warningStatus.Text = t < .5f ? "Hull breach" : t < .9f ? "Cabin pressure low" : t < EngineOut ? "Engine failure" : "Brace for impact";
+                warningAltitude.Text = "Altitude " + Mathf.RoundToInt(Mathf.Pow(1f - t / Touch, 1.25f) * 180f) * 10 + " m";
+            }
+            else if (t < Rest)
+            {
+                // Scraping along nose-first: a dust wall and sparks off the nose, a gouge left in the ground.
+                float speed = 1f - slide;
+                var nose = Ground(at + (Vector3)(NoseTipPx / Ppu));
+                Stream(ref dustAcc, 200f * speed * dt, Kind.Dust, nose);
+                Stream(ref sparkAcc, 70f * speed * dt, Kind.Spark, nose);
+                Stream(ref trailAcc, 14f * dt, Kind.Trail, tail);
+                if (t >= Break) Stream(ref dustAcc, 60f * speed * dt, Kind.Dust, Ground(tailHalf.transform.position + (Vector3)(TailPx / Ppu)));
+                Gouge(nose);
+                bed.volume = .9f * speed;
+            }
+
+            // Camera holds the landing site; it shakes in, kicks hard on impact, then eases in on the wreck.
+            float shake = calm ? 0f
+                : t < Touch ? (1f + 1.5f * t / Touch) / Ppu
+                : (7f * Mathf.Exp(-3f * (t - Touch)) + (t < Rest ? 2.5f * (1f - slide) : 0f)) / Ppu;
+            var shot = Vector3.Lerp(shotA, touchdown + new Vector3(2f, 4.5f, 0f),
+                calm ? 0f : Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(Touch, Impact, t)));
+            Aim(shot + (Vector3)(Random.insideUnitCircle * shake), 1);
         }
 
-        void Crash()
+        /// <summary>Height of the ship's bounce, <paramref name="since"/> seconds after it first touches down: a big hop, then a small one.</summary>
+        static float Hop(float since)
         {
+            if (since <= 0f) return 0f;
+            if (since < .45f) return 1.1f * 4f * (since / .45f) * (1f - since / .45f);
+            since -= .45f;
+            return since < .3f ? .35f * 4f * (since / .3f) * (1f - since / .3f) : 0f;
+        }
+
+        void Touchdown()
+        {
+            GameAudio.Play(Sfx.RocketTouchdown);
+            var nose = Ground(contact + (Vector3)(NoseTipPx / Ppu));
+            for (int i = 0; i < 70; i++) Emit(Kind.Dust, nose);
+            for (int i = 0; i < 24; i++) Emit(Kind.Spark, nose);
+        }
+
+        void BreakApart()
+        {
+            if (settled) return;
+            intact.enabled = false;
+            noseHalf.enabled = tailHalf.enabled = true;
+            sfx.PlayOneShot(crunch, .7f);
+            var gap = intact.transform.position + (Vector3)(WreckDoorPx / Ppu);
+            for (int i = 0; i < 18; i++) Emit(Kind.Spark, gap);
+            for (int i = 0; i < 16; i++) Emit(Kind.Dust, gap);
+        }
+
+        /// <summary>The halves come to rest: from here the Rocket building itself shows the wreck.</summary>
+        void Settle()
+        {
+            if (settled) return;
+            settled = true;
+            foreach (var piece in new[] { intact, noseHalf, tailHalf }) Destroy(piece.gameObject);
             rocket.transform.SetPositionAndRotation(touchdown, Quaternion.identity);
             rocket.InFlight = false;
+            rocket.Renderer.enabled = true;
+            rocket.ShowWreck(wreckSprites[3], WreckDoorPx, WreckFootPx);
+            Gouge(Ground(touchdown + (Vector3)(NoseTipPx / Ppu)));
             ScatterWreckage();
+        }
+
+        void CutToBlack()
+        {
+            Settle();
             alarmSource.Stop();
             bed.Stop();
-            GameAudio.Play(Sfx.RocketTouchdown);
             sfx.PlayOneShot(ring, .5f);
+        }
+
+        void BuildWreck()
+        {
+            var sheet = Resources.Load<Texture2D>("Buildings/RocketWreck");
+            wreckSprites = new Sprite[4];
+            for (int i = 0; i < 4; i++)
+                wreckSprites[i] = Sprite.Create(sheet, new Rect(i * WreckW, 0, WreckW, WreckH),
+                    new Vector2(WreckPivotPx.x / WreckW, WreckPivotPx.y / WreckH), Ppu);
+            rocket.Renderer.enabled = false; // the building shows again, as the wreck, once the pieces stop
+            int order = MarsMapGenerator.SortingOrderFor(rocket.groundY);
+            intact = Piece("Crashing rocket", wreckSprites[0], order, true);
+            noseHalf = Piece("Nose half", wreckSprites[1], order, false);
+            tailHalf = Piece("Tail half", wreckSprites[2], order, false);
+            intact.transform.position = Snap(entryFrom);
+        }
+
+        SpriteRenderer Piece(string name, Sprite sprite, int order, bool shown)
+        {
+            var sr = new GameObject(name).AddComponent<SpriteRenderer>();
+            sr.transform.SetParent(transform, false);
+            sr.sprite = sprite;
+            sr.sortingOrder = order;
+            sr.enabled = shown;
+            return sr;
+        }
+
+
+        /// <summary>Extends the dark furrow the nose ploughs, from where it last reached to <paramref name="to"/>.</summary>
+        void Gouge(Vector3 to)
+        {
+            var step = 2f / Ppu;
+            for (float d = Vector3.Distance(gouged, to); d >= step; d -= step)
+            {
+                gouged = Vector3.MoveTowards(gouged, to, step);
+                Pixel("Gouge", Snap(gouged) - new Vector3(4f, 1f, 0f) / Ppu, 8, 3, new Color32(70, 32, 30, 170), -998);
+            }
         }
 
         void WakeShot()
@@ -306,7 +437,7 @@ namespace RedFrontier.Outpost
             float rise = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(Stand, Stand + .4f, t));
             if (calm) rise = t >= Stand ? 1f : 0f;
             astronaut.transform.rotation = Quaternion.Euler(0f, 0f, 90f * (1f - rise)); // lying on their back, head to the left
-            int facing = t < 6.3f ? South : t < 6.6f ? SouthWest : t < 6.9f ? SouthEast : t < RadioOff + .1f ? South : SouthEast;
+            int facing = t < 7.8f ? South : t < 8.1f ? SouthWest : t < 8.4f ? SouthEast : t < RadioOff + .1f ? South : SouthEast;
             astronaut.sprite = facings[facing];
         }
 
@@ -376,9 +507,7 @@ namespace RedFrontier.Outpost
         void Finish(bool skipped)
         {
             Done = true;
-            rocket.transform.SetPositionAndRotation(touchdown, Quaternion.identity);
-            rocket.InFlight = false;
-            ScatterWreckage();
+            Settle();
             if (astronaut != null) Destroy(astronaut.gameObject);
             if (led != null) led.color = LedOff;
             alarmSource.Stop();
@@ -433,9 +562,9 @@ namespace RedFrontier.Outpost
                     source.Stop();
                     source.clip = null;
                 }
-            foreach (var clip in new[] { siren, rumble, ring, hiss, burst, click })
+            foreach (var clip in new[] { siren, rumble, ring, hiss, burst, click, crunch })
                 if (clip != null) Destroy(clip);
-            siren = rumble = ring = hiss = burst = click = null;
+            siren = rumble = ring = hiss = burst = click = crunch = null;
             foreach (var voice in new[] { marlonisVoice, playerVoice })
                 if (voice != null)
                     foreach (var clip in voice)
@@ -482,18 +611,22 @@ namespace RedFrontier.Outpost
                 var plane = basePlane + new Vector3(Mathf.Cos(angle) * reach, Mathf.Sin(angle) * reach * .55f, 0f);
                 var sprite = Track(Chunk(rng, i < 2, i < 14));
                 if (Vector2.Distance(plane, playerPlane) < 1.4f || Vector2.Distance(plane, recorderPlane) < .9f) continue;
-                Debris(plane, sprite);
+                var piece = Debris(plane, sprite, i < 14);
                 var top = Ground(plane) + Vector3.up * (sprite.rect.height * .6f) / Ppu;
-                if (i % 4 == 0) emitters.Add(new Emitter { at = top, kind = Kind.Smoke, rate = 2f });
-                if (i % 4 == 1) emitters.Add(new Emitter { at = top, kind = Kind.Fire, rate = 16f });
+                if (i % 4 == 0 || i % 4 == 1)
+                {
+                    var burning = new Emitter { at = top, kind = i % 4 == 0 ? Kind.Smoke : Kind.Fire, rate = i % 4 == 0 ? 2f : 16f };
+                    emitters.Add(burning);
+                    piece.onClear = () => burning.until = 0f; // clearing a piece puts out its fire
+                }
             }
 
-            // The hull smokes from its side and keeps burning at the base.
-            var hull = rocket.Renderer.bounds;
-            emitters.Add(new Emitter { at = new Vector3(hull.center.x + .3f, hull.max.y - .5f, 0f), kind = Kind.Smoke, rate = 5f }); // above the nose, not a column across the hull
-            emitters.Add(new Emitter { at = touchdown + new Vector3(.9f, .3f, 0f), kind = Kind.Fire, rate = 22f });
-            emitters.Add(new Emitter { at = touchdown + new Vector3(-.6f, .2f, 0f), kind = Kind.Fire, rate = 14f });
-            emitters.Add(new Emitter { at = touchdown + new Vector3(2.4f, .4f, 0f), kind = Kind.Smoke, rate = 4f }); // beside the fin, so it rises clear of the hull
+            // The torn break smokes and burns, and so does the tail.
+            var gap = touchdown + (Vector3)(WreckDoorPx / Ppu);
+            emitters.Add(new Emitter { at = gap, kind = Kind.Smoke, rate = 5f });
+            emitters.Add(new Emitter { at = gap + new Vector3(0f, -.3f, 0f), kind = Kind.Fire, rate = 22f });
+            emitters.Add(new Emitter { at = touchdown + (Vector3)(TailPx / Ppu), kind = Kind.Fire, rate = 12f });
+            emitters.Add(new Emitter { at = touchdown + (Vector3)(TailPx / Ppu) + new Vector3(0f, .3f, 0f), kind = Kind.Smoke, rate = 4f });
 
             // The recorder that plays the player's voice: a little box with a playback light.
             var at = Ground(recorderPlane) - new Vector3(3f / Ppu, 0f, 0f);
@@ -512,14 +645,17 @@ namespace RedFrontier.Outpost
             return sprite;
         }
 
-        void Debris(Vector3 plane, Sprite sprite)
+        DebrisPiece Debris(Vector3 plane, Sprite sprite, bool required)
         {
             int order = MarsMapGenerator.SortingOrderFor(plane.y), w = (int)sprite.rect.width;
             var at = Ground(plane);
-            Pixel("Debris shadow", at - new Vector3(Mathf.Floor(w / 2f + 1f) / Ppu, 0f, 0f), w + 2, 1, Shade, order);
+            var shadow = Pixel("Debris shadow", at - new Vector3(Mathf.Floor(w / 2f + 1f) / Ppu, 0f, 0f), w + 2, 1, Shade, order);
             var piece = Pixel("Debris", at + Vector3.up / Ppu, 1, 1, Color.white, order + 1);
             piece.sprite = sprite;
             piece.transform.localScale = Vector3.one;
+            var record = new DebrisPiece { sprite = piece, shadow = shadow, at = at, required = required };
+            DebrisClearing.Register(record); // the first tutorial mission is to clear these
+            return record;
         }
 
         /// <summary>A jagged, outlined piece of hull (or a torn fin) in the rocket's colours, pivot at its bottom centre.</summary>
@@ -588,6 +724,15 @@ namespace RedFrontier.Outpost
                 case Kind.Fire:
                     Set(p, Random.Range(.35f, .7f), new Vector3(Random.Range(-.2f, .2f), Random.Range(.7f, 1.3f), 0f), 4, 1,
                         new Color32(255, 230, 120, 255), new Color32(226, 70, 40, 60), 20001);
+                    break;
+                case Kind.Dust:
+                    // Kicked-up regolith: rolls outwards low and wide.
+                    Set(p, Random.Range(.8f, 1.6f), new Vector3(Random.Range(-2.2f, 1.6f), Random.Range(.2f, 1.4f), 0f), 5, 16,
+                        new Color32(232, 178, 128, 235), new Color32(214, 150, 108, 0), 20000);
+                    break;
+                case Kind.Spark:
+                    Set(p, Random.Range(.18f, .4f), new Vector3(Random.Range(-1f, 5f), Random.Range(1f, 5f), 0f), 2, 1,
+                        new Color32(255, 244, 170, 255), new Color32(255, 120, 40, 0), 20002);
                     break;
                 default:
                     Set(p, Random.Range(.15f, .28f), new Vector3(Random.Range(-.5f, .5f), Random.Range(-6f, -4f), 0f), 3, 1,
@@ -709,10 +854,10 @@ namespace RedFrontier.Outpost
             radioText = Dialogue(radio);
             radio.gameObject.SetActive(false);
 
-            // The player's own voice on a recorder, drawn as a little tape deck.
+            // The player's own voice on a recorder: Marlonis's panel with a little tape deck where the portrait goes.
             recorder = Anchored("Recorder", ui, new Vector2(.5f, Bars), new Vector2(.5f, 0f), new Vector2(0f, 10f), PanelSize);
             recorderGroup = recorder.gameObject.AddComponent<CanvasGroup>();
-            Sharp(PixelArt.Sliced("Frame", recorder, PixelArt.Frame(FrontierUi.Background, FrontierUi.Coral, FrontierUi.PanelLight, FrontierUi.Shadow)));
+            FrontierUi.Art("Blue frame", recorder, Resources.Load<Texture2D>("OutpostHud/Mission Guide Frame")); // same panel as Marlonis
             var deck = Sharp(PixelArt.Sliced("Tape deck", recorder, PixelArt.Frame(FrontierUi.PanelDark, FrontierUi.Mauve, FrontierUi.PanelLight, FrontierUi.Shadow)));
             FrontierUi.Place(deck.rectTransform, PanelSize, 16, 20, RecorderSize.x, RecorderSize.y);
             for (int i = 0; i < 2; i++)
@@ -722,7 +867,7 @@ namespace RedFrontier.Outpost
             }
             recorderLight = FrontierUi.Fill("Playback light", deck.transform, LedOff);
             FrontierUi.Place(recorderLight.rectTransform, RecorderSize, 50, 32, 5, 5);
-            Speaker(recorder, FrontierUi.CoralLight, "<b>Recorder</b> <color=#cfb9b8>|| Your voice</color>");
+            Speaker(recorder, Cyan, "<b>Recorder</b> <color=#9eb9cb>|| Your voice</color>");
             recorderText = Dialogue(recorder);
             recorder.gameObject.SetActive(false);
 
@@ -849,6 +994,12 @@ namespace RedFrontier.Outpost
             {
                 brown = (brown + White() * .06f) * .985f;
                 return brown * 4f + Mathf.Sin(s * 2f * Mathf.PI * 36f) * .25f;
+            });
+            // The hull snapping in two (the touchdown itself is the recorded SFX_ROCKET_TOUCHDOWN).
+            crunch = Synth("Crunch", .9f, s =>
+            {
+                brown = (brown + White() * .08f) * .98f;
+                return brown * 4f * Mathf.Exp(-4f * s) + White() * Mathf.Exp(-18f * s) * .6f;
             });
             ring = Synth("Ringing", 4.5f, s => Mathf.Sin(s * 2f * Mathf.PI * 3150f) * .12f * Mathf.Clamp01(s * 8f) * Sqr(1f - s / 4.5f));
             hiss = Synth("Static", 2f, s =>

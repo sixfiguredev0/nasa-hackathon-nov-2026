@@ -16,7 +16,7 @@ namespace RedFrontier.Outpost
     /// </summary>
     internal sealed class Skywatch : MonoBehaviour
     {
-        internal const float HeatPeak = .25f;        // Energy/s per Habitat or Greenhouse on the coldest night
+        internal const float HeatPeak = .12f;       // Energy/s per Habitat or Greenhouse on the coldest night
         internal const float WorkingDose = .12f;     // fitness lost by working through a whole direct-hit solar storm
         internal const float CleanCost = .05f;       // fitness spent cleaning the panels by hand
         internal const float CleanAbove = .15f;      // panel dust before the Clean button shows

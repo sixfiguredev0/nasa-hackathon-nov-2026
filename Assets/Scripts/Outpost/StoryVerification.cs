@@ -134,6 +134,8 @@ namespace RedFrontier.Outpost
             typeof(OpeningCutscene).GetMethod("Finish", Fields).Invoke(FindObjectOfType<OpeningCutscene>(), new object[] { true });
             yield return Until(() => Colony.Instance != null && Colony.Instance.Ready);
             yield return null;
+            DebrisClearing.ClearAllNow(); // the first objective is sweeping the wreckage; scripted steps start after it
+            yield return null;
             colony = Colony.Instance;
             objective = colony.GetComponent<MissionObjective>();
             training = colony.GetComponent<HistoricalTraining>();

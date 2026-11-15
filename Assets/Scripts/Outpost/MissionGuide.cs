@@ -8,8 +8,9 @@ namespace RedFrontier.Outpost
     internal sealed class MissionGuide : MonoBehaviour
     {
         static MissionGuide active;
-        static readonly Vector2 PanelSize = new Vector2(414, 87);
-        static readonly Vector2 EventSize = new Vector2(550, 178), SourceSize = new Vector2(550, 270), StorySize = new Vector2(500, 106);
+        static readonly Vector2 PanelSize = new Vector2(420, 100);
+        static readonly Vector2 EventSize = new Vector2(420, 158), SourceSize = new Vector2(480, 240), StorySize = new Vector2(420, 112);
+        const float CellX = 12, CellY = 14, CellSize = 72, TextLeft = 100;
         static readonly Vector2 Reference = new Vector2(960, 540);
 
         static readonly Color32 BlueFace = new Color32(34, 40, 55, 255);
@@ -18,7 +19,7 @@ namespace RedFrontier.Outpost
 
         static readonly Vector2 NotificationSize = new Vector2(42, 38);
 
-        RectTransform panel, notificationRect, textBox, portraitRect, speakerBox;
+        RectTransform panel, notificationRect, textBox, portraitRect, portraitCell, speakerBox;
         Colony colony;
         MissionObjective objective;
         HistoricalTraining training;
@@ -87,10 +88,18 @@ namespace RedFrontier.Outpost
             FrontierUi.Place(panel, Reference, (Reference.x - PanelSize.x) / 2,
                 Reference.y - PanelSize.y - 24, PanelSize.x, PanelSize.y);
 
-            FrontierUi.Art("Blue frame", panel, Resources.Load<Texture2D>("OutpostHud/Mission Guide Frame"));
-            var portrait = FrontierUi.Art("Hologram", panel, portraitArt);
+            // Sliced frame (stays crisp at every panel size) plus a fixed square portrait cell, so the head never stretches or drifts.
+            var frame = PixelArt.Sliced("Blue frame", panel, PixelArt.Frame(BlueFace, BlueEdge, BlueEdge, BlueFace));
+            frame.pixelsPerUnitMultiplier = 1f;
+            frame.raycastTarget = true;
+            var cell = PixelArt.Sliced("Portrait cell", panel, PixelArt.Frame(new Color32(14, 20, 32, 255), new Color32(70, 101, 130, 255),
+                new Color32(70, 101, 130, 255), new Color32(14, 20, 32, 255)));
+            cell.pixelsPerUnitMultiplier = 1f;
+            portraitCell = cell.rectTransform;
+            FrontierUi.Place(portraitCell, PanelSize, CellX, CellY, CellSize, CellSize);
+            var portrait = FrontierUi.Art("Hologram", portraitCell, portraitArt);
             portraitRect = portrait.rectTransform;
-            FrontierUi.Place(portraitRect, PanelSize, 9, 0, 77, 78);
+            FrontierUi.Place(portraitRect, new Vector2(CellSize, CellSize), 4, 4, CellSize - 8, CellSize - 8);
 
             var bodyFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             speakerBox = FrontierUi.Box("Speaker", panel);
@@ -101,21 +110,21 @@ namespace RedFrontier.Outpost
             speaker.alignment = TextAnchor.MiddleLeft;
             speaker.raycastTarget = false;
             speaker.text = "<b>Marlonis</b> <color=#9eb9cb>|| Mission Quest</color>";
-            FrontierUi.Place(speakerBox, PanelSize, 103, 7, 294, 16);
+            FrontierUi.Place(speakerBox, PanelSize, TextLeft, 7, PanelSize.x - TextLeft - 14, 16);
 
             textBox = FrontierUi.Box("Dialogue", panel);
             dialogue = textBox.gameObject.AddComponent<Text>();
             dialogue.font = bodyFont;
-            dialogue.fontSize = 15;
+            dialogue.fontSize = 14;
             dialogue.color = FrontierUi.Cream;
-            dialogue.alignment = TextAnchor.MiddleLeft;
+            dialogue.alignment = TextAnchor.UpperLeft;
             dialogue.raycastTarget = false;
             dialogue.supportRichText = false;
             dialogue.text = objective.Guidance;
-            FrontierUi.Place(textBox, PanelSize, 103, 23, 295, 37);
+            FrontierUi.Place(textBox, PanelSize, TextLeft, 26, PanelSize.x - TextLeft - 14, 44);
 
             next = BlueButton("Hide", panel);
-            FrontierUi.Place((RectTransform)next.transform, PanelSize, 328, 60, 72, 21);
+            FrontierUi.Place((RectTransform)next.transform, PanelSize, PanelSize.x - 86, PanelSize.y - 28, 72, 21);
             next.onClick.AddListener(() =>
             {
                 if (MissionPauseMenu.BlocksGameplayInput) return;
@@ -225,17 +234,18 @@ namespace RedFrontier.Outpost
             bool storyStep = !exercise && objective.Stage > MissionObjective.Step.Training;
             bool choosing = training.State == HistoricalTraining.Phase.Choice && !showingSource && exercise;
             var size = showingSource ? SourceSize : exercise ? EventSize : storyStep ? StorySize : PanelSize;
-            float textLeft = exercise || storyStep ? Mathf.Round(size.x * .255f) : 103; // clear the portrait divider in the wider original frame
+            float textLeft = TextLeft, textWidth = size.x - textLeft - 14;
             FrontierUi.Place(panel, Reference, (Reference.x - size.x) / 2,
                 Reference.y - size.y - 24, size.x, size.y);
-            FrontierUi.Place(portraitRect, size, 9, 0, 77, 78);
-            FrontierUi.Place(speakerBox, size, textLeft, 7, size.x - textLeft - 16, 16);
-            FrontierUi.Place(textBox, size, textLeft, 23, size.x - textLeft - 16, showingSource ? 205 : exercise ? 67 : storyStep ? 54 : 37);
-            dialogue.fontSize = showingSource ? 12 : 15;
-            FrontierUi.Place((RectTransform)next.transform, size, size.x - 88, size.y - 27, 72, 21);
-            FrontierUi.Place((RectTransform)shelter.transform, size, 16, 99, 250, 32);
-            FrontierUi.Place((RectTransform)work.transform, size, 282, 99, 250, 32);
-            FrontierUi.Place((RectTransform)source.transform, size, 16, size.y - 27, 100, 21);
+            FrontierUi.Place(portraitCell, size, CellX, CellY, CellSize, CellSize);
+            FrontierUi.Place(speakerBox, size, textLeft, 7, textWidth, 16);
+            FrontierUi.Place(textBox, size, textLeft, 26, textWidth, showingSource ? size.y - 62 : exercise ? 66 : storyStep ? 54 : 44);
+            dialogue.fontSize = showingSource ? 12 : 14;
+            FrontierUi.Place((RectTransform)next.transform, size, size.x - 86, size.y - 28, 72, 21);
+            float half = (size.x - 2 * 12 - 8) / 2;
+            FrontierUi.Place((RectTransform)shelter.transform, size, 12, size.y - 58, half, 24);
+            FrontierUi.Place((RectTransform)work.transform, size, 20 + half, size.y - 58, half, 24);
+            FrontierUi.Place((RectTransform)source.transform, size, textLeft, size.y - 28, 100, 21);
             shelter.gameObject.SetActive(choosing);
             work.gameObject.SetActive(choosing);
             source.gameObject.SetActive(exercise && !showingSource && training.Observation != null);
@@ -244,10 +254,10 @@ namespace RedFrontier.Outpost
             action.gameObject.SetActive(storyStep && (repair || decide));
             action.label.Text = decide ? "Make your choice" : "Repair radio";
             action.interactable = decide || (repair && story.RadioAffordable);
-            FrontierUi.Place((RectTransform)action.transform, size, textLeft, size.y - 27, 160, 21);
+            FrontierUi.Place((RectTransform)action.transform, size, textLeft, size.y - 28, 150, 21);
             bool offline = story != null && story.MarlonisOffline;
             speaker.text = offline ? "<b>Mission Control</b> <color=#9eb9cb>|| Earth</color>" : "<b>Marlonis</b> <color=#9eb9cb>|| Mission Quest</color>";
-            portraitRect.gameObject.SetActive(!offline);
+            portraitCell.gameObject.SetActive(!offline);
             next.label.Text = showingSource ? "Back" : "Hide";
             if (showingSource) { dialogue.text = training.SourceDetails; return; }
             if (!exercise) { dialogue.text = objective.Guidance; return; }

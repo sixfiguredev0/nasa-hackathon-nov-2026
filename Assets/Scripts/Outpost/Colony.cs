@@ -75,6 +75,7 @@ namespace RedFrontier.Outpost
             gameObject.AddComponent<MissionPauseMenu>();
             Ready = true;
             gameObject.AddComponent<MissionGuide>();
+            gameObject.AddComponent<DebrisClearing>(); // the first objective: sweep the wreckage
             gameObject.AddComponent<MissionObjective>();
             gameObject.AddComponent<HistoricalTraining>();
             gameObject.AddComponent<StoryArc>();

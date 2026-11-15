@@ -38,6 +38,7 @@ namespace RedFrontier.Outpost
         {
             public SpriteRenderer sr;
             public Sprite[] dirs;
+            public Sprite[] hammer; // build animation (male only); null = plain bounce
             public int facing;
             public bool nearRocket; // on the door / ladder: draw in front of the rocket
         }
@@ -46,6 +47,8 @@ namespace RedFrontier.Outpost
         ColonyEconomy eco;
         readonly List<Member> members = new List<Member>();
         readonly List<Building> jobs = new List<Building>();
+        readonly List<DebrisPiece> debris = new List<DebrisPiece>();
+        const float ClearSeconds = 1.1f;
         float jobProgress;
         internal bool Sheltering { get; private set; }
         internal bool Sheltered { get; private set; }
@@ -107,7 +110,7 @@ namespace RedFrontier.Outpost
                 var go = new GameObject("Astronaut " + who);
                 go.transform.SetParent(transform, false);
                 go.SetActive(false); // inside the rocket
-                members.Add(new Member { sr = go.AddComponent<SpriteRenderer>(), dirs = dirs });
+                members.Add(new Member { sr = go.AddComponent<SpriteRenderer>(), dirs = dirs, hammer = who == Astronaut.Male ? Hammer() : null });
             }
             StartCoroutine(Work());
         }
@@ -139,6 +142,18 @@ namespace RedFrontier.Outpost
             return true;
         }
 
+        /// <summary>Queue wreckage for sweeping. False means nobody can come.</summary>
+        internal bool RequestClear(List<DebrisPiece> pieces)
+        {
+            if (members.Count == 0) return false;
+            foreach (var p in pieces)
+            {
+                p.queued = true;
+                debris.Add(p);
+            }
+            return true;
+        }
+
         /// <summary>True while a job on this building is queued or under way.</summary>
         internal bool Busy(Building b) => b != null && jobs.Contains(b);
 
@@ -158,7 +173,7 @@ namespace RedFrontier.Outpost
                     GameAudio.StartLoop(Sfx.ConstructLoop, this);
                     while (jobProgress < buildSeconds)
                     {
-                        Hop(job, jobProgress, 4f);
+                        Build(job, jobProgress);
                         yield return null;
                         jobProgress += Time.deltaTime * eco.Efficiency;
                     }
@@ -168,6 +183,28 @@ namespace RedFrontier.Outpost
                     job.FinishBuild();
                     GameAudio.Play(Sfx.BuildComplete); // only here: the crew actually finished work, never on scene setup
                     continue; // straight on to the next queued job
+                }
+
+                if (debris.Count > 0)
+                {
+                    // Sweep the wreckage nearest the crew first, hammering it apart before it is gone.
+                    var here = members.Count > 0 ? members[0].sr.transform.position : door;
+                    debris.Sort((a, b) => (a.at - here).sqrMagnitude.CompareTo((b.at - here).sqrMagnitude));
+                    var piece = debris[0];
+                    yield return All((m, i) => Exit(m, i * 0.4f, door, foot, DebrisStand(piece, i)));
+                    GameAudio.StartLoop(Sfx.ConstructLoop, this);
+                    for (float w = 0f; w < ClearSeconds && jobs.Count == 0; w += Time.deltaTime * eco.Efficiency)
+                    {
+                        for (int i = 0; i < members.Count; i++) Strike(members[i], i, DebrisStand(piece, i), w);
+                        yield return null;
+                    }
+                    GameAudio.StopLoop(Sfx.ConstructLoop, this);
+                    if (jobs.Count == 0)
+                    {
+                        debris.Remove(piece);
+                        piece.Clear();
+                    }
+                    continue; // buildings come first; otherwise on to the next piece
                 }
 
                 var gym = GymToTrainAt();
@@ -196,6 +233,36 @@ namespace RedFrontier.Outpost
             if (eco.fitness >= trainBelow || Colony.Instance == null) return null;
             return Colony.Instance.buildings.Find(b => b.state.def.kind == BuildingKind.Gym && !b.UnderConstruction && !b.state.stalled);
         }
+
+        // Sheet "Crew/AstronautHammer" (32 px frames, 100 ms each): 0-3 turn side-on, 4-7 swing the hammer, 8 rest.
+        static readonly int[] Swing = { 4, 5, 6, 7, 7, 6, 5 };
+        const float HammerFrame = .1f;
+
+        static Sprite[] Hammer() => BuildingArt.Sheet("Crew/", "AstronautHammer", new Vector2(16, 2));
+
+        /// <summary>Crew stand in front of the building and work on it.</summary>
+        void Build(Building b, float t)
+        {
+            for (int i = 0; i < members.Count; i++) Strike(members[i], i, StandPoint(b, i), t);
+        }
+
+        /// <summary>Hammer crew turn side-on and swing at <paramref name="stand"/>; the rest face away and bounce.</summary>
+        void Strike(Member m, int i, Vector3 stand, float t)
+        {
+            m.facing = North;
+            if (m.hammer == null || m.hammer.Length < 8)
+            {
+                bool hop = Mathf.Repeat(t * 4f + i * 0.5f, 1f) < 0.5f;
+                Place(m, stand + (hop ? Vector3.up / Ppu : Vector3.zero));
+                return;
+            }
+            Place(m, stand);
+            float at = Mathf.Max(0f, t - i * .15f) / HammerFrame; // crew a little out of step
+            m.sr.sprite = m.hammer[at < 4f ? (int)at : Swing[(int)(at - 4f) % Swing.Length]];
+        }
+
+        /// <summary>Beside a piece of wreckage, on its left so the swing lands on it.</summary>
+        static Vector3 DebrisStand(DebrisPiece p, int i) => p.at + new Vector3(-1.1f - i * 1f, -.15f, 0f);
 
         /// <summary>Crew face the building and bounce in front of it (building or training).</summary>
         void Hop(Building b, float t, float speed)

@@ -86,7 +86,6 @@ namespace RedFrontier.Outpost
             bool recorder = entry.voice == StoryArc.Voice.Recorder, log = entry.voice == StoryArc.Voice.CommsLog,
                 broadcast = entry.voice == StoryArc.Voice.Broadcast, fromEarth = entry.voice == StoryArc.Voice.Earth;
             frame.sprite = log ? PixelArt.Frame(TermFace, TermEdge, new Color32(40, 70, 56, 255), FrontierUi.Shadow)
-                : recorder ? PixelArt.Frame(FrontierUi.Background, FrontierUi.Coral, FrontierUi.PanelLight, FrontierUi.Shadow)
                 : broadcast ? PixelArt.Frame(FrontierUi.PanelDark, FrontierUi.Mauve, FrontierUi.PanelLight, FrontierUi.Shadow)
                 : fromEarth ? PixelArt.Frame(EarthFace, EarthEdge, new Color32(70, 100, 140, 255), FrontierUi.Shadow)
                 : PixelArt.Frame(BlueFace, BlueEdge, new Color32(70, 101, 130, 255), new Color32(41, 57, 81, 255));
@@ -94,9 +93,9 @@ namespace RedFrontier.Outpost
             portrait.gameObject.SetActive(entry.voice == StoryArc.Voice.Marlonis);
             earth.gameObject.SetActive(fromEarth);
             noise.gameObject.SetActive(broadcast);
-            speaker.color = log ? (Color)TermEdge : recorder || broadcast ? (Color)FrontierUi.CoralLight : fromEarth ? (Color)EarthEdge : (Color)Cyan;
+            speaker.color = log ? (Color)TermEdge : broadcast ? (Color)FrontierUi.CoralLight : fromEarth ? (Color)EarthEdge : (Color)Cyan;
             speaker.text = log ? "<b>Comms log</b> <color=#8fbf9f>|| Recovered from the ship</color>"
-                : recorder ? "<b>Recorder</b> <color=#cfb9b8>|| Your voice, before the crash</color>"
+                : recorder ? "<b>Recorder</b> <color=#9eb9cb>|| Your voice, before the crash</color>"
                 : broadcast ? "<b>Broadcast</b> <color=#cfb9b8>|| Old signal from Earth</color>"
                 : fromEarth ? "<b>Mission Control</b> <color=#b9c9db>|| Earth, via orbiter relay</color>"
                 : "<b>Marlonis</b> <color=#9eb9cb>|| Ship computer</color>";
